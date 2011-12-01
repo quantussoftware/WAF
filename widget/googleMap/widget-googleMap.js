@@ -17,92 +17,93 @@
 * You should have received a copy of the GNU General Public License version 3
 * along with Wakanda. If not see : http://www.gnu.org/licenses/
 */
+
 /**
 * @author       The Wakanda Team
-* @date			august 2010
-* @version		0.1
+* @date		august 2010
+* @version	0.1
 *
 */
+WAF.Widget.provide(
+    'GoogleMap',   
+    {},
 
-/**
-* WAF Template widget
-*
-* @namespace WAF.widget
-* @class Template
-* @param {object} config configuration of the widget
-*/
-WAF.widget.GoogleMap = function(config) {
-    var widget = {};
+    /**
+     * The constructor of the widget
+     *
+     * @shared
+     * @property constructor
+     * @type Function
+     **/
+    function WAFWidget(config, data, shared) {
+        config                  = config                  || {};
+        config['id']            = config['id']            || {};
+        config['data-mapType']  = config['data-mapType']  || '0';    
+        config['data-position'] = config['data-position'] || '0'; 
 
-    config = config || {};
+        if (this.source) {
+            this.source.addListener(
+                'onAttributeChange', 
+                function(event) {
+                    var widget = event.data.widget;
+                    if (widget != null) {                              
+                        // base url of static google map
+                        var map = 'http://maps.google.com/maps/api/staticmap?sensor=false';
 
-    // {String} id id of the widget
-    config['id'] = config['id'] || {};
+                        // fix the position on wich is centered the map
+                        map += '&center=' + event.dataSource.getAttribute(widget.att.name).getValue();
 
-    // {String} data-type type of the widget
-    config['data-mapType'] = config['data-mapType'] || "hybrid";
+                        // fix a zoom value
+                        map += '&zoom=' + $('#' + widget.divID).attr('data-zoom');
 
-    // TODO Give all the attributes of the widget
+                        // Map type :
+                        map += '&maptype=' + $('#' + widget.divID).attr('data-mapType');
 
-    // TODO
-    // Source code of the widget
+                        // fix the size of the image
+                        map += '&size=' + $('#' + widget.divID).css('width').replace('px', '') + 'x' + $('#' + widget.divID).css('height').replace('px', '');
 
-    // get the widget-dom
-    var theDOMWidget = document.getElementById(config.id);
+                        // add a marker on the map
+                        map += '&markers=color:' + $('#' + widget.divID).attr('data-marker-color') + '|size:' + $('#' + widget.divID).attr('data-marker-size') + '|label:' + $('#' + widget.divID).attr('data-marker-label') + '|' + event.dataSource.getAttribute(widget.att.name).getValue();
+                        event.data.domNode.src = map;
+                    }
+                },
+                {
+                    attributeName: this.att.name
+                },
+                {
+                    widget : this, 
+                    domNode: document.getElementById(config.id)
+                });      
+        } else {
+            var map = 'http://maps.google.com/maps/api/staticmap?sensor=false';
 
-    // Build the drawing function
-    var drawTheMap = function DrawTheMap(inPosition, inZoom, inDOMWidget) {
+            // fix the position on wich is centered the map
+            map += '&center=' + config['data-position'];
+
+            // fix a zoom value
+            map += '&zoom=' + config['data-zoom'];
+
+            // Map type :
+            map += '&maptype=' + $('#' + config.id).attr('data-mapType');
+
+            // fix the size of the image
+            map += '&size=' + $('#' + config.id).css('width').replace('px','') + 'x' + $('#' + config.id).css('height').replace('px','');
+
+            // add a marker on the map
+            map += '&markers=color:' + $('#' + config.id).attr('data-marker-color') + '|size:' + $('#' + config.id).attr('data-marker-size') + '|label:' + $('#' + config.id).attr('data-marker-label') + '|' + config['data-position'];
+            document.getElementById(config.id).src = map;
+        }
+    },{
         
-        // base url of static google map
-        var map = "http://maps.google.com/maps/api/staticmap?sensor=false";
-
-        // fix the position on wich is centered the map
-        map += "&center=" + inPosition;
-
-        // fix a zoom value
-        map += "&zoom=" + inZoom;
-		
-        // Map type :
-        map += "&maptype=" + $("#"+widget.divID).attr("data-mapType");
-
-        // fix the size of the image
-        map += "&size=" + $(inDOMWidget).css('width').replace('px','') + "x" + $(inDOMWidget).css('height').replace('px','');
-
-        // add a marker on the map
-        map += "&markers=color:red|label:P|" + inPosition;
-        inDOMWidget.src = map;
     }
-
-    // Draw the map when no value or datasource is avilable
-    drawTheMap('0', config['data-zoom'], theDOMWidget);
-
-    // Creae the widget and make it auto-update when the source is modified
-    var theGMWidget = WAF.AF.createWidget(config['id'], config['data-binding'] ? config['data-binding'] : '', config);
-
-    if (theGMWidget != null && theGMWidget.source != null) {
-        theGMWidget.source.addListener("attributeChange", function(event)
-        {
-            var widget = event.data.widget;
-            if (widget != null) {
-                drawTheMap(event.dataSource.getAttribute(widget.att.name).getValue(), $("#"+widget.divID).attr("data-zoom"), event.data.domNode);
-            }
-        } , {
-            attributeName: theGMWidget.att.name
-        }, {
-            widget:theGMWidget, 
-            domNode:theDOMWidget
-        });       
-    }
+    );
 
 
-    // add in WAF.widgets
-    widget.kind = config['data-type'];
-    widget.id = config['id'];
-    widget.divID = config['id'];
-    widget.renderId = config['id'];
-    widget.ref = document.getElementById(config['id']);
 
-    WAF.widgets[config['id']] = widget;
 
-    return widget;
-}
+
+
+
+
+
+

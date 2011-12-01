@@ -71,7 +71,7 @@ WAF.addWidget({
     },
     {
         name        : 'data-overflow',
-        description : 'Overflow',
+        description : 'Scrollbar',
         type        : 'dropdown',
         options     : ['Hidden', 'Horizontal', 'Vertical', 'Both'],
         defaultValue: '_blank'

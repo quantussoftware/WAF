@@ -48,6 +48,8 @@ WAF.loadComponent = function (param) {
     attributeName = '',
     nbAttributes = 0,
     domObj = null,
+    sourceName = '',
+    styleUpdate = '',
     tabName = [];        
     
     param = param || {} ;
@@ -116,7 +118,10 @@ WAF.loadComponent = function (param) {
         // load the css
         tagStyle = document.createElement('style');
         tagStyle.setAttribute('id', 'waf-component-' + param.id);
-        tagStyle.innerHTML = icomponent.cache.style.replace(/{id}/g, param.id + '_');
+        styleUpdate = icomponent.cache.style.replace(/{id}/g, param.id + '_');
+        styleUpdate = styleUpdate.replace('#' + param.id + '_ ',  '#' + param.id);
+        tagStyle.innerHTML = styleUpdate;
+        
         tagWafCss = document.getElementById('waf-interface-css');
                             
         tagWafCss.parentNode.insertBefore(tagStyle, tagWafCss);
@@ -126,9 +131,19 @@ WAF.loadComponent = function (param) {
         tagScript.innerHTML = icomponent.cache.script;
         document.getElementsByTagName('head')[0].appendChild(tagScript);
         
-        // create the instance of the component                                  
-        Component = WAF.component[param.name];                                                              
-        myComp = new Component(param.id);        
+        // create the instance of the component                                          
+        myComp = new WAF.widget[param.name](param.data);
+        
+        // add existing source in source property
+        myComp.sources = {};
+                                    
+        if (sources) {
+            for (sourceName in source) {
+                if (sourceName.indexOf(param.id + '_') == 0) {
+                    myComp.sources[sourceName.replace(param.id + '_', '')] = source[sourceName];
+                }
+            }
+        } 
          
         if (myComp.load) {
             myComp.load(param.data);  
@@ -214,6 +229,7 @@ WAF.loadComponent = function (param) {
                                                       
                                 icomponent.cache.style = reqCss.responseText;
                                 styleUpdate = reqCss.responseText.replace(/{id}/g, param.id + '_'); 
+                                styleUpdate = styleUpdate.replace('#' + param.id + '_ ',  '#' + param.id);
 
                                 tagStyle = document.createElement('style');
                                 tagStyle.setAttribute('id', 'waf-component-' + param.id);
@@ -255,7 +271,9 @@ WAF.loadComponent = function (param) {
                                 tagScript = null,
                                 tabScript = [],
                                 Component = null,
-                                myComp = null;
+                                myComp = null,
+                                codeProvide = '',
+                                sourceName = '';
   
                                 // separate the code of the component
                                 // from the script
@@ -266,7 +284,7 @@ WAF.loadComponent = function (param) {
                                 if (tabScript.length > 1) {
                                     
                                     // check if code already loaded in parallele
-                                    if (!WAF.component[param.name]) {                                                                        
+                                    if (!WAF.widget[param.name]) {                                                                        
                                         codeComponent = tabScript[0] + '})();// @endlock';
                                         includeJavascript = tabScript[1];                                                                       
                                                              
@@ -276,23 +294,38 @@ WAF.loadComponent = function (param) {
                                         document.getElementsByTagName('head')[0].appendChild(tagScript);
                                     
                                         icomponent.cache.script = includeJavascript;  
-                                        
+                                                                                                                                                                                                     
                                         // add internal methods dynamically                                        
                                         codeComponent = codeComponent.replace("constructor (id) {" ,
                                             "constructor (id) { \r\n\r\n\tfunction getHtmlObj (componentId) { \r\n\t\treturn $('#' + id + '_' + componentId);\r\n\t};" +
                                             "\r\n\r\n\tfunction getHtmlId (componentId) { \r\n\t\treturn id + '_' + componentId;\r\n\t};"                                    
                                             );
-     
-                                        Component = eval(codeComponent);
-                                
-                                        // add the code of the component                                                                       
-                                        WAF.component[param.name] = Component;
+                                                
+                                        // add Provide method
+                                        codeProvide = "WAF.Widget.provide('" + param.name + "',{}, function WAFWidget (config, data, shared) {"
+                                        codeProvide += "var Component = " + codeComponent + "\r\n\t";
+                                        codeProvide += "var component = new Component(config.id); \r\n\t";
+                                        codeProvide += "var propName = ''; for (propName in component) { this[propName] = component[propName];}\r\n\t";
+                                        codeProvide += "\r\n\t},{});";
+       
+                                        eval(codeProvide);        
                                     } else {
                                     // DO NOTHING
                                     }
-                                    Component = WAF.component[param.name]
-                                    myComp = new Component(param.id);                               
-                                                       
+
+                                    myComp = new WAF.widget[param.name](param.data);
+
+                                    // add existing source in source property
+                                    myComp.sources = {};
+                                    
+                                    if (sources) {
+                                        for (sourceName in source) {
+                                            if (sourceName.indexOf(param.id + '_') == 0) {
+                                                myComp.sources[sourceName.replace(param.id + '_', '')] = source[sourceName];
+                                            }
+                                        }
+                                    }                                    
+                                                     
                                     if (myComp.load) {
                                         myComp.load(param.data);  
                                     }                                                                

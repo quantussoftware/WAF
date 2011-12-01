@@ -1,0 +1,161 @@
+/*
+* Copyright (c) 4D, 2011
+*
+* This file is part of Wakanda Application Framework (WAF).
+* Wakanda is an open source platform for building business web applications
+* with nothing but JavaScript.
+*
+* Wakanda Application Framework is free software. You can redistribute it and/or
+* modify since you respect the terms of the GNU General Public License Version 3,
+* as published by the Free Software Foundation.
+*
+* Wakanda is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* Licenses for more details.
+*
+* You should have received a copy of the GNU General Public License version 3
+* along with Wakanda. If not see : http://www.gnu.org/licenses/
+*/
+/**
+ * Widget checkbox
+ *
+ * Includes mandatory rules for the checkbox widget
+ *
+ * @link /walib/WAF/widget/css/widget.css
+ *
+*/
+
+
+/**
+ * -------------------------------------------------------
+ * @section Main
+ * -------------------------------------------------------
+*/
+.waf-fileUpload {
+    font-family: 'Droid Sans', sans-serif;
+    font-size: 11px;
+    color: rgb(175, 175, 175);
+    border: 1px solid rgb(153, 153, 153);
+    border-radius: 4px;
+    display: inline-block;
+    height: auto;
+    overflow: visible !important;
+}
+.waf-fileUpload p{
+    color: rgb(175, 175, 175);
+    padding: 4px;
+    margin: 13px 0 14px 0;
+    vertical-align: middle;
+}
+
+.waf-fileUpload-files{
+    position: relative;
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    /*background-color: inherit;*/
+    color: rgb(0, 0, 0);
+    cursor: default;
+}
+.waf-fileUpload-tabContainer {
+    
+}
+.waf-fileUpload-fileItem{
+    height: 15px;
+}
+.waf-fileUpload-files tr:hover {
+    background-color: rgb(175, 175, 175);
+}
+.waf-fileUpload-filename{
+    padding: 0 0 0 6px;
+}
+.waf-fileUpload-filedelete{
+    width: 19px;
+    padding: 0;
+    text-align: center;
+}
+.waf-fileUpload-filedelete button {
+    display: block;
+    cursor: pointer;
+    width: 13px;
+    height: 13px;
+    background: url(/walib/WAF/widget/fileUpload/icons/delete.png) no-repeat;
+    border: 0 none;
+    display: none;
+}
+
+#waf-notify-container {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    margin: 10px;
+    font-size: 11px;
+    font-family: "Lucida grande", "Segoe UI", "Tahoma", "sans-serif";
+}
+
+#waf-notify-container #waf-notify {
+    display: none;
+}
+
+.waf-fileUpload-confirm {
+    outline-width: 0px; 
+    outline-style: initial; 
+    outline-color: initial; 
+    height: auto; 
+    width: 400px; 
+    top: 420px; 
+    left: 750px; 
+    display: block; 
+    z-index: 1002; 
+}
+
+.waf-fileUpload-popup {
+    position: absolute;
+    width: 210px;
+    left: 76px;
+    top: 42px;
+    border: 1px solid rgb(255, 255, 255);
+    background-color: rgb(255, 255, 255);
+    
+	-webkit-box-shadow: 0 0 10px rgb(0, 0, 0);
+	   -moz-box-shadow: 0 0 10px rgb(0, 0, 0);
+	        box-shadow: 0 0 10px rgb(0, 0, 0);
+	
+	-webkit-border-radius: 3px;
+	   -moz-border-radius: 3px;
+	    -ms-border-radius: 3px;
+	     -o-border-radius: 3px;
+	        border-radius: 3px;
+}
+
+.waf-fileUpload-popup:before {
+	position: absolute;
+    content: '';
+    background-color: inherit;
+    /*background-image: inherit;*/
+    width: 15px;
+    height: 15px; 
+	left: 90px;
+	top: -9px;
+    border-top: 1px solid rgb(255, 255, 255);
+    border-left: 1px solid rgb(255, 255, 255);
+    -webkit-transform: rotate(45deg);
+       -moz-transform: rotate(45deg);
+            transform: rotate(45deg);
+    
+	-webkit-box-shadow: -3px -3px 3px rgba(0, 0, 0, 0.3);
+	   -moz-box-shadow: -3px -3px 3px rgba(0, 0, 0, 0.3);
+	        box-shadow: -3px -3px 3px rgba(0, 0, 0, 0.3);
+}
+
+.waf-fileUpload-btnUpload {
+    background-image: url("/walib/WAF/widget/fileUpload/images/upload.png");
+    border: 0 none;
+    background-color: transparent;
+}
+
+.waf-fileUpload-container {
+    overflow: visible !important;
+    border-style: none;
+}

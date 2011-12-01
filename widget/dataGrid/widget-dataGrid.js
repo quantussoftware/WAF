@@ -17,8 +17,38 @@
  *
  * @include			copyright.txt
  */
-WAF.classes.DataGrid = function(options)
-{
+WAF.classes.DataGrid = function (config) {
+        
+        var rowHeight;
+        (WAF.PLATFORM.modulesString === "mobile") ? rowHeight = 50 : rowHeight = 25;
+                   
+        config.dataSource = config.dataSource || null;
+        if (typeof config.inDesign === 'undefined') {
+            config.inDesign = false;
+        }
+
+        config.colNames = config.colNames ? config.colNames.split(",") : null;
+        config.colAttributes = config.colAttributes ? config.colAttributes.split(",") : null;
+
+        options = {
+            columns         : config.columns || null,
+            colNames        : config.colNames,
+            colAttributes   : config.colAttributes,
+            colWidth        : config.colWidth,
+            parentNode      : config.id,
+            cacheSize       : 0,
+            rowHeight       : rowHeight,
+            dataSource      : WAF.source[config.dataSource],
+            subscriberID    : config.id,
+            inDesign        : config.inDesign,
+            cls             : config.cls,
+            included	: config.included,
+            selMode		: config.selMode,
+            mustDisplayError: config.mustDisplayError,
+            errorDiv	: config.errorDiv
+        }       
+        
+        this.widget = $$(config.id);
 
 	// Private
 	this._private = {
@@ -85,7 +115,7 @@ WAF.classes.DataGrid = function(options)
 						{
 							colAttributes[i].sortable = true;
 						}
-						if (colAttributes[i].readOnly === undefined)
+						if (colAttributes[i].readOnly === undefined || colAttributes[i].readOnly == 'false')
 						{
 							colAttributes[i].readOnly = false;
 						}
@@ -106,7 +136,7 @@ WAF.classes.DataGrid = function(options)
 				dataGrid.isIncluded = options.included || false;
 				
 				if (options.errorDiv != null)
-					dataGrid.setErrorDiv(options.errorDiv);
+					dataGrid.widget.setErrorDiv(options.errorDiv);
 					
 				if (options.mustDisplayError != null)
 					dataGrid.allowErrorDisplay(options.mustDisplayError);
@@ -137,7 +167,7 @@ WAF.classes.DataGrid = function(options)
 						var col = cols[i];
 						if (col.format != null && typeof(col.format) == 'string')
 						{
-							col.format = { format : col.format };
+							col.format = {format : col.format};
 						}
 						if (col.colID == null && col.sourceAttID != null)
 						{
@@ -251,19 +281,7 @@ WAF.classes.DataGrid = function(options)
 		return this;
 
 	}
-	
-	this.setErrorDiv = function(div)
-	{
-		if (typeof div === 'string')
-		{
-			if (div == "")
-				div = null;
-			else
-				div = $("#"+div);
-		}
-		this._private.globals.errorDiv = div;
-	}
-	
+		
 	this.allowErrorDisplay = function(display)
 	{
 		if (typeof display === 'boolean')
@@ -271,11 +289,6 @@ WAF.classes.DataGrid = function(options)
 		return this._private.globals.mustDisplayError;
 	}
 	
-	this.getErrorDiv = function()
-	{
-		return this._private.globals.errorDiv;
-	}
-
 	this.redraw = function()
 	{
 
@@ -347,7 +360,7 @@ WAF.classes.DataGrid = function(options)
 		}
 		if (cont)
 		{
-			var errordiv = gridController.dataGrid.getErrorDiv();
+			var errordiv = gridController.dataGrid.widget.getErrorDiv();
 			event.message = event.userData.errorMessage || null;
 			WAF.ErrorManager.displayError(event, errordiv);
 		}
@@ -355,10 +368,19 @@ WAF.classes.DataGrid = function(options)
 	
 	this.gridController.getColumnCount = function(grid)
 	{
+            var 
+            result,
+            columnDef;
+            
+            columnDef = this.dataGrid._private.globals.columnsDefinition;
 
-		//WAF.utils.debug.console.log('[DataGrid] WAF.classes.GridController.getColumnCount called');
+            if (typeof(columnDef) == 'object') {
+                result = columnDef.length;
+            } else {
+                result = 0;
+            }
 
-		return this.dataGrid._private.globals.columnsDefinition.length;
+            return result;
 	}
 
 	this.gridController.getRowCount = function(grid)
@@ -378,7 +400,7 @@ WAF.classes.DataGrid = function(options)
 				 onSuccess: this.parseElement, 
 				 onFailure : this.parseElement, 
 				 delay:10, 
-				 delayID: this.dataGrid.subscriberID },
+				 delayID: this.dataGrid.subscriberID},
 			 this.dataGrid)
 		// return blank array since we'll call handler that will populate this
 		return [];
@@ -499,7 +521,7 @@ WAF.classes.DataGrid = function(options)
 					{
 						var cell = row.cells[attributeCount];
 						if (cell != null)
-							renderedContent = col.renderer({ value: entAtt, rowNumber:event.position, dataSource:event.dataSource, cellDiv: cell.insideCell, rowValue: elem});
+							renderedContent = col.renderer({value: entAtt, rowNumber:event.position, dataSource:event.dataSource, cellDiv: cell.insideCell, rowValue: elem});
 					}
 				}
 
@@ -532,6 +554,10 @@ WAF.classes.DataGrid = function(options)
 								rowContents.push("");
 							}
 						}
+					}
+					else
+					{
+						rowContents.push("##wrong reference##");
 					}
 				}
 				else
@@ -593,7 +619,7 @@ WAF.classes.DataGrid = function(options)
 	this.getSortIndicator = function()
 	{
 	// One or all elements may be null. order is a string, 'asc', 'desc'
-		return { colNb: this.sortColumn, order: this.sortOrder };
+		return {colNb: this.sortColumn, order: this.sortOrder};
 	}
 	
 	this.setSortIndicator = function(colNum, order)
@@ -707,7 +733,7 @@ WAF.classes.DataGrid.gridSourceEventHandler = function(event)
 	var gvFunctions = gridView._private.functions;
 	
 	if (event.eventKind == 'onCollectionChange') 
-	{
+	{ 
 		gvFunctions.hideCurrentRows({gridView: gridView});
 		if (event.transformedSelection == null)
 			gridView.resetSelection();
@@ -719,7 +745,7 @@ WAF.classes.DataGrid.gridSourceEventHandler = function(event)
 		gvFunctions.hideCurrentRows({gridView: gridView});
 		gvFunctions.showCurrentRows({gridView: gridView});
 	}
-	else if (event.eventKind == "attributeChange") 
+	else if (event.eventKind == "onAttributeChange") 
 	{
 		var posInSource = event.dataSource.getPosition();
 		var col = grid.column(event.attributeName);
@@ -750,7 +776,12 @@ WAF.classes.DataGrid.gridSourceEventHandler = function(event)
 		{
 			var col = cols[i];
 			gridView.updateCell(posInSource, col.colID, event.dataSource.getAttributeValue(col.sourceAttID));
-			var dispatcherOptions = event.dispatcherOptions
+			var dispatcherOptions = event.dispatcherOptions;
+			
+			if (WAF.PLATFORM.modulesString === "mobile") {
+			   $("#"+grid.subscriberID+ "-viewportNode").trigger('touchend');
+			}
+			
 			if (dispatcherOptions != null)
 			{
 				if (dispatcherOptions.gridView != null && dispatcherOptions.execOnEventDispatch != null)
@@ -803,6 +834,9 @@ WAF.classes.GridView = function()
 {
 
 	var theGridView = this;
+	var rowHeight;
+    (WAF.PLATFORM.modulesString === "mobile") ? rowHeight = 50 : rowHeight = 25;
+	
 	// Private
 	this._private = {
 		globals: {
@@ -825,7 +859,7 @@ WAF.classes.GridView = function()
 			visibleRowCount: 0, 	// how many rows are visible on screen at one time?
 			visibleAndCacheRowCount: 0, 	// visible and cached row count
 			totalRowCount: 0, 	// how many rows should there be in total?
-			rowHeight: 25, 	// used to calculate viewport height
+			rowHeight: rowHeight, 	// used to calculate viewport height
 			enableAlternateRowStyling: true, 	// 
 
 			rowContentUpdateDelayInMs: 0, 	/*	miliseconds that need to pass before requesting data for row
@@ -927,11 +961,14 @@ WAF.classes.GridView = function()
 
 				// create viewport node
 				var viewportNode = $('<div></div>').addClass('waf-widget-body waf-dataGrid-body');
+				if (WAF.PLATFORM.modulesString === "mobile") {
+				    viewportNode.attr('id', options.node[0].id + "-viewportNode");
+				}
 				gridView._private.globals.viewportNode = viewportNode;
 
 				// add viewport node to DOM
 				viewportNode.appendTo(targetNode);
-
+                
 				// bind events
 				viewportNode.bind('scroll', {gridView: gridView}, gridView._private.functions.onViewportScroll);
 
@@ -939,6 +976,18 @@ WAF.classes.GridView = function()
 				var viewportContainerNode = $('<div></div>').addClass('container');
 				gridView._private.globals.viewportContainerNode = viewportContainerNode;
 				viewportContainerNode.appendTo(viewportNode);
+                
+                //manage touch device 
+                if (WAF.PLATFORM.modulesString === "mobile") {
+                    viewportContainerNode[0].id = options.node[0].id + "-viewportContainerNode"; 
+                    // bind touch events
+    				viewportContainerNode.bind('touchmove', {gridView: gridView}, function() {
+    				     gridView._private.globals.headerContainerNode.css("margin-left", gridView._private.globals.viewportContainerNode.position().left+"px")
+    				     gridView._private.globals.containerMoved = true; 
+    				     gridView._private.globals.istouch = false;
+    				});
+    				viewportNode.bind('touchend', {gridView: gridView}, gridView._private.functions.onViewportScroll);
+                }
 
 				// create status node
 				var statusNode = $('<div></div>').addClass('waf-widget-footer waf-dataGrid-footer waf-status waf-user-select-none');
@@ -961,7 +1010,7 @@ WAF.classes.GridView = function()
 						saveHandler: function hitPlusSave(event)
 						{
 							WAF.gridUtil.addRow(gridView);
-						},
+						}
 					});
 					
 				}
@@ -974,7 +1023,7 @@ WAF.classes.GridView = function()
 						saveHandler: function hitMinusSave(event)
 						{
 							WAF.gridUtil.delRow(gridView);
-						},
+						}
 					});
 					
 				}
@@ -1091,7 +1140,14 @@ WAF.classes.GridView = function()
 				// add rows and cells
 				gvFunctions.updateDOMToMatchRowAndColumnCounts({gridView: gridView});
 
+                //add specific scroll behavior for mobile to the viewport container
+                if (WAF.PLATFORM.modulesString === "mobile") {
 
+                   if (!gridView._private.scrollObject && rowCount != 1) {
+                       gridView._private.scrollObject = new iScroll(gridView._private.globals.targetNode[0].id + "-viewportNode", {"desktopCompatibility":false});
+                   }
+
+                }
 			},
 
 			// sets number of columns and creates column objects
@@ -1130,11 +1186,17 @@ WAF.classes.GridView = function()
 					if (optcol.format != null)
 						format = optcol.format;
 					var readOnly = false;
+                                        
+                                        if (optcol.readOnly == 'false') {
+                                            optcol.readOnly = false;
+                                        }
+                                        
 					if (optcol.readOnly || xatt == null || xatt.readOnly)
 						readOnly = true;
 					if (sourceAtt == null || !sourceAtt.isFirstLevel || !sourceAtt.simple)
 						readOnly = true;
-
+                                            
+                                        var widget = options.gridView.gridController.dataGrid.widget;
 					var column = {
 						columnNumber: columnCount,
 						title: optcol.title,
@@ -1155,8 +1217,8 @@ WAF.classes.GridView = function()
 						setFormat:WAF.classes.GridColumn.setFormat,
 						source: xsource,
 						att: xatt,
-						getFormattedValue: WAF.AF.getFormattedValue,
-						getValueForInput: WAF.AF.getValueForInput
+						getFormattedValue: widget ? widget.getFormattedValue : null,
+						getValueForInput: widget ? widget.getValueForInput : null
 					};
 
 					// check for column properties
@@ -1180,15 +1242,27 @@ WAF.classes.GridView = function()
 			updateViewportSize: function(options)
 			{
 
-				var gridView = options.gridView;
-
+				var 
+				gridView = options.gridView,
+				viewportTop,
+				viewportBottom;
+                
+                if (WAF.PLATFORM.modulesString === "mobile") {
+                    viewportTop = 35;
+                    viewportBottom = 40;
+                } else {
+                    viewportTop = 25;
+                    viewportBottom = 25;
+                }
+                
 				// set position of targetNode, which is DOM element where grid was created in
 				gridView._private.globals.viewportNode.css({
 					left: 0,
 					right: 0,
-					top: '25px',
-					bottom: '25px'
+					top: viewportTop+'px',
+					bottom: viewportBottom+'px'
 				});
+				
 				// gridView._private.globals.viewportNode.height(gridView._private.globals.targetNode.height() - 25 - 20); // J.F. header code
 			},
 
@@ -1210,7 +1284,8 @@ WAF.classes.GridView = function()
 			updateStatusSize: function(options)
 			{
 
-				var gridView = options.gridView;
+				var gridView = options.gridView,
+				    statusNodeHeight;
 
 				// set position ofstatusNode and height to 15, which is DOM element where grid was created in
 				gridView._private.globals.statusNode.css({
@@ -1218,7 +1293,10 @@ WAF.classes.GridView = function()
 					right: 0,
 					bottom: 0
 				});
-				gridView._private.globals.statusNode.height(25); // J.F. If customize modify updateViewportSize too "- 20"
+				
+				(WAF.PLATFORM.modulesString === "mobile") ? statusNodeHeight = 40 : statusNodeHeight = 25;
+				
+				gridView._private.globals.statusNode.height(statusNodeHeight); // J.F. If customize modify updateViewportSize too "- 20"
 			},
 
 			// updates width and height for viewport container based on row & column properties
@@ -1549,22 +1627,28 @@ WAF.classes.GridView = function()
 	
 						// apply events
                         if (!gridView.gridController.dataGrid.isInDesign) {
-                            // apply hover styles to rows if turned on
-                            row.dom.mouseover(
-                                    function()
-                                    {
-                                           // WAF.utils.debug.console.log('waf-state-hover');
-                                            //if (!gridView._private.globals.editHasBeenStarted)
-                                                    $(this).addClass('waf-state-hover');
-                                    }
-                            ).mouseout(
-                                    function()
-                                    {
-                                            $(this).removeClass('waf-state-hover');
-                                    }
-                            // onRowClick event
-                            ).bind('click', {gridView: gridView, row: row}, gridView._private.functions.onRowClick);
-
+                            
+                            
+                            if (WAF.PLATFORM.modulesString === "mobile") {
+                                 row.dom.bind('touchend', {gridView: gridView, row: row}, gridView._private.functions.onRowClick);
+                            } else {
+                               // apply hover styles to rows if turned on
+                                row.dom.mouseover(
+                                        function()
+                                        {
+                                               // WAF.utils.debug.console.log('waf-state-hover');
+                                                //if (!gridView._private.globals.editHasBeenStarted)
+                                                        $(this).addClass('waf-state-hover');
+                                        }
+                                ).mouseout(
+                                        function()
+                                        {
+                                                $(this).removeClass('waf-state-hover');
+                                        }
+                                // onRowClick event
+                                ).bind('click', {gridView: gridView, row: row}, gridView._private.functions.onRowClick);
+                            }
+                            
 
                             // increment row number
                             rowNumber++;
@@ -1597,9 +1681,28 @@ WAF.classes.GridView = function()
                                     cell.dom.height(gridView._private.globals.rowHeight);
                                 }
                                 
-
                                 row.cells.push(cell);
-                                cell.dom.bind('dblclick', {gridView: gridView, columnNumber: attributeCount, row: row, cell: cell}, gridView._private.functions.onCellDblClick);
+                                
+                                if (WAF.PLATFORM.modulesString === "mobile") {
+                                    /*touch start*/
+                                    cell.dom.bind('touchstart', {gridView: gridView, columnNumber: attributeCount, row: row, cell: cell}, function(event){ 
+                                        gridView._private.globals.istouch = true;
+                                        window.setTimeout(function() { //300ms touch to trigger the cell edition
+                                            if (gridView._private.globals.istouch) { 
+                                                gridView._private.globals.istouch = false;
+                                                gridView._private.functions.onCellDblClick(event)
+                                            }
+                                        }, 300);
+                                    });
+                                    /*touch end*/
+                                    cell.dom.bind('touchend', {gridView: gridView, columnNumber: attributeCount, row: row, cell: cell}, function(event){  
+                                        var gridView = event.data.gridView;
+                                        gridView._private.globals.istouch = false; 
+                                    });
+                                } else {
+                                    cell.dom.bind('dblclick', {gridView: gridView, columnNumber: attributeCount, row: row, cell: cell}, gridView._private.functions.onCellDblClick);
+                                }
+                                
                             }
                         }
 
@@ -1610,16 +1713,66 @@ WAF.classes.GridView = function()
 
 			// fires when viewport scrollbar sends onscroll event
 			onViewportScroll: function(event)
-			{
-				var gridView = event.data.gridView;
-				var gvFunctions = gridView._private.functions;
+			{ 
+				var gridView    = event.data.gridView,
+				    gvFunctions = gridView._private.functions,
+				    gvGlobals   = gridView._private.globals;
 				
-				$('.waf-state-hover',gridView._private.globals.targetNode).removeClass('waf-state-hover');
-				gvFunctions.hideCurrentRows({gridView: gridView});
-				gvFunctions.updateRowPositions({gridView: gridView});
-				gvFunctions.updateVisibleRowData({gridView: gridView});
-				gridView._private.globals.headerNode.scrollLeft(event.target.scrollLeft);
-				gvFunctions.showCurrentRows({gridView: gridView});
+				if (WAF.PLATFORM.modulesString === "mobile") {
+
+                    if (!gvGlobals.rowClicked ) {
+
+                        var topStart    = gvGlobals.viewportContainerNode.position().top,
+                            leftStart   = gvGlobals.viewportContainerNode.position().left,
+                            count       = 0,
+                            topVal,
+                            leftVal,
+                            timer;
+
+                        timer = setInterval( function() {
+
+                            topVal = gvGlobals.viewportContainerNode.position().top;
+                            leftVal = gvGlobals.viewportContainerNode.position().left;    
+
+                            if (topVal != topStart || leftVal != leftStart || count == 0) {
+                                count++;
+                                
+                                if (leftVal != leftStart) {
+                                    gvGlobals.headerContainerNode.css("margin-left", leftVal+"px");
+                                }
+                        		gvFunctions.hideCurrentRows({gridView: gridView});
+                        		gvFunctions.updateRowPositions({gridView: gridView});
+                        		gvFunctions.updateVisibleRowData({gridView: gridView});
+                        		gvFunctions.showCurrentRows({gridView: gridView});
+                                topStart = topVal;
+                                
+                            } else {
+                            
+                                clearInterval(timer);
+                                var ev = event;
+                                if (gvGlobals.containerMoved) {
+                                    window.setTimeout(function(){ gridView._private.functions.onViewportScroll(ev) }, 50);
+                                    gvGlobals.containerMoved = false;
+                                }                                
+                                
+                            }
+
+                        }, 5);
+    			    } else { 
+    			        gvGlobals.rowClicked = false; 
+    			    }
+
+                } else {
+                
+                    $('.waf-state-hover',gridView._private.globals.targetNode).removeClass('waf-state-hover');
+    				gvFunctions.hideCurrentRows({gridView: gridView});
+    				gvFunctions.updateRowPositions({gridView: gridView});
+    				gvFunctions.updateVisibleRowData({gridView: gridView});
+    				gvGlobals.headerNode.scrollLeft(event.target.scrollLeft);
+    				gvFunctions.showCurrentRows({gridView: gridView});
+    				
+                }
+				
 			},
 			
 			showCurrentRows: function(options)
@@ -1699,8 +1852,12 @@ WAF.classes.GridView = function()
 				}
 
 				// get viewport top scroll position
-				var viewportTop = gvar.viewportNode.scrollTop();
-
+				var viewportTop;
+                if (WAF.PLATFORM.modulesString === "mobile") {
+                    viewportTop = -(gridView._private.globals.viewportContainerNode.position().top);
+                } else {
+                    viewportTop = gvar.viewportNode.scrollTop();
+                }
 
 				// calculate what's the first row position, as well as internal position inside .rows array
 				// include cache size offset
@@ -1885,7 +2042,12 @@ WAF.classes.GridView = function()
 				}
 
 				// get viewport top scroll position
-				var viewportTop = gridView._private.globals.viewportNode.scrollTop();
+				var viewportTop;
+				if (WAF.PLATFORM.modulesString === "mobile") {
+                    viewportTop = -(gridView._private.globals.viewportContainerNode.position().top);
+                } else {
+                    viewportTop = gridView._private.globals.viewportNode.scrollTop();
+                }
 
 				// calculate what's the first row position, as well as internal position inside .rows array
 				// include cache size offset
@@ -2021,36 +2183,52 @@ WAF.classes.GridView = function()
 			
 			// row click event
 			onRowClick: function(event)
-			{
-				var gridView = event.data.gridView;
-				var row=event.data.row;
+			{   
+				var gridView    = event.data.gridView;
+				var row         = event.data.row;
+				var okToEdit    = true;
 
-				if (gridView.currentEditingRow() != row.rowNumber)
-				{
+                if (WAF.PLATFORM.modulesString === "mobile") { 
+                    
+                    if (!gridView._private.globals.containerMoved) {
+    				    gridView._private.globals.rowClicked = true;
+    				} else {
+    				    okToEdit = false;
+    				    gridView._private.globals.containerMoved = false;
+    				    gridView._private.globals.rowClicked = false;
+    				}
+    				
+                } 
+                
+                if (okToEdit && gridView.currentEditingRow() != row.rowNumber) 
+                {
 					gridView._private.functions.endEditCell({gridView: gridView});
 					// select() will load the entity and trigger an event to gridSourceEventHandler(),
 					// which hightlight the clicked row. At this point, the current jQuery event is lost,
 					// we mmust keep it somewhere
 					gridView._private.selection.curEvt = event;
 					// Now, load the entiry
-					gridView.gridController.dataGrid.dataSource.select(row.rowNumber, { onSuccess: function(event)
+					gridView.gridController.dataGrid.dataSource.select(row.rowNumber, { onSuccess: function(event) 
 					{
-						if (!!gridView.gridController.onRowClick)
+						if (!!gridView.gridController.onRowClick) 
 						{
 							gridView.gridController.onRowClick(row.rowNumber);
 						}
-						
-					} });
-					
+
+					}});
 				}
+                
 				return true;
 			},
 			
 			onCellDblClick: function(event)
 			{
 				var gridView = event.data.gridView;
+				if (WAF.PLATFORM.modulesString === "mobile") {
+				    gridView._private.globals.istouch = false;
+				}
 				gridView._private.functions.startEditCell(event.data);
-
+			
 			},
 			
 			startEditCell: function(params)
@@ -2191,13 +2369,22 @@ WAF.classes.GridView = function()
 							};
 							gridView._private.globals.editHasBeenStarted = true;
 						}
-					} }, params);
+					}}, params);
 				}
 				
 			},
 			
 			endEditCell: function(params)
 			{
+				function handleErrorOnSave(event)
+				{
+					gridView.gridController.dataGrid.redraw();
+					if (errorHandler != null)
+					{
+						errorHandler(event);
+					}
+				}
+				
 				var gridView = params.gridView;
 				var saveHandler = params.saveHandler || null;
 				var errorHandler = params.errorHandler || gridView.gridController.errorHandler;
@@ -2230,7 +2417,7 @@ WAF.classes.GridView = function()
 									editInfo.cell.insideCell.html(editInfo.column.getFormattedValue(sourceAtt.getValue()));
 								}
 								if (params.row == null || params.row.rowNumber != source.getPosition())
-									source.save({onSuccess:saveHandler, onError: errorHandler}, {gridView: gridView, errorMessage: errorMessage });
+									source.save({onSuccess:saveHandler, onError: handleErrorOnSave}, {gridView: gridView, errorMessage: errorMessage});
 							}
 						}
 
@@ -2253,7 +2440,9 @@ WAF.classes.GridView = function()
 						var source = gridView.gridController.dataGrid.dataSource;
 						if (source != null)
 						{
-							source.save({onSuccess:saveHandler, onError: errorHandler}, {gridView: gridView, errorMessage: errorMessage });
+							source.save({onSuccess:saveHandler, onError: handleErrorOnSave}, {gridView: gridView, errorMessage: errorMessage});
+						} else if (saveHandler) { // Execute saveHandler to append columns resize
+                            saveHandler();
 						}
 					}
 				}
@@ -2459,7 +2648,13 @@ WAF.classes.GridView = function()
 									var rowtop = row.dom.position().top;
 									if (rowtop < rowheight*2)
 									{								
-										var curtop = viewportNode.scrollTop();
+										var curtop;
+										if (WAF.PLATFORM.modulesString === "mobile") {
+										    curtop = -(gridView._private.globals.viewportContainerNode.position().top);
+										} else {
+										    curtop = viewportNode.scrollTop();
+										}
+										 
 										curtop = curtop-rowheight;
 										if (curtop < 0)
 											curtop = 0;
@@ -2520,7 +2715,12 @@ WAF.classes.GridView = function()
 									var h = viewportNode.height();
 									if (rowtop + rowheight > h)
 									{
-										var curtop = viewportNode.scrollTop();
+										var curtop;
+										if (WAF.PLATFORM.modulesString === "mobile") {
+										    curtop = -(gridView._private.globals.viewportContainerNode.position().top);
+										} else {
+										    curtop = viewportNode.scrollTop();
+										}
 										curtop = curtop+ rowheight;
 										viewportNode.scrollTop(curtop);
 									}
@@ -2929,7 +3129,7 @@ WAF.classes.GridView = function()
 					var content = "";
 					if (col.renderer != null)
 					{
-						content = col.renderer({ value: value, rowNumber:rowNumber, dataSource:this.gridController.dataGrid.dataSource, cellDiv: cell.insideCell});
+						content = col.renderer({value: value, rowNumber:rowNumber, dataSource:this.gridController.dataGrid.dataSource, cellDiv: cell.insideCell});
 					}
 					else
 						content = col.getFormattedValue(value);
@@ -3049,7 +3249,7 @@ WAF.classes.GridView = function()
 		
 		if (gvGlobals.options.autoScrollOnSelected)
 		{
-			this.centerRow(inRowNumber, { doNotScrollIfVisible : true});
+			this.centerRow(inRowNumber, {doNotScrollIfVisible : true});
 		}
 	}
 	
@@ -3061,6 +3261,7 @@ WAF.classes.GridView = function()
 		var gridView = this;
 		var gridvars = this._private.globals;
 		var gridfuncs = this._private.functions;
+		var actualTop;
 		
 		var totalRows = gridvars.totalRowCount;
 		var nbRowsInPage = Math.round(gridvars.viewportNode.height() / gridvars.rowHeight);
@@ -3074,7 +3275,14 @@ WAF.classes.GridView = function()
 		if (options.doNotScrollIfVisible)
 		{
 			var nbFullRowsInPage = Math.floor(gridvars.viewportNode.height() / gridvars.rowHeight);
-			var actualTop = gridvars.viewportNode.scrollTop() / gridvars.rowHeight;
+			
+			if (WAF.PLATFORM.modulesString === "mobile") {
+			    var curtop = -(gridView._private.globals.viewportContainerNode.position().top);
+			    actualTop = curtop / gridvars.rowHeight;
+			} else {
+			    actualTop = gridvars.viewportNode.scrollTop() / gridvars.rowHeight;
+			}
+			
 			if (rowNumber >= actualTop && rowNumber < Math.floor(actualTop)+nbFullRowsInPage)
 			{
 				mustScroll = false;
@@ -3088,7 +3296,13 @@ WAF.classes.GridView = function()
 			if (toprow < 0)
 				toprow = 0;
 			
-			gridvars.viewportNode.scrollTop(toprow * gridvars.rowHeight);
+			if (WAF.PLATFORM.modulesString === "mobile") {
+			    //use scrollTo, method of iScroll lib
+    			gridView._private.scrollObject.scrollTo( 0, -(toprow * gridvars.rowHeight));
+			} else {
+			    gridvars.viewportNode.scrollTop(toprow * gridvars.rowHeight);
+			}
+			
 		}
 	}
 	
@@ -3146,7 +3360,7 @@ WAF.classes.GridColumn =
 	setFormat: function(format)
 	{
 		if (typeof(format) == "string")
-			format = { format:format };
+			format = {format:format};
 		this.format = format;
 		this.gridview.gridController.dataGrid.redraw();
 		
@@ -3165,7 +3379,7 @@ WAF.classes.GridColumn =
 
 
 WAF.gridUtil.addRow = function(gridView) 
-{
+{ 
 	var source = gridView.gridController.dataGrid.dataSource;
 	if (source != null)
 	{
@@ -3173,7 +3387,7 @@ WAF.gridUtil.addRow = function(gridView)
 		{
 			if (gridView._private.globals.currentlyUpdatingRowPositions)
 			{
-				window.setTimeout(function() { readyToAddRow(gridView)
+				window.setTimeout(function() {readyToAddRow(gridView)
 				}, 100);
 			}
 			else
@@ -3209,7 +3423,7 @@ WAF.gridUtil.delRow = function(gridView)
 	{
 		var errorHandler = gridView.gridController.errorHandler;
 		var errorMessage = "The data grid could not delete the entity";
-		source.removeCurrent({onError: errorHandler}, { gridView: gridView, errorMessage: errorMessage});
+		source.removeCurrent({onError: errorHandler}, {gridView: gridView, errorMessage: errorMessage});
 	}
 }
 
@@ -3333,7 +3547,7 @@ WAF.classes.GridController = function() {
 
 	this.setStyleForRow = function (rowNumber) {
 		
-		return { rowStyle: '' };
+		return {rowStyle: ''};
 		
 	}
 
@@ -3372,46 +3586,221 @@ WAF.classes.GridController = function() {
  * ----------------------------------------------------------------------------
  */
 
-WAF.widget.Grid = function (params) {
-    // check if dataSource
-	params.dataSource = params.dataSource || null;
-    if (typeof params.inDesign === 'undefined') {
-		params.inDesign = false;
+WAF.Widget.provide(
+    'Grid',   
+    {},
+    function WAFWidget (config, data, shared) {
+        
+        var colWidth = config['data-column-width'] ? config['data-column-width'].split(',') : [],
+        colNames = config['data-column-name'] ? config['data-column-name'].split(',') : [],
+        tagClass = config['class'],
+        sum = 0,
+        colName = '', 
+        tagWidth = 0, 
+        diffWidth = 0, 
+        displayScroll = true,
+        grid = null,
+        configColumn = {},
+        length = 0,
+        i = 0,
+        attributeName = '',
+        column = [],
+        selectionMode = config['data-selection-mode'] ? config['data-selection-mode'] : 'single',
+        errorDiv = config['data-error-div'],
+        mustDisplayError = config['data-display-error'],
+        theID = config['id'];
+        
+        if (mustDisplayError == null) {
+            mustDisplayError = true;
+        } else {
+            mustDisplayError = (mustDisplayError == '1' || mustDisplayError == 'true');
+        }
+        tagWidth = parseInt(document.getElementById(theID).style.width) - 1;       
+        
+        // check for retro compatibility
+        if (config['data-column'] && config['data-column'] != '[]') {        
+                        
+            configColumn = JSON.parse(config['data-column'].replace(/'/g,"\""));
+            
+            // unescape value
+            length = configColumn.length;
+            for (i = 0; i < length; i++) {
+                column = configColumn[i];
+                for (attributeName in column) {
+                    column[attributeName] = unescape(column[attributeName]);
+                }
+            }                        
+                                    
+            grid = new WAF.classes.DataGrid({
+                inDesign        : false,
+                id              : theID,
+                render          : theID,
+                dataSource      : config['data-binding'],
+                binding         : config['data-binding'],
+                columns         : configColumn,
+                colWidth        : colWidth,
+                cls             : tagClass,
+                selMode         : selectionMode,
+                mustDisplayError: mustDisplayError,
+                errorDiv	: errorDiv
+            });
+        } else {
+            // old code for compatibility with very early versions
+            // if only one column the width is the same that the widget width
+            if (colNames.length === 1) {
+                colWidth = [tagWidth];
+                displayScroll = false;
+            // else auto resize the lastest column
+            } else {
+                sum = 0
+                for (colName in colNames) {
+                    sum += parseInt(colWidth[colName]);
+                }
+                if (sum < tagWidth) {
+                    diffWidth = tagWidth-sum;
+                    colWidth[colNames.length -1 ] = String((parseInt(colWidth[colNames.length - 1]) + diffWidth));
+                    displayScroll = false;
+                }
+            }
+            
+            // reformat config
+            var tabName = [];
+            var tabAttribute = [];
+            var tabWidth = [];
+            
+            if (config['data-column-name']) {
+                tabName =  config['data-column-name'].split(',');
+            }
+            if (config['data-column-attribute']) {
+                tabAttribute = config['data-column-attribute'].split(',');
+            }
+            if (config['data-column-width']) {
+                tabWidth = config['data-column-width'].split(',');
+            }
+            
+            length = tabAttribute.length;
+            column = null;
+            
+            var att = '';
+            var label = '';
+            var width = '';            
+            
+            configColumn = [];
+            for (i = 0; i < length; i++) {                                                
+                column = {};
+                
+                att = tabAttribute[i];
+                
+                try {
+                    label = tabName[i];
+                } catch (e) {
+                    label = att;
+                }
+
+                try {
+                    width = tabWidth[i];
+                } catch (e) {
+                    width = '150';
+                }
+                
+                column['sourceAttID'] = att;
+                column['title'] = label;
+                column['width'] = width;
+
+                configColumn.push(column);
+            }
+                                    
+            grid = new WAF.classes.DataGrid({
+                inDesign        : false,
+                id              : theID,
+                render          : theID,
+                dataSource      : config['data-binding'],
+                binding         : config['data-binding'],
+                columns         : configColumn,
+                colWidth        : colWidth,
+                cls             : tagClass,
+                selMode		: selectionMode,
+                mustDisplayError: mustDisplayError,
+                errorDiv	: errorDiv
+            });
+            
+        }
+
+        // Hide vertical scrollbar if necessary
+        if (!displayScroll){
+            $('#' + theID + ' .waf-dataGrid-body').css('overflow-x', 'hidden');
+        }   
+
+        // Drag
+        $.ui['draggable'].prototype.plugins.start[4][1] = function(event, ui) {
+            var ind = $(this).data("draggable");
+            if (ind.scrollParent && ind.scrollParent[0] != document && ind.scrollParent[0].tagName != 'HTML') {  
+                ind.overflowOffset = ind.scrollParent.offset(); 
+            }
+        }
+        
+        
+        if (config['data-draggable'] === "true") {
+            $('#' + theID).draggable({
+                cancel: '.waf-widget-body',
+                stack : '.waf-widget'
+            })
+            .bind('mousedown', function(event) {
+                $(this).data('draggable')._trigger('start', event);
+            });
+            
+            $('#' + theID + ' .waf-widget-header').css('cursor', 'pointer');
+            $('#' + theID + ' .waf-widget-footer').css('cursor', 'pointer');
+        }
+
+        // Resize
+        if (config['data-resizable'] === "true") {
+            $('#' + theID).resizable({               
+                resize: function () {
+                    $('#' + theID + ' .waf-widget-body').css('width', parseInt($('#' + theID).css('width')));
+                    
+                    var newHeight = parseInt($('#' + theID).css('height')) - parseInt($('#' + theID + ' .waf-widget-footer').css('height'));
+                    newHeight -= parseInt($('#' + theID + ' .waf-widget-header').css('height'));
+                    $('#' + theID + ' .waf-widget-body').css('height', newHeight + 'px');      
+                },
+                
+                stop: function () {
+                    $$(theID).gridController.gridView.refresh();
+                }
+            });
+        }
+        
+        // readOnly
+        if(config['data-readOnly'] === "true") {
+            // Hide toolbar
+            $("#" + theID + " .waf-dataGrid-footer .waf-toolbar").hide();
+			
+            // Lock columns
+            grid.columns().forEach( function(theCol, idx, arr) {
+                theCol.readOnly = true;
+            });
+        }
+        
+        var propName = '';
+        for (propName in grid) {       
+            this[propName] = grid[propName];        
+        }
+        
+    },
+    {
+        getValueForInput : function() {
+            var 
+            value;
+
+            if (this.sourceAtt == null) {
+                value = this.source.getAttribute(this.att.name).getValueForInput();
+            } else {
+                value = this.sourceAtt.getValueForInput();
+            }
+
+            return value;
+        }
+        
+        
     }
-	
-    params.colNames = params.colNames ? params.colNames.split(",") : null;
-    params.colAttributes = params.colAttributes ? params.colAttributes.split(",") : null;
-
-    var grid = null;
-	
-	
-    var options = {
-        //dataStore       : entityCollection,
-        columns         : params.columns || null,
-        colNames        : params.colNames,
-        colAttributes   : params.colAttributes,
-        colWidth        : params.colWidth,
-        parentNode      : params.id,
-        cacheSize       : 0, //0.5,
-        rowHeight       : 25,
-        dataSource      : WAF.source[params.dataSource],
-        subscriberID    : params.id,
-        inDesign        : params.inDesign,
-        cls             : params.cls,
-		included		: params.included,
-		selMode			: params.selMode,
-		mustDisplayError: params.mustDisplayError,
-		errorDiv		: params.errorDiv
-    }
-
-    grid = new WAF.classes.DataGrid(options);
-
-    // add type
-    grid.kind = 'datagrid';
-    
-    WAF.grids[params.id] = grid;
-    WAF.widgets[params.id] = grid;
-
-    return grid;
-
-};
+);

@@ -17,6 +17,7 @@
 * You should have received a copy of the GNU General Public License version 3
 * along with Wakanda. If not see : http://www.gnu.org/licenses/
 */
+
 WAF.addWidget({    
     type       : 'dataGrid',
     lib        : 'WAF',
@@ -63,46 +64,213 @@ WAF.addWidget({
         type        : 'checkbox'
     },
     {
-    	name		: 'data-selection-mode',
-    	description	: 'Selection mode',
-    	defaultValue: 'single',
-    	type		: 'dropdown',
-    	options		: [{
-    			key		: 'single',
-    			value	: 'Single'
-    	}, {
-    			key		: 'multiple',
-    			value	: 'Multiple'
-    	}]
+        name		: 'data-selection-mode',
+        description	: 'Selection mode',
+        defaultValue: 'single',
+        type		: 'dropdown',
+        options		: [{
+            key		: 'single',
+            value	: 'Single'
+        }, {
+            key		: 'multiple',
+            value	: 'Multiple'
+        }]
     },
-	{
+    {
         name        : 'data-display-error',
         description : 'Display error',
         type        : 'checkbox',
-		category    : 'Error Handling',
-		defaultValue:'true'
+        category    : 'Error Handling',
+        defaultValue:'true'
     },
-	{
+    {
         name        : 'data-error-div',
         description : "Place holder for the error's description",
- 		category   : 'Error Handling'
+        category    : 'Error Handling'
     },
     {
-        name        : 'data-column-attribute',
-        description : 'Column attribute'
-    },
-    {
-        name        : 'data-column-name',
-        description : 'Column name'
-    },
-    {
-        name        : 'data-column-width',
-        description : 'Column width'
-    },
-    {
-        name        : 'data-column',
-        visibility  : 'hidden',
-        defaultValue: '[]'
+        name            : 'data-column',
+        description     : 'Columns',
+        type            : 'grid',
+        defaultValue    : '[]',
+        reloadOnChange  : true,
+        newRowEmpty     : false,
+        columns         : [{
+            title       : 'label',
+            name        : 'title',
+            type        : 'textfield'
+        },{
+            title       : 'attribute',
+            name        : 'sourceAttID',
+            type        : 'textfield',
+            typeValue   : 'dataSource',
+            onblur      : function() {
+                var 
+                tag,
+                valid,
+                htmlObject,
+                attributeName;
+                
+                tag         = this.data.tag;
+                htmlObject  = this.getHtmlObject();
+                
+                /*
+                 * Check if attribute is valid 
+                 */  
+                attributeName = this.getValue();       
+                valid = Designer.ds.isPathValid(tag.getSource() + '.' + attributeName);
+                
+                if (!valid) {
+                    htmlObject.addClass('studio-form-invalid');
+                } else {                    
+                    htmlObject.removeClass('studio-form-invalid');
+                }
+            },
+            onfocus     : function(){
+                this.data.attID = this.getValue();
+            }
+        }],
+        toolbox         : [{
+            name        : 'format',
+            type        : 'textField'
+        },{
+            name        : 'width',
+            type        : 'textField'
+        },{
+            title       : 'read only',
+            name        : 'readOnly',
+            type        : 'checkbox'
+        }], 
+        ready           : function(){
+            var
+            tag;
+            
+            tag = this.data.tag;
+            
+            /*
+             * Hide form if no source binded
+             */
+            if (!tag.getSource()) {
+                this.getForm().hide();
+            }  
+        },
+        afterRowAdd    : function(data) {
+            /*
+             * Add row with first datasource attribute
+             */
+            var
+            tag,
+            dsObject,
+            attributes,
+            firstAttribute;
+            
+            tag = this.data.tag;
+            
+            dsObject = Designer.env.ds.catalog.getByName(tag.getSource());
+            if (dsObject && dsObject.getType().match( new RegExp('(array)|(object)') )) {
+                attributes = dsObject.getTag().getAttribute('data-attributes').getValue().split(',');
+                firstAttribute = attributes[0].split(':')[0];
+            } else if (dsObject){
+                attributes = dsObject.getAttributes();
+                if (attributes[0]) {
+                    firstAttribute = attributes[0].name;
+                }
+            }
+            
+            if (data.items[0].getValue() == '' && data.items[1].getValue() == '') {
+                data.items[0].setValue(firstAttribute);
+                data.items[1].setValue(firstAttribute);
+            }
+        },
+        onsave          : function(data) {
+            var
+            tag,
+            columns,
+            value,
+            check;
+            
+            try {
+                tag     = data.tag;
+                columns = tag.getColumns();
+                
+                /*
+                 * Clear columns
+                 */
+                columns.clear();
+                
+                /*
+                 * Get new rows
+                 */
+                $.each(data.value.rows, function() {
+                    var
+                    colID,
+                    oldID,
+                    name,
+                    value,
+                    column,
+                    bodySelector,
+                    newBodySelector,
+                    headerSelector,
+                    newHeaderSelector;
+                    
+                    column  = new WAF.tags.descriptor.Column();
+                    
+                    $.each(this, function(i) {
+                        name    = this.component.name;
+                        value   = this.value;
+                        
+                        if (name == 'sourceAttID') {
+                            colID   = value;
+                            oldID   = this.component.data.attID;
+                            column.getAttribute('colID').setValue(value.replace(/\./g, '_'));
+                                                    
+                            /*
+                             * Keep column css style even if attribute is changed                       
+                             */                        
+                            if (oldID && colID != oldID) {
+                                headerSelector      = '#'+ tag.getId() +' .waf-widget-header .waf-dataGrid-col-' + oldID.replace(/\./g, '_');
+                                newHeaderSelector   = '#'+ tag.getId() +' .waf-widget-header .waf-dataGrid-col-' + colID.replace(/\./g, '_');
+
+                                $(D.tag.style.getRules(new RegExp('^'+ headerSelector + '\\b'))).each(function(i, rule) {
+                                    D.tag.style.interfaceSheet.addRule(newHeaderSelector, rule.style.cssText);
+                                });
+                                
+                                /*
+                                 * Delete old ones
+                                 */
+                                D.tag.style.deleteRules(new RegExp('^' + headerSelector + '\\b'));
+                                
+                                bodySelector      = '#'+ tag.getId() +' .waf-widget-body .waf-dataGrid-col-' + oldID.replace(/\./g, '_');
+                                newBodySelector   = '#'+ tag.getId() +' .waf-widget-body .waf-dataGrid-col-' + colID.replace(/\./g, '_');
+
+                                $(D.tag.style.getRules(new RegExp('^'+ bodySelector + '\\b'))).each(function(i, rule) {
+                                    D.tag.style.interfaceSheet.addRule(newBodySelector, rule.style.cssText);
+                                });
+                                
+                                /*
+                                 * Delete old ones
+                                 */
+                                D.tag.style.deleteRules(new RegExp('^' + bodySelector + '\\b'));
+                            }
+                        }
+                        
+                        column.getAttribute(name).setValue(value);
+                    });
+                    
+                    
+                    
+                    columns.add(column);
+                });
+                
+                /*
+                 * Refresh selector
+                 */
+                tag.displayInfo();                
+                
+            } catch(e) {
+                console.log(e);
+            }
+        }
     }],
     events: [
     {
@@ -111,13 +279,13 @@ WAF.addWidget({
         category   : 'Grid Events'
 
     },
-	{
+    {
         name       : 'onRowDraw',
         description: 'On Row Draw',
         category   : 'Grid Events'
 
     },
-	{
+    {
         name       : 'onError',
         description: 'On Error Handler',
         category   : 'Grid Events'
@@ -224,13 +392,13 @@ WAF.addWidget({
             disabled    : ['border-radius']
         },
         state : [{
-                label   : 'hover',
-                cssClass: 'waf-state-hover',
-                find    : '.waf-dataGrid-row'
+            label   : 'hover',
+            cssClass: 'waf-state-hover',
+            find    : '.waf-dataGrid-row'
         },{
-                label   : 'active',
-                cssClass: 'waf-state-active',
-                find    : '.waf-dataGrid-row'
+            label   : 'active',
+            cssClass: 'waf-state-active',
+            find    : '.waf-dataGrid-row'
         }]
     },{
         description : 'body',
@@ -254,234 +422,33 @@ WAF.addWidget({
         }
     }],
     onInit: function (config) {
-        var 
-        colWidth = config['data-column-width'] ? config['data-column-width'].split(',') : [],
-        colNames = config['data-column-name'] ? config['data-column-name'].split(',') : [],
-        tagClass = config['class'],
-        theme = this.attributes[2].options,
-        sum = 0,
-        themeName = '', 
-        colName = '', 
-        tagWidth = 0, 
-        diffWidth = 0, 
-        displayScroll = true,
-        grid = null,
-        configColumn = {},
-        configColumnUnescape = {},
-        length = 0,
-        i = 0,
-        attributeName = '',
-        column = [],
-        selectionMode = config['data-selection-mode'] ? config['data-selection-mode'] : 'single',
-		errorDiv = config['data-error-div'],
-		mustDisplayError = config['data-display-error'],
-        theID = config['id'];
-        
-		if (mustDisplayError == null)
-			mustDisplayError = true;
-		else
-			mustDisplayError = (mustDisplayError == '1' || mustDisplayError == 'true');
-        tagWidth = parseInt(document.getElementById(theID).style.width) - 1;       
-        
-        // check for retro compatibility
-        if (config['data-column'] && config['data-column'] != '[]') {        
-                        
-            configColumn = JSON.parse(config['data-column'].replace(/'/g,"\""));
-            
-            // unescape value
-            length = configColumn.length;
-            for (i = 0; i < length; i++) {
-                column = configColumn[i];
-                for (attributeName in column) {
-                    column[attributeName] = unescape(column[attributeName]);
-                }
-            }                        
-                                    
-            grid = new WAF.widget.Grid({
-                inDesign        : false,
-                id              : theID,
-                render          : theID,
-                dataSource      : config['data-binding'],
-                binding         : config['data-binding'],
-                columns         : configColumn,
-                colWidth        : colWidth,
-                cls             : tagClass,
-                selMode			: selectionMode,
-				mustDisplayError: mustDisplayError,
-				errorDiv		: errorDiv
-            });
-        } else {
-            // old code for compatibility with very early versions
-            // if only one column the width is the same that the widget width
-            if (colNames.length === 1) {
-                colWidth = [tagWidth];
-                displayScroll = false;
-            // else auto resize the lastest column
-            } else {
-                sum = 0
-                for (colName in colNames) {
-                    sum += parseInt(colWidth[colName]);
-                }
-                if (sum < tagWidth) {
-                    diffWidth = tagWidth-sum;
-                    colWidth[colNames.length -1 ] = String((parseInt(colWidth[colNames.length - 1]) + diffWidth));
-                    displayScroll = false;
-                }
-            }
-            
-            // reformat config
-            var tabName = [];
-            var tabAttribute = [];
-            var tabWidth = [];
-            
-            if (config['data-column-name']) {
-                tabName =  config['data-column-name'].split(',');
-            }
-            if (config['data-column-attribute']) {
-                tabAttribute = config['data-column-attribute'].split(',');
-            }
-            if (config['data-column-width']) {
-                tabWidth = config['data-column-width'].split(',');
-            }
-            
-            var length = tabAttribute.length;
-            var column = null;
-            
-            var att = '';
-            var label = '';
-            var width = '';            
-            
-            configColumn = [];
-            for (i = 0; i < length; i++) {                                                
-                column = {};
-                
-                att = tabAttribute[i];
-                
-                try {
-                    label = tabName[i];
-                } catch (e) {
-                    label = att;
-                }
-
-                try {
-                    width = tabWidth[i];
-                } catch (e) {
-                    width = '150';
-                }
-                
-                column['sourceAttID'] = att;
-                column['title'] = label;
-                column['width'] = width;
-
-                configColumn.push(column);
-            }
-                                    
-            grid = new WAF.widget.Grid({
-                inDesign        : false,
-                id              : theID,
-                render          : theID,
-                dataSource      : config['data-binding'],
-                binding         : config['data-binding'],
-                columns         : configColumn,
-                colWidth        : colWidth,
-                cls             : tagClass,
-                selMode			: selectionMode,
-				mustDisplayError: mustDisplayError,
-				errorDiv		: errorDiv
-            });
-            
-        }
-
-        // Hide vertical scrollbar if necessary
-        if(!displayScroll){
-            $('#' + theID + ' .waf-dataGrid-body').css('overflow-x', 'hidden');
-        }   
-
-        // Drag
-        $.ui['draggable'].prototype.plugins.start[4][1] = function(event, ui) {
-            var ind = $(this).data("draggable");
-            if (ind.scrollParent && ind.scrollParent[0] != document && ind.scrollParent[0].tagName != 'HTML') {  
-                ind.overflowOffset = ind.scrollParent.offset(); 
-            }
-        }
-        
-        
-        if (config['data-draggable'] === "true") {
-            $('#' + theID).draggable({
-                cancel: '.waf-widget-body',
-                stack : '.waf-widget'
-            })
-            .bind('mousedown', function(event) {
-                $(this).data('draggable')._trigger('start', event);
-            });
-            
-            $('#' + theID + ' .waf-widget-header').css('cursor', 'pointer');
-            $('#' + theID + ' .waf-widget-footer').css('cursor', 'pointer');
-        }
-
-        // Resize
-        if (config['data-resizable'] === "true") {
-            $('#' + theID).resizable({
-                //minHeight: parseInt($('#' + theID).css('height')),
-                //minWidth: parseInt($('#' + theID).css('width')),
-                
-                resize: function(event, ui) {
-                    $('#' + theID + ' .waf-widget-body').css('width', parseInt($('#' + theID).css('width')));
-
-                    var newHeight = parseInt($('#' + theID).css('height')) - parseInt($('#' + theID + ' .waf-widget-footer').css('height'));
-                    newHeight -= parseInt($('#' + theID + ' .waf-widget-header').css('height'));
-                    $('#' + theID + ' .waf-widget-body').css('height', newHeight + 'px');      
-                },
-                
-                stop: function(event, ui) {
-                    $$(theID).gridController.gridView.refresh();
-                }
-            });
-        }
-        
-        // readOnly
-        if(config['data-readOnly'] === "true") {
-        	// Hide toolbar
-			$("#" + theID + " .waf-dataGrid-footer .waf-toolbar").hide();
-			
-			// Lock columns
-			grid.columns().forEach( function(theCol, idx, arr) {
-				theCol.readOnly = true;
-			});
-        }
-        
+        var grid = new WAF.widget.Grid(config);
         return grid;
-    }
-    ,
+    },
     onDesign: function (config, designer, tag, catalog, isResize) {
-       function _getAttrValue(inName, inDefault) {
-			inDefault = inDefault;
-			attr = tag.getAttribute(inName);
-			return attr ? attr.getValue() : inDefault;
-		}
+        function _getAttrValue(inName, inDefault) {
+            inDefault = inDefault;
+            var attr = tag.getAttribute(inName);
+            return attr ? attr.getValue() : inDefault;
+        }
 		
-        var		i,
-				colWidth		= tag.getAttribute('data-column-width') ? tag.getAttribute('data-column-width').getValue().split(',') : []
-				colName			= _getAttrValue('data-column-name', ''),
-				colAttribute	= _getAttrValue('data-column-attribute', ''),
-				colBinding		= _getAttrValue('data-column-binding', ''),
-				colColumn		= _getAttrValue('data-column', ''),
-				tagClass		= tag.getAttribute('class').getValue(),
-				grid			= {},
-				isReadOnly		= _getAttrValue('data-readOnly', 'false') === 'true',
-				configColumn	= null,
-				tagID			= tag.getAttribute('id').getValue();
-		
-		
-
-        if(!isResize){
-            // Refresh the datasource grid
-            //Designer.ui.gridDatasource.initRows()
+        var i           = 0,
+        colWidth	= tag.getAttribute('data-column-width') ? tag.getAttribute('data-column-width').getValue().split(',') : [],
+        colName		= _getAttrValue('data-column-name', ''),
+        colAttribute	= _getAttrValue('data-column-attribute', ''),
+        colBinding	= _getAttrValue('data-column-binding', ''),
+        colColumn	= _getAttrValue('data-column', ''),
+        tagClass	= tag.getAttribute('class').getValue(),
+        grid		= {},
+        isReadOnly	= _getAttrValue('data-readOnly', 'false') === 'true',
+        tagID		= tag.getAttribute('id').getValue();
+				
+        if(!isResize){   
             
             // check for retro compatibility
             if (tag.getColumns().count() > 0) {  
          
-                grid = new WAF.widget.Grid({
+                grid = new WAF.classes.DataGrid({
                     inDesign        : true,
                     id              : tagID,
                     render          : tagID,
@@ -493,7 +460,7 @@ WAF.addWidget({
                 });       
             
             } else {
-                grid = new WAF.widget.Grid({
+                grid = new WAF.classes.DataGrid({
                     inDesign        : true,
                     id              : tagID,
                     render          : tagID,
@@ -530,12 +497,12 @@ WAF.addWidget({
                 $(this).addClass(i%2 ? 'waf-widget-odd' : 'waf-widget-even');
             });
             
-			// readOnly: Show/hide buttons		
-			if(isReadOnly) {
-				$("#" + tagID + " .waf-dataGrid-footer .waf-toolbar").hide();
-			} else {
-				$("#" + tagID + " .waf-dataGrid-footer .waf-toolbar").show();
-			}
-		}
+            // readOnly: Show/hide buttons		
+            if(isReadOnly) {
+                $("#" + tagID + " .waf-dataGrid-footer .waf-toolbar").hide();
+            } else {
+                $("#" + tagID + " .waf-dataGrid-footer .waf-toolbar").show();
+            }
+        }
     }    
 });

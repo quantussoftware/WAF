@@ -115,9 +115,13 @@ WAF.Widget.provide(
                     sliderConfig.value = widget.sourceAtt.getValue();                    
         
                     /*
-                     * Create jquery ui slider
+                     * Create jquery ui slider depending on the platform
                      */
-                    htmlObject.slider(sliderConfig);
+                     if ( WAF.PLATFORM.modulesString === "mobile" ) {
+                         htmlObject.slider(sliderConfig).addTouch();
+                     } else {
+                         htmlObject.slider(sliderConfig);
+                     }
                 }
                 
             },{
@@ -130,9 +134,15 @@ WAF.Widget.provide(
             });
         } else {        
             /*
-             * Create jquery ui slider
+             * Create jquery ui slider depending on the platform
              */
-            htmlObject.slider(sliderConfig)
+            if ( WAF.PLATFORM.modulesString === "mobile" ) { 
+                //could look at  WAF.PLATFORM.type (tablet, phone...) to go deeper on a platform-specific code
+                //call addTouch defined in jquery.ui.ipad.altfix.js
+                htmlObject.slider(sliderConfig).addTouch(); 
+            } else {
+                htmlObject.slider(sliderConfig);
+            }   
         }        
     },{
         

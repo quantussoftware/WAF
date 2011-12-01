@@ -35,8 +35,8 @@ WAF.Widget.provide(
     
     
     {
-        // Shared private properties and methods
-        // NOTE: "this" is NOT available in this context
+    // Shared private properties and methods
+    // NOTE: "this" is NOT available in this context
     },
 
 
@@ -55,11 +55,11 @@ WAF.Widget.provide(
     function(inConfig, inData, shared) {
         var that = this;
         var labels = [],
-            values = [],
-            labels2= [],
-            values2= [],
-            source = this.source,
-            columns= JSON.parse(inData['column'].replace(/'/g,'"'));
+        values = [],
+        labels2= [],
+        values2= [],
+        source = this.source,
+        columns= JSON.parse(inData['column'].replace(/'/g,'"'));
         
         this.isEmpty = true;
         this.columns = columns;
@@ -76,8 +76,8 @@ WAF.Widget.provide(
 
                 for(var i = 0 ; i < values.length ; i++){
                     var htmlObj = $('<TR>' + 
-                                     '<TD style="padding:1px">' + 
-                                        '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
+                        '<TD style="padding:1px">' + 
+                        '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
                     htmlObj.appendTo(legTable);
                     $('<TD style="padding-left:3px">' + unescape(columns[i].title) + '</TD>').appendTo(htmlObj);
 
@@ -89,7 +89,7 @@ WAF.Widget.provide(
                 return;
             }
             
-       }
+        }
         
         var r = Raphael(inConfig.id,$("#" + inConfig.id).width(),$("#" + inConfig.id).height());
         that.colors = ["hsb(0.34,0.69,0.65)","hsb(0.19,0.82,0.81)","hsb(0.15,1,1)","hsb(0.10,0.91,0.97)","hsb(0.06,0.85,0.92)","hsb(0.02,0.83,0.90)","hsb(0.98,0.85,0.79)","hsb(0.82,0.71,0.51)","hsb(0.76,0.68,0.51)","hsb(0.69,0.65,0.52)","hsb(0.57,1,0.65)","hsb(0.46,1,0.61)"];
@@ -97,18 +97,18 @@ WAF.Widget.provide(
         if(source && inConfig['data-axisLabel'] && columns.length > 0){
             source.addListener("all",function(e){
 
-               switch(e.eventKind){
-                   case "onElementSaved" :
-                   case "onCollectionChange" :
-                       labels   = [];
-                       values   = [];
-                       labels2  = [];
-                       values2  = [];
+                switch(e.eventKind){
+                    case "onElementSaved" :
+                    case "onCollectionChange" :
+                        labels   = [];
+                        values   = [];
+                        labels2  = [];
+                        values2  = [];
                        
-                       for(var j = 0 ; j<columns.length ; j++){
-                           values[j] = [];
-                           values2[j] = [];
-                       }
+                        for(var j = 0 ; j<columns.length ; j++){
+                            values[j] = [];
+                            values2[j] = [];
+                        }
                        
                         for(var i = 0 ; i < Math.min(parseInt(inConfig['data-limitlength']), source.length) ; i++){
                             source.getElement(i, {
@@ -130,17 +130,17 @@ WAF.Widget.provide(
                                         switch(inConfig['data-chartType']){
                                             case 'Pie Chart':
                                                 var radius  = Math.min($("#" + inConfig.id).width(),$("#" + inConfig.id).height())/2 - 55,
-                                                    opts    = {
-                                                        colors      : that.colors,
-                                                        stroke      : null,
-                                                        strokewidth : null,
-                                                        init        : null,
-                                                        href        : null,
-                                                        legend      : null,
-                                                        legendmark  : null,
-                                                        legendothers: null,
-                                                        legendpos   : null
-                                                    };
+                                                opts    = {
+                                                    colors      : that.colors,
+                                                    stroke      : null,
+                                                    strokewidth : null,
+                                                    init        : null,
+                                                    href        : null,
+                                                    legend      : null,
+                                                    legendmark  : null,
+                                                    legendothers: null,
+                                                    legendpos   : null
+                                                };
                                                 that.chart     = r.g.piechart(r.width/2, r.height/2, radius, values[0] , opts);
                                                 that.chart.selected = -1;
                                                 
@@ -169,16 +169,22 @@ WAF.Widget.provide(
                                                     
                                                     if(this.selected == i){
                                                         this.selected = -1;
-                                                        this.series[i].animate({path : this.covers[i].posOrigin} , 1000 , 'bounce');
+                                                        this.series[i].animate({
+                                                            path : this.covers[i].posOrigin
+                                                        } , 1000 , 'bounce');
                                                         return;
                                                     }
                                                     if(this.selected != -1){
-                                                        this.series[this.selected].animate({path : this.covers[this.selected].posOrigin} , 1000 , 'bounce');
+                                                        this.series[this.selected].animate({
+                                                            path : this.covers[this.selected].posOrigin
+                                                        } , 1000 , 'bounce');
                                                     }
                                                     
                                                     
                                                     
-                                                    this.series[i].animate({path : this.covers[i].posSelect} , 1000 , 'bounce');
+                                                    this.series[i].animate({
+                                                        path : this.covers[i].posSelect
+                                                    } , 1000 , 'bounce');
                                                     this.selected = i;
                                                 }
 
@@ -186,8 +192,8 @@ WAF.Widget.provide(
                                                     that.source.select(this.sector.value.order);
                                                 });
                                                 
-                                                
                                                 // Set the format :
+                                                source.getAttribute(columns[0].sourceAttID) && source.getAttribute(columns[0].sourceAttID).dataClassAtt && source.getAttribute(columns[0].sourceAttID).dataClassAtt.defaultFormat && that.setFormat(source.getAttribute(columns[0].sourceAttID).dataClassAtt.defaultFormat.format);
                                                 if(columns[0] && columns[0].format){
                                                     that.setFormat(columns[0].format);
                                                 }
@@ -215,8 +221,8 @@ WAF.Widget.provide(
                                                     var legTable = $('<table></table>').appendTo('#' + legendaryC.attr('id'));
                                                     for(i = 0 ; i < values[0].length ; i++){
                                                         var htmlObj = $('<TR>' + 
-                                                                         '<TD>' + 
-                                                                            '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
+                                                            '<TD>' + 
+                                                            '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
                                                         htmlObj.appendTo(legTable);
                                                         $('<TD>' + labels[that.chart.series[i].value.order] + '</TD>').appendTo(htmlObj);
                                                         var legItem = Raphael(legendaryC.attr('id') + '-legendary-item-' + i , 20 , 20).rect(0,0,20,20).attr({
@@ -235,7 +241,7 @@ WAF.Widget.provide(
                                                 break;
                                             case 'Line Chart' :
                                                 var offset  = 20,
-                                                    max     = values[0][0];
+                                                max     = values[0][0];
                                                 opts    = {
                                                     vgutter     : null,
                                                     shade       : null,
@@ -254,13 +260,29 @@ WAF.Widget.provide(
                                                 // Sorting the data :
                                                 for (i = 0; i < labels.length; i++) {
                                                     var lab = labels[i];
-                                                    labels[i] = {value: labels[i] , valueDes : lab , order: i, valueOf: function () {return this.valueDes;}};
+                                                    labels[i] = {
+                                                        value: labels[i] , 
+                                                        valueDes : lab , 
+                                                        order: i, 
+                                                        valueOf: function () {
+                                                            return this.valueDes;
+                                                        }
+                                                    };
                                                     for(var j = 0 ; j<values.length ; j++){
                                                         var val = values[j][i];
                                                         if(max < values[j][i]){
                                                             max = values[j][i];
                                                         }
-                                                        values[j][i] = {value: values[j][i], valueDes : val , order: i , column : j , valueOf: function () {return this.valueDes;} , label : labels[i]};
+                                                        values[j][i] = {
+                                                            value: values[j][i], 
+                                                            valueDes : val , 
+                                                            order: i , 
+                                                            column : j , 
+                                                            valueOf: function () {
+                                                                return this.valueDes;
+                                                            } , 
+                                                            label : labels[i]
+                                                        };
                                                     }
                                                 }
                                                 
@@ -290,13 +312,23 @@ WAF.Widget.provide(
                                                 
                                                 if(inConfig['data-tooltipDisplay'] == 'true'){
                                                     that.chart.hover(function(){
+                                                        source.getAttribute(columns[this.value.column].sourceAttID) && source.getAttribute(columns[this.value.column].sourceAttID).dataClassAtt && source.getAttribute(columns[this.value.column].sourceAttID).dataClassAtt.defaultFormat && that.setFormat(source.getAttribute(columns[this.value.column].sourceAttID).dataClassAtt.defaultFormat.format);
                                                         that.setFormat(columns[this.value.column].format);
-                                                        this.line.attr({'stroke-width' : 3});
+                                                        this.line.attr({
+                                                            'stroke-width' : 3
+                                                        });
                                                         this.tags = r.set();
-                                                        this.tags.push(r.g[inConfig['data-tooltipType']](this.x,inConfig['data-tooltipType'] === "label"?this.y-15:this.y, that.getFormattedValue(this.value.value) || "0",parseInt(inConfig['data-tooltipAngle'])-360).insertBefore(this).attr([{fill: this.symbol.attr("fill") , stroke : '#000'}, {fill: '#000'}]));
+                                                        this.tags.push(r.g[inConfig['data-tooltipType']](this.x,inConfig['data-tooltipType'] === "label"?this.y-15:this.y, that.getFormattedValue(this.value.value) || "0",parseInt(inConfig['data-tooltipAngle'])-360).insertBefore(this).attr([{
+                                                            fill: this.symbol.attr("fill") , 
+                                                            stroke : '#000'
+                                                        }, {
+                                                            fill: '#000'
+                                                        }]));
                                                     },function(){
                                                         this.tags && this.tags.remove();
-                                                        this.line.attr({'stroke-width' : 2});
+                                                        this.line.attr({
+                                                            'stroke-width' : 2
+                                                        });
                                                     });
                                                 }
                                                 that.createLengendary();
@@ -304,13 +336,13 @@ WAF.Widget.provide(
                                             case 'Bar Chart'  :
                                                 that.isEmpty = false;
                                                 opts = {
-                                                        type    : 'soft',
-                                                        colors  : that.colors,
-                                                        gutter  : 20,
-                                                        vgutter : 5,
-                                                        to      : isNaN(parseInt(inConfig['data-ymax']))?null:parseInt(inConfig['data-ymax']) - (isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin'])),
-                                                        stacked : null
-                                                    };
+                                                    type    : 'soft',
+                                                    colors  : that.colors,
+                                                    gutter  : 20,
+                                                    vgutter : 5,
+                                                    to      : isNaN(parseInt(inConfig['data-ymax']))?null:parseInt(inConfig['data-ymax']) - (isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin'])),
+                                                    stacked : null
+                                                };
                                                 max = values[0][0];
                                                 var vstep = 10;
                                                 
@@ -325,13 +357,15 @@ WAF.Widget.provide(
                                                         }
                                                         var temp = values[j][i] - (isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin']));
                                                         values[j][i] = {
-                                                                value: values[j][i], 
-                                                                valueDes : temp, 
-                                                                order: i, 
-                                                                column : j,
-                                                                valueOf: function () {return this.valueDes;} , 
-                                                                'label' : labels[j]
-                                                            };
+                                                            value: values[j][i], 
+                                                            valueDes : temp, 
+                                                            order: i, 
+                                                            column : j,
+                                                            valueOf: function () {
+                                                                return this.valueDes;
+                                                            } , 
+                                                            'label' : labels[j]
+                                                        };
                                                     }
                                                 }
                                                 
@@ -340,38 +374,64 @@ WAF.Widget.provide(
                                                 }
                                                 else if(inConfig['data-yinterval'] === 'Range'){
                                                     var ymax = isNaN(parseInt(inConfig['data-ymax']))?max:parseInt(inConfig['data-ymax']),
-                                                        ymin = isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin']),
-                                                        step = isNaN(parseInt(inConfig['data-ystepvalue']))?null:parseInt(inConfig['data-ystepvalue']);
+                                                    ymin = isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin']),
+                                                    step = isNaN(parseInt(inConfig['data-ystepvalue']))?null:parseInt(inConfig['data-ystepvalue']);
                                                     
                                                     vstep = isNaN((ymax - ymin)/step)?vstep:parseInt((ymax - ymin)/step);
                                                 }
                                                 
                                                 var barvgutter  = opts.vgutter || 20 ,
-                                                    textSet     = r.set(),
-                                                    y           = 35,
-                                                    textMax     = 0,
-                                                    textTemp    = r.text(0,0,max).hide(),
-                                                    x           = textTemp.getBBox().width + 15,
-                                                    gutter      = opts.gutter || 10,
-                                                    barhgutter  = (r.width - x)*gutter/(labels.length*(100+gutter)+gutter),
-                                                    barwidth    = barhgutter*100/gutter;
-                                                    posTemp     = x + barhgutter;
+                                                textSet     = r.set(),
+                                                y           = 35,
+                                                textMax     = 0,
+                                                textTemp    = r.text(0,0,max).hide(),
+                                                x           = textTemp.getBBox().width + 15,
+                                                gutter      = opts.gutter || 10,
+                                                barhgutter  = (r.width - x)*gutter/(labels.length*(100+gutter)+gutter),
+                                                barwidth    = barhgutter*100/gutter;
+                                                posTemp     = x + barhgutter,
+                                                labelAngle  = parseInt(inConfig['data-labelAngle']);
                                                 textTemp.remove();
-//                                                for(i = 0 ; i < that.source.length ; i++){
-//                                                    r.text(posTemp + barwidth/2 , r.height - 5 , labels[i]);
-//                                                    posTemp += barwidth + barhgutter;
-//                                                }
-                                                
                                                 for(i = 0 ; i < that.source.length ; i++){
-                                                    textTemp = r.text(posTemp + barwidth/2 , r.height , labels[i]).rotate(90, posTemp + barwidth/2, r.height);
+                                                    textTemp = r.text(0,0,labels[i]).hide();
                                                     if(textMax<textTemp.getBBox().width){
-                                                        textMax = parseInt(textTemp.getBBox().width);
+                                                        textMax = parseInt(textTemp.getBBox().width*Math.sin(Raphael.rad(labelAngle))) + textTemp.getBBox().height + 4;
                                                     }
-                                                    posTemp += barwidth + barhgutter;
-                                                    textSet.push(textTemp);
                                                 }
-                                                textSet.attr({'text-anchor' : 'start'}).translate(0, - textMax);
-                                                
+                                                for (i = 0; i < labels.length; i++) {
+                                                    switch(inConfig['data-labelAlign']){
+                                                        case 'start' :
+                                                            point = {
+                                                                x           : posTemp,
+                                                                y           : r.height - textMax + textTemp.getBBox().height/2 + 2,
+                                                                textAnchor  : inConfig['data-labelAlign'],
+                                                                angle       : labelAngle
+                                                            }
+                                                            break;
+                                                        case 'middle' :
+                                                            point = {
+                                                                x : posTemp + barwidth/2,
+                                                                y : r.height - textMax/2,
+                                                                textAnchor  : inConfig['data-labelAlign'],
+                                                                angle       : labelAngle
+                                                            };
+                                                            break;
+                                                        case 'end' :
+                                                            point = {
+                                                                x : posTemp,
+                                                                y : r.height - textTemp.getBBox().height/2 -2,
+                                                                textAnchor  : 'start',
+                                                                angle       : -labelAngle
+                                                            }
+                                                            break;
+                                                    }
+                                                    textTemp = r.text(point.x, point.y , labels[i]).attr({
+                                                        'text-anchor' : point.textAnchor
+                                                        }).rotate(point.angle, point.x, point.y);
+                    
+                                                    textSet.push(textTemp);
+                                                    posTemp += barwidth + barhgutter;
+                                                } 
                                                 that.chart = r.g.barchart(x , y, r.width - x, r.height - textMax - y, values,opts);
                                                 r.g.axis(x + barhgutter/2 , r.height - textMax - barvgutter , r.height - textMax - y - 2*barvgutter , isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin']) , isNaN(parseInt(opts.to))?max:opts.to+(isNaN(parseInt(inConfig['data-ymin']))?0:parseInt(inConfig['data-ymin'])) , vstep , 1 );
                                                 r.g.axis(x + barhgutter/2 , r.height - textMax - barvgutter , r.width - x - barhgutter, 0 , 1 , labels.length , 2 ).text.remove();
@@ -384,8 +444,18 @@ WAF.Widget.provide(
                                                 
                                                 if(inConfig['data-tooltipDisplay'] == 'true'){
                                                     that.chart.hover(function () {
-                                                        that.setFormat(columns[this.value.column].format);
-                                                        this.tag = r.g[inConfig['data-tooltipType']](this.bar.x,inConfig['data-tooltipType'] === "label"?this.bar.y-15:this.bar.y, that.getFormattedValue(this.bar.value.value) || "0",parseInt(inConfig['data-tooltipAngle'])-360).insertBefore(this).attr([{fill: this.bar.attr("fill") , stroke : '#000'}, {fill: '#000'}]);
+                                                        if(columns[this.value.column].format){
+                                                            that.setFormat(columns[this.value.column].format);
+                                                        }
+                                                        else if(source.getAttribute(columns[this.value.column].sourceAttID) && source.getAttribute(columns[this.value.column].sourceAttID).dataClassAtt && source.getAttribute(columns[this.value.column].sourceAttID).dataClassAtt.defaultFormat){
+                                                                that.setFormat(source.getAttribute(columns[this.value.column].sourceAttID).dataClassAtt.defaultFormat.format);
+                                                        }
+                                                        this.tag = r.g[inConfig['data-tooltipType']](this.bar.x,inConfig['data-tooltipType'] === "label"?this.bar.y-15:this.bar.y, that.getFormattedValue(this.bar.value.value) || "0",parseInt(inConfig['data-tooltipAngle'])-360).insertBefore(this).attr([{
+                                                            fill: this.bar.attr("fill") , 
+                                                            stroke : '#000'
+                                                        }, {
+                                                            fill: '#000'
+                                                        }]);
                                                     }, function () {
                                                         this.tag.animate({
                                                             opacity: 0
@@ -405,16 +475,16 @@ WAF.Widget.provide(
                                     }
                                     
                                 }
-                              },{
-                                  onLastEntity  : i == Math.min(parseInt(inConfig['data-limitlength']), source.length)-1,
-                                  order         : i
-                              }  
+                            },{
+                                onLastEntity  : i == Math.min(parseInt(inConfig['data-limitlength']), source.length)-1,
+                                order         : i
+                            }  
                             );
-                       }
+                        }
                        
-                       break;
-                  case "onCurrentElementChange" :
-                      switch(inConfig['data-chartType']){
+                        break;
+                    case "onCurrentElementChange" :
+                        switch(inConfig['data-chartType']){
                             case 'Pie Chart' :
                                 try{
                                     that.chart.select(that.source.getPosition());
@@ -422,9 +492,9 @@ WAF.Widget.provide(
                                     
                                 }
                                 break;
-                      }
-                      break;
-               }
+                        }
+                        break;
+                }
             });
         }
         
@@ -444,4 +514,4 @@ WAF.Widget.provide(
         }
     }
 
-);
+    );

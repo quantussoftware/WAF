@@ -65,9 +65,9 @@ WAF.addWidget({
         visibility  : 'hidden'
     }, {
         name        : 'data-chartType',
-//        description : 'Type',
-//        type        : 'dropdown',
-//        options     : ['Pie Chart' , 'Line Chart' , 'Bar Chart'],
+        //        description : 'Type',
+        //        type        : 'dropdown',
+        //        options     : ['Pie Chart' , 'Line Chart' , 'Bar Chart'],
         defaultValue: 'Pie Chart',
         visibility  : 'hidden'
     }, {
@@ -87,11 +87,6 @@ WAF.addWidget({
         description : 'Limit length',
         type        : 'integer',
         defaultValue: '100'
-    },
-    {
-        name        : 'data-column',
-        visibility  : 'hidden',
-        defaultValue: '[]'
     },
     {
         name        : 'data-draggable',
@@ -124,6 +119,123 @@ WAF.addWidget({
         name        : 'data-ystepvalue',
         visibility  : 'hidden',
         defaultValue: ''
+    },  {
+        name        : 'data-labelAngle',
+        visibility  : 'hidden',
+        defaultValue: '90'
+    },  {
+        name        : 'data-labelAlign',
+        visibility  : 'hidden',
+        defaultValue: 'start'
+    },
+    {
+        name            : 'data-column',
+        description     : 'Data Series',
+        type            : 'grid',
+        defaultValue    : '[]',
+        reloadOnChange  : true,
+        displayEmpty    : false, // if false grid is hidden if empty
+        newRowEmpty     : false,
+        editable        : false,
+        beforeReady     : function(){
+            var
+            tag,
+            chartType;
+            
+            tag = this.data.tag;
+            chartType = tag.getAttribute('data-chartType').getValue();
+            
+            switch(chartType) {
+                case 'Pie Chart':
+                    this.editable           = false;
+                    this.sortable           = false;
+                    this.buttons.visible    = false;
+                    break;
+                    
+                default:
+                    this.editable           = true;
+                    this.sortable           = true;
+                    this.buttons.visible    = true;
+                    break;
+            }
+        },
+        sortable        : false,
+        columns         : [{
+            title       : 'label',
+            name        : 'title',
+            type        : 'textfield'
+        },{
+            title       : 'attribute',
+            name        : 'sourceAttID',
+            type        : 'textfield',
+            typeValue   : 'dataSource'
+        }],
+        toolbox         : [{
+            name    : 'format',
+            type    : 'textfield'
+        }], 
+        onsave          : function(data) {
+            var
+            tag,
+            attrib,
+            columns,
+            value;
+            
+            try {
+                tag     = data.tag;
+                columns = tag.getColumns();
+                
+                /*
+                 * Clear columns
+                 */
+                columns.clear();
+                
+                /*
+                 * Get new rows
+                 */
+                $.each(data.value.rows, function() {
+                    var
+                    row,
+                    name,
+                    value,
+                    check,
+                    column;
+                    
+                    row     = this;
+                    check   = true;
+                    column  = new WAF.tags.descriptor.Column();
+                    
+                    $.each(this, function(i) {
+                        name    = this.component.name;
+                        value   = this.value;
+                        
+                        if (name == 'sourceAttID') {
+                            column.getAttribute('colID').setValue(value.replace(/\./g, '_'));
+                            
+                            /*
+                             * Check if the new attribute is valid
+                             */
+                            attrib = Designer.env.ds.catalog.getByName(tag.getSource()).getAttributeByName(value);
+                            if (attrib && attrib.type && attrib.type.match(new RegExp('(^number$)|(^long$)|(^long64$)|(^float$)|(^duration$)'))) {
+                                // DO NOTHING
+                            } else {
+                                check = false;
+                                row[1].component.getHtmlObject().addClass('studio-form-invalid');
+                            }
+                        }
+                        
+                        column.getAttribute(name).setValue(value);
+                    });
+                    
+                    if (check) {
+                        columns.add(column);
+                    }
+                });              
+                
+            } catch(e) {
+                console.log(e);
+            }
+        }
     }
     ],
     columns: {
@@ -240,23 +352,23 @@ WAF.addWidget({
     * @param {Boolean} isResize is a resize call for the widget (not currently available for custom widgets)
     */
     onDesign: function (config, designer, tag, catalog, isResize) {
-        
+        //        console.log(Designer.env.dom.isReady);
         var columns = tag.getColumns().toArray();
         
         var values  = function(){
-                var res = [];
-                for(var i = 1 ; i <= columns.length ; i++){
-                    res.push([10*i,30*i,100*i,20*i]);
-                }
-                return res;
-            }.call(),
-            labels          = function(){
-                var result = [];
-                for(var item in values[0]){
-                    result.push((tag.getSource() ? tag.getSource() + ' Entity ' : 'Fake Data ') + item)
-                }
-                return result;
-            }.call();
+            var res = [];
+            for(var i = 1 ; i <= columns.length ; i++){
+                res.push([10*i,30*i,100*i,20*i]);
+            }
+            return res;
+        }.call(),
+        labels          = function(){
+            var result = [];
+            for(var item in values[0]){
+                result.push((tag.getSource() ? tag.getSource() + ' Entity ' : 'Fake Data ') + item)
+            }
+            return result;
+        }.call();
          
         
         
@@ -338,11 +450,22 @@ WAF.addWidget({
             this.setXY(20, 80, true);
             this.setParent(container);
             this._linkedWidgets = {
-                                    container   : container,
-                                    title       : title,
-                                    subTitle    : subTitle,
-                                    legendary   : legendary
-                                };
+                container   : container,
+                title       : title,
+                subTitle    : subTitle,
+                legendary   : legendary
+            };
+            
+            var group = new Designer.ui.group.Group();
+            
+            group.add(container);
+            group.add(title);
+            group.add(subTitle);
+            group.add(legendary);
+            group.add(tag);
+                       
+            Designer.ui.group.save();
+            
             this.refresh();
         }
         /*
@@ -363,7 +486,9 @@ WAF.addWidget({
         
         if(labels.length == 0 || values.length == 0){
             var r = Raphael(tag.getId(),$("#" + tag.getId()).width(),$("#" + tag.getId()).height());
-            r.text(r.width/2,r.height/2,'Drop a datasource here').attr({'font-size':20});
+            r.text(r.width/2,r.height/2,'Drop a datasource here').attr({
+                'font-size':20
+            });
             return;
         }
         
@@ -379,8 +504,8 @@ WAF.addWidget({
 
                 for(var i = 0 ; i < values.length ; i++){
                     var htmlObj = $('<TR>' + 
-                                     '<TD style="padding:1px">' + 
-                                        '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
+                        '<TD style="padding:1px">' + 
+                        '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
                     htmlObj.appendTo(legTable);
                     $('<TD style="padding-left:3px">' + tag.getColumns().toArray()[i].title  + '</TD>').appendTo(htmlObj);
                     Raphael(legendaryC.attr('id') + '-legendary-item-' + i , 20 , 20).rect(0,0,20,20).attr({
@@ -388,7 +513,7 @@ WAF.addWidget({
                     });
                 }
             }
-       }
+        }
         
         /*
          * Initialization of the graph
@@ -409,17 +534,17 @@ WAF.addWidget({
                 
                 
                 var radius  = Math.min(tag.getWidth(), tag.getHeight())/2 - 50,
-                    opts    = {
-                            colors      : colors,
-                            stroke      : null,
-                            strokewidth : null,
-                            init        : null,
-                            href        : null,
-                            legend      : null,
-                            legendmark  : null,
-                            legendothers: null,
-                            legendpos   : null
-                        };
+                opts    = {
+                    colors      : colors,
+                    stroke      : null,
+                    strokewidth : null,
+                    init        : null,
+                    href        : null,
+                    legend      : null,
+                    legendmark  : null,
+                    legendothers: null,
+                    legendpos   : null
+                };
                 tag.chart     = r.g.piechart(r.width/2, r.height/2, radius, values[0],opts);
                 
                 if(tag.getAttribute('data-tooltipDisplay').getValue() == 'true'){
@@ -449,8 +574,8 @@ WAF.addWidget({
                     var legTable = $('<table></table>').appendTo('#' + legendary.getId());
                     for(i = 0 ; i < labels.length ; i++){
                         var htmlObj = $('<TR>' + 
-                                         '<TD style="padding:1px">' + 
-                                            '<DIV id = "' + tag.getId() + '-legendary-item-' + i + '"></DIV></TD></TR>');
+                            '<TD style="padding:1px">' + 
+                            '<DIV id = "' + tag.getId() + '-legendary-item-' + i + '"></DIV></TD></TR>');
                         htmlObj.appendTo(legTable);
                         $('<TD style="padding-left:3px">' + labels[tag.chart.series[i].value.order] + '</TD>').appendTo(htmlObj);
                         var legItem = Raphael(tag.getId() + '-legendary-item-' + i , 20 , 20).rect(0,0,20,20);
@@ -468,29 +593,42 @@ WAF.addWidget({
                 }
                 labels = [0,1,2,3];
                 var offset = 20,
-                    opts    = {
-                        vgutter     : null,
-                        shade       : null,
-                        nostroke    : false, 
-                        axis        : "0 0 1 1",
-                        axisstep    : null,
-                        width       : null,
-                        dash        : null,
-                        smooth      : false,
-                        symbol      : "o",
-                        colors      : colors,
-                        gutter      : 5
-                    };
+                opts    = {
+                    vgutter     : null,
+                    shade       : null,
+                    nostroke    : false, 
+                    axis        : "0 0 1 1",
+                    axisstep    : null,
+                    width       : null,
+                    dash        : null,
+                    smooth      : false,
+                    symbol      : "o",
+                    colors      : colors,
+                    gutter      : 5
+                };
                     
                 // Sorting the data :
                                                 
                 for (i = 0; i < labels.length; i++) {
-                    labels[i] = {value: labels[i], order: i, valueOf: function () {return this.value;}};
+                    labels[i] = {
+                        value: labels[i], 
+                        order: i, 
+                        valueOf: function () {
+                            return this.value;
+                        }
+                    };
                     for(var j = 0 ; j<values.length ; j++){
                         if(max < values[j][i]){
                             max = values[j][i];
                         }
-                        values[j][i] = {value: values[j][i], order: i, valueOf: function () {return this.value;} , label : labels[i]};
+                        values[j][i] = {
+                            value: values[j][i], 
+                            order: i, 
+                            valueOf: function () {
+                                return this.value;
+                            } , 
+                            label : labels[i]
+                        };
                     }
                 }
 
@@ -510,28 +648,32 @@ WAF.addWidget({
                 tag.createLengendary();
                 break;
             case 'Bar Chart' :
+                r.rect(0,0,r.width,r.height).attr({
+                    'stroke-width' : 2
+                })
                 if(columns.length == 0){
                     return;
                 }
                 opts = {
                     type    : 'soft',
                     colors  : colors,
-                    gutter  : 50,
-                    vgutter : 10,
+                    gutter  : 0,
+                    vgutter : 0,
                     to      : null,
                     stacked : null
                 };
                 var max = values[0][0],
-                    textMax     = 0;
-                    textSet     = r.set(),
-                    y           = 25,
-                    barvgutter  = opts.vgutter || 20 ,
-                    textTemp    = r.text(0,0,max).hide(),
-                    x           = textTemp.getBBox().width + 15,
-                    gutter      = opts.gutter || 10,
-                    barhgutter  = (r.width - x)*gutter/(labels.length*(100+gutter)+gutter),
-                    barwidth    = barhgutter*100/gutter;
-                    posTemp     = x + barhgutter;
+                textMax     = 0;
+                textSet     = r.set(),
+                y           = 25,
+                barvgutter  = opts.vgutter ,
+                textTemp    = r.text(0,0,max).hide(),
+                x           = textTemp.getBBox().width + 15,
+                gutter      = opts.gutter || 10,
+                barhgutter  = (r.width - x)*gutter/(labels.length*(100+gutter)+gutter),
+                barwidth    = barhgutter*100/gutter;
+                posTemp     = x + barhgutter,
+                labelAngle  = parseInt(tag.getAttribute('data-labelAngle').getValue());
                     
                 textTemp.remove();   
                 for (i = 0; i < values.length; i++) {
@@ -543,15 +685,43 @@ WAF.addWidget({
                 }
                 
                 for(i = 0 ; i < labels.length ; i++){
-                    textTemp = r.text(posTemp + barwidth/2 , r.height , labels[i]).rotate(90, posTemp + barwidth/2, r.height - 10); 
+                    textTemp = r.text(0,0,labels[i]).hide();
                     if(textMax<textTemp.getBBox().width){
-                        textMax = parseInt(textTemp.getBBox().width);
+                        textMax = parseInt(textTemp.getBBox().width*Math.sin(Raphael.rad(labelAngle))) + textTemp.getBBox().height + 4;
                     }
-                    posTemp += barwidth + barhgutter;
-                    textSet.push(textTemp);
                 }
-                textSet.attr({'text-anchor' : 'start'}).translate(0, - textMax + 5);
-                
+                for (i = 0; i < labels.length; i++) {
+                    switch(tag.getAttribute('data-labelAlign').getValue()){
+                        case 'start' :
+                            point = {
+                                x           : posTemp,
+                                y           : r.height - textMax + textTemp.getBBox().height/2 + 2,
+                                textAnchor  : tag.getAttribute('data-labelAlign').getValue(),
+                                angle       : labelAngle
+                            }
+                            break;
+                        case 'middle' :
+                            point = {
+                                x : posTemp + barwidth/2,
+                                y : r.height - textMax/2,
+                                textAnchor  : tag.getAttribute('data-labelAlign').getValue(),
+                                angle       : labelAngle
+                            };
+                            break;
+                        case 'end' :
+                            point = {
+                                x : posTemp,
+                                y : r.height - textTemp.getBBox().height/2 -2,
+                                textAnchor  : 'start',
+                                angle       : -labelAngle
+                            }
+                            break;
+                    }
+                    textTemp = r.text(point.x, point.y , labels[i]).attr({'text-anchor' : point.textAnchor}).rotate(point.angle, point.x, point.y);
+                    
+                    textSet.push(textTemp);
+                    posTemp += barwidth + barhgutter;
+                }
                 
                 tag.chart = r.g.barchart(x , y, r.width - x, r.height - textMax - y, values,opts);
                 
@@ -581,7 +751,12 @@ WAF.addWidget({
                         break;
                 }
                 var dirs = ['South','West','North','East'];
-                tag.tooltip = r.g[tag.getAttribute('data-tooltipType').getValue()](pos.x,tag.getAttribute('data-tooltipType').getValue() === 'label'?pos.y - 15 :pos.y,tag.getAttribute('data-tooltipType').getValue() === "popup"?dirs[parseInt(tag.getAttribute('data-tooltipAngle').getValue())%360]:parseInt(tag.getAttribute('data-tooltipAngle').getValue() + "°"),parseInt(tag.getAttribute('data-tooltipAngle').getValue())-360).attr([{fill: 'green' , stroke : '#000'}, {fill: '#000'}]);
+                tag.tooltip = r.g[tag.getAttribute('data-tooltipType').getValue()](pos.x,tag.getAttribute('data-tooltipType').getValue() === 'label'?pos.y - 15 :pos.y,tag.getAttribute('data-tooltipType').getValue() === "popup"?dirs[parseInt(tag.getAttribute('data-tooltipAngle').getValue())%360]:parseInt(tag.getAttribute('data-tooltipAngle').getValue() + "°"),parseInt(tag.getAttribute('data-tooltipAngle').getValue())-360).attr([{
+                    fill: 'green' , 
+                    stroke : '#000'
+                }, {
+                    fill: '#000'
+                }]);
             }
             catch(e){
 

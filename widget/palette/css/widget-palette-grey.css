@@ -35,7 +35,8 @@
  * @section Main
  * -------------------------------------------------------
  */
-.waf-widget {
+.waf-widget,
+.waf-widget a {
 	color: hsla(0, 0%, 0%, 0.7);/*rgba(0, 0, 0, 0.7);*/
 }
 
@@ -71,7 +72,7 @@
  * @section button
  * -------------------------------------------------------
  */
-.waf-button {
+.waf-widget.waf-button {
 	background-color: hsl(0, 0%, 80%);/*rgb(204, 204, 204);*/
     text-shadow: hsl(0, 0%, 100%) 0 1px 1px;/*rgb(255, 255, 255);*/
 }
@@ -143,7 +144,7 @@
  * @section combobox
  * -------------------------------------------------------
  */
-.waf-combobox {
+.waf-widget.waf-combobox {
 	background-color: hsl(0, 0%, 50%);/*rgb(128, 128, 128);*/
 	border-color: hsl(0, 0%, 44%);/*rgb(112, 112, 112);*/
 	color: hsl(0, 0%, 100%);/*rgb(255, 255, 255);*/
@@ -195,7 +196,7 @@
  * @section menuBar
  * -------------------------------------------------------
  */
-.waf-menuBar {
+.waf-widget.waf-menuBar {
 	background-color: hsl(0, 0%, 80%);/*rgb(204, 204, 204);*/
 	border-color: hsla(0, 0%, 0%, 0.2);/*rgba(0, 0, 0, 0.2);*/
 }
@@ -206,7 +207,7 @@
  * @section menuItem
  * -------------------------------------------------------
  */
-.waf-menuItem {
+.waf-widget.waf-menuItem {
 	border-color: hsl(0, 0%, 93%);/*rgb(255, 255, 255);*/
 }
 
@@ -216,7 +217,18 @@
  * @section container
  * -------------------------------------------------------
  */
-.waf-container {
+.waf-widget.waf-container {
+	background-color: hsl(0, 0%, 90%);
+	border-color: hsl(0, 0%, 44%);
+}
+
+
+/**
+ * -------------------------------------------------------
+ * @section login
+ * -------------------------------------------------------
+ */
+.waf-widget.waf-login {
 	background-color: hsl(0, 0%, 90%);
 	border-color: hsl(0, 0%, 44%);
 }
@@ -227,7 +239,7 @@
  * @section autoForm
  * -------------------------------------------------------
  */
-.waf-autoForm {
+.waf-widget.waf-autoForm {
 	background-color: hsl(0, 0%, 100%);/*rgb(255, 255, 255);*/
 	
 	/**
@@ -290,7 +302,7 @@
  * @section dataGrid
  * -------------------------------------------------------
  */
-.waf-dataGrid {
+.waf-widget.waf-dataGrid {
 	background-color: hsl(0, 0%, 100%);/*rgb(255, 255, 255);*/
 	
 	/**
@@ -371,7 +383,7 @@
  * @section progressBar
  * -------------------------------------------------------
  */
-.waf-progressBar {
+.waf-widget.waf-progressBar {
 	background-color: hsl(0, 0%, 50%);/*rgb(128, 128, 128);*/
 	border-color: hsl(0, 0%, 44%);/*rgb(112, 112, 112);*/
 	color: hsl(0, 0%, 100%);/*rgb(255, 255, 255);*/
@@ -388,7 +400,7 @@
  * @section slider
  * -------------------------------------------------------
  */
-.waf-slider {
+.waf-widget.waf-slider {
 	background-color: hsl(0, 0%, 90%);/*rgb(229, 229, 229);*/
 }
 
@@ -441,7 +453,7 @@
  * @section textField
  * -------------------------------------------------------
  */
-.waf-textField {
+.waf-widget.waf-textField {
 	background-color: hsl(0, 0%, 93%);/*rgb(238, 238, 238);*/
 	border-color: hsl(0, 0%, 80%);/*rgb(204, 204, 204);*/
 }

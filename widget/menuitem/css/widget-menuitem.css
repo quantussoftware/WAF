@@ -47,6 +47,7 @@
     color: inherit;
     
     cursor: pointer;
+    
 }
 
 
@@ -58,4 +59,8 @@
 .waf-menuItem > .waf-menuItem-icon-top span,   
 .waf-menuItem > .waf-menuItem-icon-bottom span {
     display: block;
+}
+
+.waf-menuItem img{
+    vertical-align: middle;
 }

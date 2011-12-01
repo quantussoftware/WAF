@@ -229,6 +229,16 @@ WAF.tags.descriptor.Attribute.prototype.setDescriptor = function (descriptor) {
 };
 
 
+     /**
+     * Set the visibility of the attribute
+     * @namespace Designer.tag.Attribute
+     * @method setVisibility
+     * @param {String} value the new value
+     */
+WAF.tags.descriptor.Attribute.prototype.setVisibility = function (value) {
+        this._visibility = value;
+    };
+
 // PUBLIC METHODS
 
 

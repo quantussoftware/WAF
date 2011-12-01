@@ -122,6 +122,7 @@ WAF.addWidget({
         return new WAF.widget.Container(config);
     },
     onDesign: function (config, designer, tag, catalog, isResize) {  
+        //console.log("design")
         var
         htmlObject,
         parent,
@@ -173,7 +174,8 @@ WAF.addWidget({
             firstParent,
             children,
             childrenLength,
-            existingClasses;                
+            existingClasses;
+            
             params              = params        || {};
             nb                  = params.nb     || 2;
             type                = params.type   || 'vertically';
@@ -350,7 +352,7 @@ WAF.addWidget({
             
             
             switch(type) {
-                case 'horizontally':                    
+                case 'horizontally':
                     splitterLeft    = 0;
                     splitterHeight  = 5;
                     splitterWidth   = tagHtmlObject.width();
@@ -390,7 +392,7 @@ WAF.addWidget({
                     
                     break;
 
-                case 'vertically':                    
+                case 'vertically':
                     splitterTop     = 0;
                     splitterWidth   = 5;
                     splitterHeight  = tagHtmlObject.height();  
@@ -398,8 +400,8 @@ WAF.addWidget({
                     
                     $.extend(config, {                        
                         axis    : 'x',
-                        stop   : function() {
-                            D.env.resizeSplit = false;
+                        stop   : function() {                        
+                            D.env.resizeSplit = false;  
                         },
                         /*
                          * Resize containers on dragging
@@ -433,21 +435,66 @@ WAF.addWidget({
                     break;
             }
             
-            
-            config.stop = function (e, ui) {
+            config.start = function (e, ui) {
                 var
                 i,
+                size,
                 containersLength;
 
-                containersLength = childrenLength;
+                containersLength    = childrenLength;
+                size                = [];
+                
+                for (i = 0; i < containersLength; i += 1) {
+                    if (type == 'vertically') {
+                        size.push(children[i].getWidth());
+                    } else {
+                        size.push(children[i].getHeight());
+                    }
+                }
+                this.oldValue = size;
+            }
+            
+            config.stop = function (e, ui) {  
+                var
+                i,
+                size,
+                containersLength;
+                
+                Designer.beginUserAction('061'); 
+
+                containersLength    = childrenLength;
+                size                = [];
 
                 for (i = 0; i < containersLength; i += 1) {
                     children[i].domUpdate();
+                    
+                    if (type == 'vertically') {
+                        size.push(children[i].getWidth());
+                    } else {
+                        size.push(children[i].getHeight());
+                    }
                 } 
                             
                 if (inMatrix) {
                     matrix.rebuild();
                 }
+                
+                // history
+                var action = new Designer.action.SplitContainer({
+                    val       : '0', 
+                    oldVal    : '1',
+                    tagId     : that.id,
+                    tagHtmlId : that.getId,
+                    prop      : 'resizeSplit',
+                    data      : {             
+                        splitType   : type,
+                        currentTag  : D.getCurrent(),
+                        newValue    : size,
+                        oldValue    : this.oldValue
+                    }          
+                }); 
+
+                Designer.getHistory().add(action); 
             }
             
             $.extend(splitterCss, {
@@ -518,17 +565,20 @@ WAF.addWidget({
             splitType;
             
             that                = this;
-            containers          = that._containers;            
-            containersLength    = containers.length;  
+            containers          = that._containers;   
             
-            
-            if (containers && containersLength > 0) {
-                for (i = 0; i < containersLength; i += 1) {
-                    container = containers[i];
-                    if (container.getX() === 0) {
-                        splitType = "horizontally";
-                    } else {
-                        splitType = "vertically";
+            if (containers) {
+                containersLength    = containers.length;  
+
+
+                if (containers && containersLength > 0) {
+                    for (i = 0; i < containersLength; i += 1) {
+                        container = containers[i];
+                        if (container.getX() === 0) {
+                            splitType = "horizontally";
+                        } else {
+                            splitType = "vertically";
+                        }
                     }
                 }
             }
@@ -565,16 +615,17 @@ WAF.addWidget({
             /*
              * Resize splitter
              */   
-            switch(splitType) {
-                case 'horizontally':
-                    splitter.css('width', thatWidth + 'px');
-                    break;
+            if (splitter) {
+                switch(splitType) {
+                    case 'horizontally':
+                        splitter.css('width', thatWidth + 'px');
+                        break;
 
-                case 'vertically':
-                    splitter.css('height', thatHeight + 'px');
-                    break;
-            }  
-            
+                    case 'vertically':
+                        splitter.css('height', thatHeight + 'px');
+                        break;
+                }  
+            }        
             
             /*
              * Resize containers
@@ -606,7 +657,7 @@ WAF.addWidget({
                 }
             }
             
-            that._containers    = containers;
+            that._containers    = containers;            
         }
         
         /*
@@ -627,10 +678,19 @@ WAF.addWidget({
             });
         }
         
+        /*
+         * If container is inside a tabview
+         */
+        if (isResize) {
+            parent = tag.getParent()
+            if (parent && parent.getType() == 'tabView') {
+            }
+        }        
     },
     
     onCreate : function (tag) {
         var
+        nb,
         containerSplitClass,
         htmlObject,
         parent;
@@ -664,8 +724,17 @@ WAF.addWidget({
                 e.data.container.ddElt.unlock();
             }); 
             
-            if(!parent.getSplitter() && parent._elementNode.getChildNodes().length == parent._containers.length) {
-                //console.log(parent.getSplitOrientation())
+            /*
+             * Count the number of child nodes except the undefined nodes
+             */
+            nb = 0;
+            $.each(parent._elementNode.getChildNodes(), function() {
+                if (this.tagName) {
+                    nb += 1;
+                }
+            })
+            
+            if(!parent.getSplitter() && nb == parent._containers.length) {
                 parent.addSplitter(parent.getSplitOrientation());
             }
         }

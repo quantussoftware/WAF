@@ -20,7 +20,7 @@
 WAF.addWidget({
     type        : 'yahooWeather',
     lib         : 'WAF',
-    description : 'YAHOO! Weather',
+    description : 'Yahoo! Weather',
     category    : 'Experimental',
     img         : '/walib/WAF/widget/yahooWeather/icons/widget-yahooWeather.png',
     include     : [],
@@ -83,9 +83,7 @@ WAF.addWidget({
     }],
     properties : {
         style: {
-            theme       : {
-                'roundy'    : false
-            },
+            theme       : false,
             fClass      : true,
             text        : false,
             background  : true,

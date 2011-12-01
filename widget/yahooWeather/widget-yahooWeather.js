@@ -221,8 +221,8 @@ WAF.Widget.provide(
         
         // Source attribute change
         if (typeof this.source !== 'undefined') {
-            //this.source.addListener("attributeChange", shared.yahooWeatherEventHandler, {attributeName: this.att.name}, {widget:this, shared: shared, getForecast:shared.getForecast});
-            this.source.addListener("attributeChange", shared.yahooWeatherEventHandler, {
+            //this.source.addListener("onAttributeChange", shared.yahooWeatherEventHandler, {attributeName: this.att.name}, {widget:this, shared: shared, getForecast:shared.getForecast});
+            this.source.addListener("onAttributeChange", shared.yahooWeatherEventHandler, {
                 attributeName: this.att.name
                 }, {
                 shared: shared

@@ -109,7 +109,7 @@ WAF.Widget.provide(
                 })
             }
         }
-                
+        
         that.refresh();
     },{
         refresh : function image_refresh () {

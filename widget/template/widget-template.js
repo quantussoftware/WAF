@@ -108,7 +108,7 @@ WAF.Widget.provide(
         }
 
         if ('source' in this) {
-            this.source.addListener("attributeChange", eventHandlerFunction, {
+            this.source.addListener("onAttributeChange", eventHandlerFunction, {
                 attributeName: this.att.name
                 }, {
                 widget:this
@@ -118,7 +118,7 @@ WAF.Widget.provide(
                 {
                     widget: this,
                     id: this.id,
-                    eventKind: 'attributeChange', // event to listen
+                    eventKind: 'onAttributeChange', // event to listen
                     attributeName: this.att.name,
                     notify: function notify(inNotifyEvent) {
                     

@@ -71,7 +71,8 @@ WAF.tags.descriptor.MenuItem.prototype.init = function ( init ) {
         borderTop   = borderLeft;  
         // create the tag
         menuItem.create({
-            parent : this._parent
+            parent      : this._parent,
+            silentMode  : true
         });
         
         menuItem.setCss('text-align', 'center');
@@ -447,7 +448,6 @@ WAF.tags.descriptor.MenuItem.prototype.remove = function () {
             break;
         }
     }       
-    
 }
     
 

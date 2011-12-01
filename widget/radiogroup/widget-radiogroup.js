@@ -311,7 +311,7 @@ WAF.Widget.provide(
                         break;
 
                     case  'onCollectionChange' :
-                    case  'attributeChange' :            
+                    case  'onAttributeChange' :            
                         /*
                          * Add a radio for each data
                          */

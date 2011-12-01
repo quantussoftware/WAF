@@ -1,0 +1,81 @@
+/*
+* Copyright (c) 4D, 2011
+*
+* This file is part of Wakanda Application Framework (WAF).
+* Wakanda is an open source platform for building business web applications
+* with nothing but JavaScript.
+*
+* Wakanda Application Framework is free software. You can redistribute it and/or
+* modify since you respect the terms of the GNU General Public License Version 3,
+* as published by the Free Software Foundation.
+*
+* Wakanda is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* Licenses for more details.
+*
+* You should have received a copy of the GNU General Public License version 3
+* along with Wakanda. If not see : http://www.gnu.org/licenses/
+*/
+/**
+ * Widget login
+ *
+ * Includes mandatory rules for the login widget
+ *
+ * @link /walib/WAF/widget/css/widget.css
+ *
+ */
+
+
+/**
+ * -------------------------------------------------------
+ * @section login container
+ * -------------------------------------------------------
+ */
+.waf-login {
+   border-style: none;
+   border-width: 0;
+   overflow:  hidden;
+       
+   cursor: pointer;
+   padding: 4px;
+}
+
+.waf-login a:hover {
+	text-decoration: underline;
+}
+
+.waf-login-login {
+	float: right;
+	margin-right: 10px;
+}
+
+.waf-login-user {
+	float: left;
+}
+
+.waf-login-logout {
+	float: right;
+	margin-right: 10px;
+}
+
+.waf-login-logout {
+	margin-left: 10px;
+}
+
+.waf-login-div {
+	padding:4px;
+}
+
+.waf-login-button {
+	padding-bottom: 3px;
+	padding-top: 3px;
+	padding-left: 10px;
+	padding-right: 10px;
+	float: right;
+	margin-right: 10px;
+}
+
+.waf-login-label {
+	margin-right: 8px;
+}

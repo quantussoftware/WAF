@@ -65,9 +65,20 @@ Object.defineProperty(
         wafModuleCache = {},
         wafModuleLoaded = {},
         wafParentModuleIds = [];
+		
+	var	nativeModules = {
+	
+		net: 	true,
+		tls:	true,
+		
+	};
 
     require = Module.require = function require(id) {
 
+		if (nativeModules[id] == true)
+		
+			return requireNative(id);
+		
         var
             exports,
             wafForce = arguments[1],

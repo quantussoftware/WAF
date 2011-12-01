@@ -20,7 +20,7 @@
 WAF.addWidget({    
     type        : 'googleMap',
     lib         : 'WAF',
-    description : 'Google Map',
+    description : 'Google Maps',
     category    : 'Experimental',
     img         : '/walib/WAF/widget/googleMap/icons/widget-googleMap.png',
     tag         : 'img',
@@ -31,8 +31,31 @@ WAF.addWidget({
         description  : 'Source'
     },
     {
-        name         : 'data-mapType',
-        defaultValue : 'hybrid',
+        name         : 'data-position',
+        defaultValue : '',
+        description  : 'Location'
+    },
+    {
+        name        : 'data-mapType',
+        type        : 'dropdown',
+        options     : [
+        {
+            key     : 'HYBRID',
+            value   : 'Hybrid'
+        },
+        {
+            key     : 'ROADMAP',
+            value   : 'Roadmap'
+        },
+        {
+            key     : 'SATELLITE',
+            value   : 'Satellite'
+        },
+        {
+            key     : 'TERRAIN',
+            value   : 'Terrain'
+        }],
+        defaultValue: 'hybrid',
         description  : 'Type'
     },
     {
@@ -49,6 +72,46 @@ WAF.addWidget({
         name         : 'data-label-position',
         description  : 'Label position',
         defaultValue : 'left'
+    },
+    {
+        name         : 'data-marker-color',
+        description  : 'Color',
+        type         : 'dropdown',
+        options      : ['black', 'brown', 'green', 'purple', 'yellow', 'blue', 'gray', 'orange', 'red', 'white'],
+        defaultValue : 'red',
+        category     : 'Marker'
+    },
+    {
+        name         : 'data-marker-size',
+        description  : 'Size',
+        type         : 'dropdown',
+        options      : [        {
+            key     : '',
+            value   : ''
+        },
+        {
+            key     : 'tiny',
+            value   : 'tiny'
+        },
+        {
+            key     : 'mid',
+            value   : 'mid'
+        },
+        {
+            key     : 'small',
+            value   : 'small'
+        },
+        ],
+        defaultValue : '',
+        category     : 'Marker'
+    },
+    {
+        name         : 'data-marker-label',
+        description  : 'Label',
+        type         : 'dropdown',
+        options      : ['', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','0','P','Q','R','S','T','U','V','W','X','Y','Z'],
+        defaultValue : '',
+        category     : 'Marker'
     }
     ],
     style: [
@@ -97,6 +160,7 @@ WAF.addWidget({
             fClass      : true,
             text        : false,
             background  : true,
+            dropShadow  : true,
             border      : true,
             sizePosition: true,
             label       : true,

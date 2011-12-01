@@ -97,7 +97,7 @@ WAF.addWidget({
     ],
     events: [
     {
-        name       : 'attributeChange',
+        name       : 'onAttributeChange',
         description: 'On Change',
         category   : 'Datasource Events'
     },
@@ -196,8 +196,26 @@ WAF.addWidget({
         description : 'Validation'
     },
     {
-        name       : 'class',
-        description: 'Css class'
+        name        : 'data-texture-header',
+        defaultValue: '',
+        visibility  : 'hidden',
+        description : 'Header Texture'
+    },
+    {
+        name        : 'data-texture-footer',
+        defaultValue: '',
+        visibility  : 'hidden',
+        description : 'Footer Texture'
+    },
+    {
+        name        : 'class',
+        description : 'Css class'
+    },
+    {
+        name        : 'data-group',
+        defaultValue: '',
+        visibility  : 'hidden',
+        description : 'Group'
     }
     ],
     events      : [

@@ -18,6 +18,28 @@
 * along with Wakanda. If not see : http://www.gnu.org/licenses/
 */
 .waf-chart{
-     
-            
+    
+}
+
+.waf-chart-container{
+    
+}
+
+.waf-chart-title{
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+    left: 0px;
+    top: 55px;
+}
+
+.waf-chart-subtitle{
+    top: 55px;
+    text-align: center;
+}
+
+.waf-chart-legendary{
+    left: 80px;
+    top: 510px
 }

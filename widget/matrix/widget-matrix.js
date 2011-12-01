@@ -175,7 +175,13 @@ WAF.Widget.provide(
             scrollPosition;
 
             that            = this;
-            scrollPosition  = that.scrolling === 'vertical' ? $('#' + that.config.id).scrollTop() : $('#' + that.config.id).scrollLeft();
+
+            if( WAF.PLATFORM.isTouch ) {
+                scrollPosition  = that.scrolling === 'vertical' ? -($("#mainContainer-"+that.config.id).position().top) : -($("#mainContainer-"+that.config.id).position().left);
+            } else {
+                scrollPosition  = that.scrolling === 'vertical' ? $('#' + that.config.id).scrollTop() : $('#' + that.config.id).scrollLeft();
+            }
+             
             // determine what is the row displayed depending on the scroll bar
             result = Math.floor(scrollPosition / (that.elt[that.typeSize] + (that.margin[that.typePos])));
 
@@ -416,9 +422,9 @@ WAF.Widget.provide(
                                 e.data.that.clickOnElement = false;
                                 break;
 
-                            case 'attributeChange' :
+                            case 'onAttributeChange' :
                                 userData = e.userData || null;
-                                e.dataSource.dispatch('attributeChange', {
+                                e.dataSource.dispatch('onAttributeChange', {
                                     subID : subIDValue, 
                                     attributeName : e.attributeName
                                     }, userData);
@@ -792,6 +798,49 @@ WAF.Widget.provide(
                                     //console.log("======>", that.getDisplayedRow())
                                 });
                                 
+                                /*
+                                 * TOUCH EVENTS
+                                 */
+                                if( WAF.PLATFORM.isTouch ) {
+                                    
+                                    /*
+                                     * touchmove event
+                                     */
+                                    htmlObject.bind('touchmove', function(){ $('#' + that.config.id).trigger('scroll'); });
+                                    
+                                    /*
+                                     * touchend event
+                                     */
+                                    htmlObject.bind('touchend', function() { 
+                                        
+                                        var 
+                                        cont        = $("#mainContainer-"+that.config.id),
+                                        topStart    = cont.position().top,
+                                        count       = true,
+                                        topVal,
+                                        timer;
+                                            
+                                        timer = setInterval( function() { //add interval in order to handle inertie scrolling
+
+                                            topVal = cont.position().top;
+
+                                            if( topVal != topStart || count ) {
+                                                if( !count ) { 
+                                                    $('#' + that.config.id).trigger('scroll');
+                                                }
+                                                count = false;
+                                                topStart = topVal;
+                                            } else {
+                                                clearInterval(timer);
+                                                $('#' + that.config.id).trigger('scrollstop');
+                                            }
+
+                                        }, 200);                                        
+                                    
+                                    
+                                    } );
+                                }
+                                
                                 break;
                         }
                     }
@@ -830,6 +879,11 @@ WAF.Widget.provide(
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
             htmlObject.animate(scrollConfig, that.scrollSpeed);     
+            
+            //trigger touch end because no native scoll event is fired  
+            if( WAF.PLATFORM.isTouch ) {  
+                $('#' + that.config.id).trigger('touchend');
+            }
         },
 
         /**
@@ -882,6 +936,11 @@ WAF.Widget.provide(
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
             htmlObject.animate(scrollConfig, that.scrollSpeed); 
+            
+            //trigger touch end because no native scoll event is fired  
+            if( WAF.PLATFORM.isTouch ) {  
+                $('#' + that.config.id).trigger('touchend');
+            }
         },
 
         /**
@@ -908,6 +967,11 @@ WAF.Widget.provide(
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
             htmlObject.animate(scrollConfig, that.scrollSpeed); 
+            
+            //trigger touch end because no native scoll event is fired  
+            if( WAF.PLATFORM.isTouch ) {  
+                $('#' + that.config.id).trigger('touchend');
+            }
         },
 
         /**
@@ -1147,7 +1211,7 @@ WAF.Widget.provide(
                 });
             } else if (!e.changeDs){
                 eltHtml.hide();
-            
+
                 return;
             }
             
@@ -1158,6 +1222,14 @@ WAF.Widget.provide(
 
             // Container is used to define the scroll size
             container = $('<div/>').addClass('matrix-container').appendTo(htmlObject);
+            
+            if( WAF.PLATFORM.isTouch ) {
+                container.get()[0].id = "mainContainer-"+matrix.id;            
+                setTimeout(function () {
+                    scrollObj = new iScroll(matrix.id);
+                }, 100);
+            }   
+
             that.totalSize = ((elt[typeSize] + margin[typePos]) * Math.ceil(sourceRef.length/limit2));
         
             container.css(typeSize, that.totalSize + margin[typePos2] + 'px');

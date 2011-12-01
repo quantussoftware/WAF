@@ -96,7 +96,7 @@ Used Events:
 
 event
 {
-	eventKind : string (par exemple "currentElement", "fullSet", "cancelElement", "attributeChange")
+	eventKind : string (par exemple "currentElement", "fullSet", "cancelElement", "onAttributeChange")
 	dataSource : DataSource
 	
 	dispatcherID: string
@@ -336,7 +336,7 @@ WAF.DataSourceEmSimpleAttribute.addListener = function(eventHandler, options, us
 	options.attributeName = this.name;
 	options.attribute = this;
 	userData = userData;
-	return this.owner.addListener("attributeChange", eventHandler, options, userData);
+	return this.owner.addListener("onAttributeChange", eventHandler, options, userData);
 };
 
 
@@ -349,7 +349,7 @@ WAF.DataSourceEmSimpleAttribute.dispatch = function(options)
 	}
     options.attribute = this;
 	options.attributeName = this.name;
-	this.owner.dispatch("attributeChange", options);
+	this.owner.dispatch("onAttributeChange", options);
 };
 	
 
@@ -560,7 +560,10 @@ WAF.DataSourceEmRelatedAttributeValue.set = function(subsource, options)
 		var subentity = null;
 		if (subsource != null)
         {
-			subentity = subsource.getCurrentElement();
+			if (subsource instanceof WAF.Entity)
+				subentity = subsource;
+			else
+				subentity = subsource.getCurrentElement();
 		}
         currentEntity[this.name].setValue(subentity);
 		var sourceAtt = this.owner.getAttribute(this.name);
@@ -1125,7 +1128,7 @@ WAF.DataSource.dispatch = function(eventKind, options)
 	var checkAttName = false;
         var match;
         
-	if (eventKind == "attributeChange") 
+	if (eventKind == "onAttributeChange") 
 	{
 		checkAttName = true;
 	}
@@ -1171,14 +1174,14 @@ WAF.DataSource.dispatch = function(eventKind, options)
                         }
 						break;
 							
-					case 'attributeChange':
+					case 'onAttributeChange':
 						if (eventKind == 'onCollectionChange' || eventKind == 'onCurrentElementChange')
                         {
 							okDispatch = true;
                         }
 						else
 						{
-							if (eventKind == "attributeChange" && attName == listener.attributeName) 
+							if (eventKind == "onAttributeChange" && attName == listener.attributeName) 
                             {
 								okDispatch = true;
                             }

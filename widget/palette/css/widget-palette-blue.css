@@ -36,7 +36,8 @@
  * @section Main
  * -------------------------------------------------------
  */
-.waf-widget {
+.waf-widget,
+.waf-widget a {
 	color: rgb(61, 66, 70);
 }
 
@@ -62,6 +63,9 @@
  * @subsection Widget body
  * -----------------------------------
  */
+.waf-widget .waf-widget-body {
+	background-color: rgb(242, 245, 247);
+}
 /* track */
 .waf-widget-body::-webkit-scrollbar-track {
     background-color: rgba(0, 0, 0, 0.17);
@@ -96,7 +100,7 @@
  * @section button
  * -------------------------------------------------------
  */
-.waf-button {
+.waf-widget.waf-button {
 	background-color: rgb(222, 237, 247);
 	border-color: rgb(174, 208, 234);
 	color: rgb(39, 121, 170);
@@ -186,7 +190,7 @@
  * @section combobox
  * -------------------------------------------------------
  */
-.waf-combobox {
+.waf-widget.waf-combobox {
 	background-color: rgb(59, 170, 227);
 	border-color: rgb(53, 153, 204);
 	color: rgb(255, 255, 255);
@@ -240,7 +244,7 @@
  * @section menuBar
  * -------------------------------------------------------
  */
-.waf-menuBar {
+.waf-widget.waf-menuBar {
 	background-color: rgb(59, 170, 227);
 	border-color: rgb(53, 153, 204);
 }
@@ -256,7 +260,7 @@
  * @section menuItem
  * -------------------------------------------------------
  */
-.waf-menuItem {
+.waf-widget.waf-menuItem {
 	border-color: rgb(84, 152, 204);
 	color: rgb(255, 255, 255);
 }
@@ -298,7 +302,18 @@
  * @section container
  * -------------------------------------------------------
  */
-.waf-container {
+.waf-widget.waf-container {
+	background-color: rgb(38, 148, 232);
+	border-color: rgb(178, 178, 178);
+}
+
+
+/**
+ * -------------------------------------------------------
+ * @section login
+ * -------------------------------------------------------
+ */
+.waf-widget.waf-login {
 	background-color: rgb(38, 148, 232);
 	border-color: rgb(178, 178, 178);
 }
@@ -309,7 +324,7 @@
  * @section autoForm
  * -------------------------------------------------------
  */
-.waf-autoForm {
+.waf-widget.waf-autoForm {
 	border-color: rgb(38, 148, 232);
 }
 
@@ -319,7 +334,6 @@
  * -----------------------------------
  */
 .waf-autoForm-body {
-	background-color: rgb(242, 245, 247);
 	border-bottom-color: rgb(174, 208, 234);
 }
 
@@ -360,7 +374,7 @@
  * @section dataGrid
  * -------------------------------------------------------
  */
-.waf-dataGrid {
+.waf-widget.waf-dataGrid {
 	/**
 	 * @affected webkit win
 	 * @note WARNING !!!
@@ -377,7 +391,6 @@
 }
 
 .waf-dataGrid-body {
-	background-color: rgb(242, 245, 247);
 	border-color: rgb(221, 221, 221);
 	color: rgb(28, 148, 196);
 }
@@ -409,7 +422,7 @@
  * @section progressBar
  * -------------------------------------------------------
  */
-.waf-progressBar {
+.waf-widget.waf-progressBar {
 	background-color: rgb(222, 237, 247);
 	border-color: rgb(53, 153, 204);
 	color: rgb(255, 255, 255);
@@ -426,7 +439,7 @@
  * @section slider
  * -------------------------------------------------------
  */
-.waf-slider {
+.waf-widget.waf-slider {
 	background-color: rgb(255, 255, 255);
 	border-color: rgb(221, 221, 221);
 }
@@ -462,7 +475,7 @@
  * @section textField
  * -------------------------------------------------------
  */
-.waf-textField {
+.waf-widget.waf-textField {
 	background-color: rgb(242, 245, 247);
 	border-color: rgb(38, 148, 232);
 	color: rgb(28, 148, 196);

@@ -710,6 +710,9 @@ WAF.core.restConnect.restRequest = function(connectionMode)
 				this.http_request.setRequestHeader('Content-Type', 'application/json');
 			}
 
+			this.http_request.setRequestHeader('If-Modified-Since', 'Thu, 1 Jan 1970 00:00:00 GMT'); // due to IE9 caching XHR
+			this.http_request.setRequestHeader('Cache-Control', 'no-cache'); // due to IE9 caching XHR
+
 			this.http_request.send(this.postdata);
 
 			if (!this.connectionMode)

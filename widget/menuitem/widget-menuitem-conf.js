@@ -127,7 +127,6 @@ WAF.addWidget({
             htmlObject      = $(this);
             htmlObjectP     = htmlObject.children('p');
             htmlObjectPText = htmlObjectP.children('span');
-            htmlObjectPText = htmlObjectP.children('span');
             
             // Remove outline on other items
             $('#' + parent.getId() + ' .waf-menuItem').parents('.yui-overlay').removeClass(Designer.constants.style.widgets.focused + ' ' + Designer.constants.style.widgets.outline);

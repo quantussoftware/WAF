@@ -116,6 +116,8 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/dataGrid/skin/default/css/widget-dataGrid-skin-default.css',
                 '+/widget/dataGrid/skin/metal/css/widget-dataGrid-skin-metal.css',
                 '+/widget/dataGrid/skin/light/css/widget-dataGrid-skin-light.css',
+                /* NOTIFY */
+                '+/lib/notify/ui.notify.css',
                 /* WAF AUTOFORM */
                 '+/widget/autoForm/css/widget-autoForm.css',
                 '+/widget/autoForm/skin/default/css/widget-autoForm-skin-default.css',
@@ -192,21 +194,26 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/menuitem/css/widget-menuitem.css',
                 '+/widget/menuitem/skin/default/css/widget-menuitem-skin-default.css',
                 '+/widget/menuitem/skin/metal/css/widget-menuitem-skin-metal.css',
-                '+/widget/menuitem/skin/light/css/widget-menuitem-skin-light.css',    
+                '+/widget/menuitem/skin/light/css/widget-menuitem-skin-light.css',
+                /* WAF login */
+                '+/widget/login/css/widget-login.css',
+                '+/widget/login/skin/default/css/widget-login-skin-default.css',
+                '+/widget/login/skin/metal/css/widget-login-skin-metal.css',
+                '+/widget/login/skin/light/css/widget-login-skin-light.css',        
                 /* WAF Component */
                 '+/widget/component/css/widget-component.css',
                 /* WAF Chart */
                 '+/widget/chart/css/widget-chart.css',
+                /* WAF FileUpload */
+                '+/widget/fileUpload/css/widget-fileUpload.css',
                 /* Error Div */
-                '+/widget/errorDiv/css/widget-errorDiv.css'
+                '+/widget/errorDiv/css/widget-errorDiv.css',
                 
                 /* PUT LINKS TO CSS FOR YOUR CUSTOM WIDGETS HERE */
                 
                 ],
                 require: [
                 /* WAF */
-                '+/Core/Native/Events.js',
-                '+/Core/Native/Stacks.js',
                 '+/Core/Native/Rest.js',
                 '+/Core/Utils/Timers.js',
                 '+/Core/Utils/DebugTools.js',
@@ -252,6 +259,9 @@ if (typeof(WAF) === 'undefined') {
                 '+/Tags/descriptor/property/tags-descriptor-property-style.js',
                 '+/Tags/descriptor/column/tags-descriptor-column.js',
                 '+/Tags/descriptor/column/attribute/tags-descriptor-attributecolumn.js',
+
+                /* Notify */
+                '+/lib/notify/jquery.notify.js',
                 
                 /* widgets */
                 '+/widget/widget.js',                
@@ -301,17 +311,14 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/menubar/widget-menubar-conf.js',
                 '+/widget/menuitem/widget-menuitem.js',
                 '+/widget/menuitem/widget-menuitem-conf.js',
+                '+/widget/login/widget-login.js',
+                '+/widget/login/widget-login-conf.js',
                 '+/widget/component/widget-component-conf.js',
                 '+/widget/chart/widget-chart-conf.js',
                 '+/widget/chart/widget-chart.js',
-                
-                /* PUT LINKS TO JS FOR YOUR CUSTOM WIDGETS HERE */
-                '+/widget/treeView/scripts/jquery.cookie.js',
-                '+/widget/treeView/scripts/jquery.hotkeys.js',
-                '+/widget/treeView/scripts/jquery.jstree.js',
-                '+/widget/treeView/scripts/jstreegrid.js',
-                '+/widget/treeView/widget-treeView-conf.js',
-                '+/widget/treeView/widget-treeView.js'
+                '+/widget/fileUpload/jquery.form.js',
+                '+/widget/fileUpload/widget-fileUpload-conf.js',
+                '+/widget/fileUpload/widget-fileUpload.js'
 
                 ]
             },
@@ -421,17 +428,24 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/menuitem/skin/default/css/widget-menuitem-skin-default.css',
                 '+/widget/menuitem/skin/metal/css/widget-menuitem-skin-metal.css',
                 '+/widget/menuitem/skin/light/css/widget-menuitem-skin-light.css',
+                /* WAF login */
+                '+/widget/login/css/widget-login.css',
+                '+/widget/login/skin/default/css/widget-login-skin-default.css',
+                '+/widget/login/skin/metal/css/widget-login-skin-metal.css',
+                '+/widget/login/skin/light/css/widget-login-skin-light.css',        
                 /* WAF Component */
                 '+/widget/component/css/widget-component.css',
                 /* WAF Chart */
                 '+/widget/chart/css/widget-chart.css',
+                /* WAF FileUpload */
+                '+/widget/chart/fileUpload/widget-fileUpload.css',
                 /* Error Div */
                 '+/widget/errorDiv/css/widget-errorDiv.css'
+
+                
                 ],
                 require: [
                 /* WAF */
-                '+/Core/Native/Events.js',
-                '+/Core/Native/Stacks.js',
                 '+/Core/Native/Rest.js',
                 '+/Core/Utils/Timers.js',
                 '+/Core/Utils/DebugTools.js',
@@ -486,7 +500,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/richText/widget-richText-conf.js',
                 '+/widget/errorDiv/widget-errorDiv.js',
                 '+/widget/errorDiv/widget-errorDiv-conf.js',
-                '+/widget/dataGrid/widget-dataGrid-mobile.js',
+                '+/widget/dataGrid/widget-dataGrid.js',
                 '+/widget/dataGrid/widget-dataGrid-conf.js',
                 '+/widget/autoForm/widget-autoForm.js',
                 '+/widget/autoForm/widget-autoForm-conf.js',
@@ -496,7 +510,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/image/widget-image-conf.js',
                 '+/widget/label/widget-label.js',
                 '+/widget/label/widget-label-conf.js',
-                '+/widget/slider/widget-slider-mobile.js',
+                '+/widget/slider/widget-slider.js',
                 '+/widget/slider/widget-slider-conf.js',
                 '+/widget/textField/widget-textField.js',
                 '+/widget/textField/widget-textField-conf.js',				
@@ -508,7 +522,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/yahooWeather/widget-yahooWeather-conf.js',				
                 '+/widget/progressBar/widget-progressBar.js',
                 '+/widget/progressBar/widget-progressBar-conf.js',                
-                '+/widget/matrix/widget-matrix-mobile.js',
+                '+/widget/matrix/widget-matrix.js',
                 '+/widget/matrix/widget-matrix-conf.js',
                 '+/widget/toolbar/widget-toolbar.js',
                 '+/widget/combobox/widget-combobox.js',
@@ -519,20 +533,17 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/menubar/widget-menubar-conf.js',
                 '+/widget/menuitem/widget-menuitem.js',
                 '+/widget/menuitem/widget-menuitem-conf.js',
+                '+/widget/login/widget-login.js',
+                '+/widget/login/widget-login-conf.js',
                 '+/widget/chart/widget-chart-conf.js',
                 '+/widget/chart/widget-chart.js',
+                '+/widget/fileUpload/jquery.form.js',
+                '+/widget/fileUpload/widget-fileUpload-conf.js',
+                '+/widget/fileUpload/widget-fileUpload.js',
                 
                 /* mobile */ 
                 '+/lib/mobile/iscroll/iscroll-lite.js',
-                '+/lib/mobile/jquery.ui.ipad.altfix.js',
-                
-                
-                '+/widget/treeView/scripts/jquery.cookie.js',
-                '+/widget/treeView/scripts/jquery.hotkeys.js',
-                '+/widget/treeView/scripts/jquery.jstree.js',
-                '+/widget/treeView/scripts/jstreegrid.js',
-                '+/widget/treeView/widget-treeView-conf.js',
-                '+/widget/treeView/widget-treeView.js'
+                '+/lib/mobile/jquery.ui.ipad.altfix.js'
                 
                 ]
             }
@@ -606,32 +617,13 @@ if (typeof(WAF) === 'undefined') {
         },
 
         /**
-         * grids
-         *
-         * @static
-         * @property grids
-         * @type Object
-         **/
-        grids: {},
-
-        /**
          * widgets
          *
          * @static
          * @property widgets
          * @type Object
          **/
-        widgets: {},
-        
-        /**
-         * component namespace
-         *
-         * @static
-         * @property components
-         * @type Object
-         **/
-        component : {
-        },
+        widgets: {},       
         
         /**
          * components definition
@@ -813,7 +805,7 @@ if (typeof(WAF) === 'undefined') {
             });
         }
         
-        if (event == 'onResize' || event == 'startResize' || event == 'stoptResize') {
+        if (event == 'onResize' || event == 'startResize' || event == 'stopResize') {
             
         } else {
             switch (lib.toLowerCase()) {
@@ -829,18 +821,18 @@ if (typeof(WAF) === 'undefined') {
                 case 'waf':
 
                     if (obj.kind) { // check for dataSource
-                        switch(obj.kind) {                            
+                        switch(obj.kind) {		
                             case 'slider':
                                 $("#" + obj.renderId).bind(event, callback);
                                 break;
                                 
-                            case 'treeView' :
-                                $("#" + obj.renderId).bind('select_node.jstree',function(e, data) {
-                                    e["key"] = $(data.rslt.obj[0]).attr("id").replace("node_", "");
-                                    e["dataNode"] = data;
-                                    callback(e);
-                                });
-                                break;
+                            //                            case 'treeView' :
+                            //                                $("#" + obj.renderId).bind('select_node.jstree',function(e, data) {
+                            //                                    e["key"] = $(data.rslt.obj[0]).attr("id").replace("node_", "");
+                            //                                    e["dataNode"] = data;
+                            //                                    callback(e);
+                            //                                });
+                            //                                break;
                                 
                             case 'chart':
 
@@ -855,9 +847,18 @@ if (typeof(WAF) === 'undefined') {
                                 setTimeout($$(obj.id)["_callback_" + event ], 10);
                                 break;  
                                 
-                            case 'datagrid':
+                            case 'dataGrid':
                                 ref = obj.gridController;
                                 ref[event] = callback;
+                                break;  
+                                
+                            case 'fileUpload':
+                                obj.events = obj.events || {};
+                                obj.events[event] = callback;
+                                break;      
+
+                            case 'login':
+                                obj['on'+event] = callback;
                                 break;      
                                 
                             case 'menuItem' :
@@ -927,12 +928,14 @@ if (typeof(WAF) === 'undefined') {
                             params = {};
                             if (option) {
                                 params.attributeName = option;
-                                event = 'attributeChange';
+                                event = 'onAttributeChange';
                             }
                             WAF.source[obj].addListener(event, callback, params);  						
                         } else {
-                            // Onload for body
-                            if (event == 'onLoad') {
+                            // Onload for body or onorientationchange for window
+                            if (event == 'onorientationchange') {
+                                window.onorientationchange = callback;
+                            } else if (event == 'onLoad') {
                                 $(document).ready(callback)
                             } else if (document.getElementById(obj)) {
                                 if (document.getElementById(obj).addEventListener){
@@ -956,20 +959,6 @@ if (typeof(WAF) === 'undefined') {
                     }
             }
         }
-    };
-    
-    /**
-     * Search the widget or the element by the id
-     * 
-     * @static
-     * @method get
-     * @param {String} id id of the widget / element
-     * @return {WAF.Widget|Object�}
-     */
-    WAF.get = function (id) {
-        var object = null;
-        object = WAF.widgets[id] || document.getElementById(id);
-        return object;
     };
     
     /**
@@ -1172,6 +1161,7 @@ if (typeof(WAF) === 'undefined') {
                                 WAF.tags.createView();   
                                 // show body
                                 document.body.style.display = 'block';   
+                                document.body.style.visibility = 'visible';   
                             }
 						
                             // show a message when an error happens in WAF.afterInit
@@ -1248,7 +1238,12 @@ if (typeof(WAF) === 'undefined') {
                                 if (req.status == 200) {
                                     var style = document.createElement('style');
                                     style.setAttribute('id', 'waf-page');
-                                    style.innerHTML = req.responseText;
+                                    if (style.styleSheet) {
+                                        style.type = 'text/css';
+                                        style.styleSheet.cssText = req.responseText;
+                                    } else {
+                                        style.innerHTML = req.responseText;                                                                                              
+                                    }   
                                     wafCss.parentNode.insertBefore(style, wafCss);
                                 }
                             }
@@ -1289,11 +1284,11 @@ if (typeof(WAF) === 'undefined') {
          * return the platform info : OS, device, device type (phone, tablet, desktop)
          *
          * @static
-         * @method init
-         * @retutn {object}
+         * @method getPlatformInfo
          */
         getPlatformInfo : function () {            
-            var platform        = {},
+            var 
+            platform        = {},
             appVersion      = navigator.userAgent,
             detect,
             version,
@@ -1308,7 +1303,7 @@ if (typeof(WAF) === 'undefined') {
                 } else {
                     return false
                 }
-            }
+            };
                       
             switch ( true ) {
 
@@ -1400,7 +1395,9 @@ if (typeof(WAF) === 'undefined') {
                     }
 
             }
-
+            
+            //look for touch capabilities
+            platform.isTouch = this.isTouchDevice();
             WAF.PLATFORM = platform;              
         },
         
@@ -1408,7 +1405,7 @@ if (typeof(WAF) === 'undefined') {
          * return the moduleString by device type
          *
          * @static
-         * @method init
+         * @method getModuleByDeviceType
          * @retutn {string}
          */
         getModuleByDeviceType : function() {
@@ -1431,6 +1428,24 @@ if (typeof(WAF) === 'undefined') {
         },
         
         /**
+         * set WAF.ISTOUCH value. Desfined if the browser has touch capabilities
+         *
+         * @static
+         * @method isTouchDevice
+         */
+        isTouchDevice : function() {
+
+            var el = document.createElement('div');
+            el.setAttribute('ongesturestart', 'return;');
+            if( typeof el.ongesturestart == "function" ) {
+                return true;
+            } else {
+                return false;
+            }
+            
+        },
+        
+        /**
          * init the loading of required files
          *
          * @static
@@ -1447,8 +1462,8 @@ if (typeof(WAF) === 'undefined') {
             content = '',
             req = null;
                         
-            WAF.config.loadCSS = [],
-            WAF.config.loadJS = [],
+            WAF.config.loadCSS = [];
+            WAF.config.loadJS = [];
             			
             // get the pattern			
             req = new XMLHttpRequest();
@@ -1486,7 +1501,10 @@ if (typeof(WAF) === 'undefined') {
                         if ( modulesString === 'auto' ) {
                             modulesString = this.getModuleByDeviceType();
                         }
+                        
                         modulesString = modulesString.toLowerCase();
+                        WAF.PLATFORM.modulesString = modulesString;
+                        
                         break;
                     case 'WAF.config.openAjax':
                         WAF.config.openAjax = (metaTags[i].content === '') ? 'null' : metaTags[i].content;

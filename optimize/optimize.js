@@ -35,6 +35,11 @@ function optimize( request, response)
 		mustskipfirst = true;
 		referer = referer.slice(7);
 	}
+	else if (referer.toLowerCase().indexOf("https://") == 0)
+	{
+		mustskipfirst = true;
+		referer = referer.slice(8);
+	}
 	var path = getURLPath(referer);
 	if (mustskipfirst)
 		path = path.slice(1);
@@ -45,26 +50,7 @@ function optimize( request, response)
 			path = path.slice(1);
 	}
 	path.pop(); // removes the page.html in folder1/folder2/page.html
-	
-	//trace("pattern :"+pattern+"\n")
-	
-	
-	/*
-	var reqH = request.headers;
-	var resH = {a:1, b:2};
-	
-	for (var e in reqH)
-	{
-		resH[e] = reqH[e];
-	}
-	*/
-	
-	/*
-	var resH = { referer : referer, url:url, pattern:pattern}
-	var sReq = JSON.stringify(resH);
-	saveText(sReq,"f:/req.json");
-	*/
-	
+		
 	
 	var wafPath = getWalibFolder().path+"WAF";
 	var serverPath = getWalibFolder().parent.path;
@@ -77,7 +63,6 @@ function optimize( request, response)
 	
 	/*
 	console.log("referer : "+refererPath)
-	saveText("referer : "+refererPath,"f:/req.txt");
 	*/
 	
 	var maxModifDate = new Date(1990, 1 ,1);
@@ -109,7 +94,6 @@ function optimize( request, response)
 				fullFileName = refererPath+fileName;
 			}
 			//console.log(fullFileName)
-			//trace(fullFileName+"\n")
 			var text = "";
 			try
 			{
@@ -141,7 +125,6 @@ function optimize( request, response)
 			else
 			{
 				//console.log("BAD BAD   "+fullFileName);
-				//trace("BAD BAD   "+fullFileName+"\n");
 			}
 		}
 	}
@@ -164,7 +147,6 @@ function optimize( request, response)
 		}
 		var sReq = "maxModifDate : "+maxModifDate.toUTCString()+"  ,  modifSinceDate : "+modifSinceDate.toUTCString()+"  ,  needSend : "+needSend;
 		//trace(contentType + " --> "+sReq+"\n")
-		//saveText(sReq,"f:/req.text");
 
 	}
 	

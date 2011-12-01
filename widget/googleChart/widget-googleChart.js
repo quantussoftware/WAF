@@ -152,13 +152,13 @@ WAF.Widget.provide(
         this.chartLabels = inData.chartLabels;       
 
         if (typeof this.source !== 'undefined') {
-            this.source.addListener('attributeChange', shared.chartEventHandler, {
+            this.source.addListener('onAttributeChange', shared.chartEventHandler, {
                 attributeName: this.chartLabels
             }, {
                 widget:this, 
                 drawTheChart:shared.drawTheChart
             });
-            this.source.addListener('attributeChange', shared.chartEventHandler, {
+            this.source.addListener('onAttributeChange', shared.chartEventHandler, {
                 attributeName: this.chartValues
             }, {
                 widget:this, 

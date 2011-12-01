@@ -62,9 +62,10 @@ WAF.Widget.provide(
         listHtmlObject,
         listClass,
         buttonSize,
+        widget,
         i;
 
-
+        widget          = this;
         htmlObject      = $(this.containerNode); 
         comboboxID      = config.id;
         key             = data['binding-key'];
@@ -83,7 +84,7 @@ WAF.Widget.provide(
         inputHtmlObject     = htmlObject.children('input');
         buttonHtmlObject    = htmlObject.children('button');
         inputHtmlObject.css({
-            'width'     : (tagWidth - buttonSize) + 'px',
+            'width'     : (tagWidth - (buttonSize + 2)) + 'px',
             'height'    : '100%'
         });
 
@@ -152,9 +153,7 @@ WAF.Widget.provide(
         // ********* </STATES EVENTS> ********
 
         this.createCombobox= function(divID, binding, params){
-            var result      = WAF.AF.createWidget(divID, binding, params); 
-
-            if (result) {
+            if (widget.sourceAtt) {
 
                 var listenerConfig = {
                     listenerID  :divID,
@@ -164,7 +163,7 @@ WAF.Widget.provide(
 
 
                 //result.source.addListener("all", function(e) {
-                result.sourceAtt.addListener(function(e) {
+                widget.sourceAtt.addListener(function(e) {
                     //console.log(e.subID)
                     var dsID = e.dataSource.getID();
 
@@ -192,7 +191,7 @@ WAF.Widget.provide(
                             break;
 
                         case  'onCollectionChange' :
-                        case  'attributeChange' :
+                        case  'onAttributeChange' :
                             comboboxHtml.children().remove();
                             for (var i = 0; i <= e.dataSource.length, i <= 100; i += 1) {
 
@@ -234,17 +233,17 @@ WAF.Widget.provide(
                             break;
                     }
                 }, listenerConfig, {
-                    widget:result
+                    widget:widget
                 });
 
                 // Change current entity on change event
                 
         
                 inputHtmlObject.bind( "autocompleteselect", function(event, ui) {
-                        var value = result.source[key];
+                        var value = widget.source[key];
 
                     if ((autoDispatch && autoDispatch !== 'false' )|| autoDispatch === 'true' ) {
-                        result.source.select(ui.item.option.index)
+                        widget.source.select(ui.item.option.index)
                     }
 
 
@@ -252,9 +251,9 @@ WAF.Widget.provide(
                     if (sourceOut) {
                         var bindingInfo = WAF.dataSource.solveBinding(sourceOut);
 
-                        if (typeof(value) === 'undefined' && result.source.getID() === key) {
-                            result.source.select(ui.item.option.index);
-                            bindingInfo.dataSource[result.source.getID()].set(result.source);
+                        if (typeof(value) === 'undefined' && widget.source.getID() === key) {
+                            widget.source.select(ui.item.option.index);
+                            bindingInfo.dataSource[widget.source.getID()].set(widget.source);
                         } else {
                             bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(event.target.value);
                         }
@@ -281,11 +280,11 @@ WAF.Widget.provide(
                         }
 
                         if ((autoDispatch && autoDispatch !== 'false' )|| autoDispatch === 'true' ) {
-                            result.source.select(comboboxHtml.attr( "selectedIndex" ));
+                            widget.source.select(comboboxHtml.attr( "selectedIndex" ));
                         }
                     }, {}, {
                         search : key,
-                        source : result.source
+                        source : widget.source
                     })
                 }
             } else {

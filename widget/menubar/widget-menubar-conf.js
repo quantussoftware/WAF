@@ -55,7 +55,7 @@ WAF.addWidget({
         }],
         defaultValue: 'hover'
     }],
-    events: [{
+    events : [{
         name       : 'click',
         description: 'On Click',
         category   : 'Mouse Events'
@@ -85,7 +85,7 @@ WAF.addWidget({
         description: 'On Mouse Up',
         category   : 'Mouse Events'
     }],
-    style: [
+    style : [
     {
         name        : 'width',
         defaultValue: '300px'
@@ -94,7 +94,7 @@ WAF.addWidget({
         name        : 'height',
         defaultValue: '26px'
     }],
-    properties: {
+    properties : {
         style: {
             theme       : true,
             fClass      : true,
@@ -110,6 +110,35 @@ WAF.addWidget({
     structure: [{
         description : 'menuItem',
         selector    : '.waf-menuItem'
+    }],
+    menu : [{
+        icon        : '/walib/WAF/widget/menubar/icons/round_plus.png',
+        title       : 'Add an item',
+        callback    : function(){
+            var
+            menuItems,
+            nbMenuItems,
+            labelText;
+            
+            /*
+             * Get the number of submenu to format menu item text
+             */
+            menuItems   = this.getMenuItems();
+            nbMenuItems = menuItems.count() + 1;
+            labelText   = this.getParent().isMenuItem() ? '[Sub Item ' + nbMenuItems + ']' : '[Menu Item ' + nbMenuItems + ']';       
+            
+            /*
+             * Add a menu item to the menu bar
+             */
+            this.addMenuItem({
+                text : labelText
+            });
+            
+            /*
+             * Refresh property panel
+             */
+            Designer.tag.refreshPanels();
+        }
     }],
     onInit: function (config) {
         var widget  = new WAF.widget.MenuBar(config);

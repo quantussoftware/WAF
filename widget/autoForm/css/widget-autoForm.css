@@ -594,15 +594,6 @@ table.autoForm-data {
     width: 100%
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+.waf-expandable {
+    cursor: pointer;
+}

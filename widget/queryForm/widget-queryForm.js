@@ -29,7 +29,6 @@ WAF.Widget.provide(
         source,
         nameList,
         attrList,
-        errorDiv,
         mustDisplayError,
         divID,
         options,
@@ -39,7 +38,6 @@ WAF.Widget.provide(
         source              = WAF.source[config['data-binding']];
         nameList            = [];
         attrList            = [];
-        errorDiv            = config['data-error-div'];
         mustDisplayError    = config['data-display-error'];
         divID               = config['id'];
         options             = {};
@@ -50,8 +48,9 @@ WAF.Widget.provide(
             mustDisplayError = (mustDisplayError == '1' || mustDisplayError == 'true');
         }
         
-        options.mustDisplayError = mustDisplayError;
-        options.errorDiv = errorDiv;
+        options.mustDisplayError    = mustDisplayError;
+        options.isQueryForm         = true;        
+        options.queryData           = this.queryData = config.queryData;
 
         if (source != null) {
             /*
@@ -75,8 +74,8 @@ WAF.Widget.provide(
             
             /*
              * Call queryform build method
-             */
-            WAF.AF.buildQueryForm(divID, source, attrList, nameList, options );                          
+             */            
+            WAF.AF.buildForm(divID, source, attrList, nameList, options);                       
             
             /*
              * DEPRECATED AFTER REFACTORING
@@ -125,7 +124,156 @@ WAF.Widget.provide(
          * @method onResize
          */
         stopResize : function queryform_stop_resize() {   
-        }   
+        },  
+               
+        /*
+         * Clear the queryform content
+         * @method clear
+         */
+        clear   : function queryform_clear() {
+            var 
+            i,
+            attList,
+            att,
+            xLength;
+
+            attList = this.attList;
+
+            this.purgeErrorMessagesOnForm();    
+
+            for (i = 0; i < attList.length; i++) {
+                att = this.atts[i];
+
+                if (att.kind == "storage" || att.kind == "calculated" || att.kind == "alias"){
+                    document.getElementById(this.id + "_" + idName(attList[i])).value = "";
+                }
+            }
+
+            if (this.withToolBar) {
+                xLength = this.source.length;
+                $('#' + this.id + ' .waf-status-right').html(xLength);
+            }     
+        },
+        
+        
+        /*
+         * Fill the queryform content
+         * @method fill
+         */
+        fill : function queryform_fill() {
+            var
+            eset,
+            xLength;
+
+            this.purgeErrorMessagesOnForm();
+
+            if (this.withToolBar)  {
+                eset    = this.source.getEntityCollection();
+                xLength = (eset != null) ? eset.length : 0;
+
+                $('#' + this.id + ' .waf-status-right').html(xLength);
+            }
+        },
+        
+        /*
+         * Draw the status(pager) of the queryform in the footer
+         * @method drawStatud
+         */
+        drawStatus : function queryform_draw_status() {
+            var
+            xLength;
+            
+            xLength = this.source.length;
+            
+            $('#' + this.id + ' .waf-status-right').html(xLength);
+        },
+        
+        /*
+         * Find an entity
+         * @method findEntity
+         */
+        findEntity : function queryform_find_entity() {
+            var 
+            i,
+            queryString,
+            attList,
+            val,
+            oper,
+            objoper;
+
+            if (this.source) {
+                queryString = "";
+                attList     = this.attList;
+
+                for (i = 0; i < attList.length; i++) {
+                    val = document.getElementById(this.id + "_" + idName(attList[i])).value;
+
+                    if (val != null && val != "") {
+                        if (queryString != "") {
+                            queryString += " and ";
+                        }
+
+                        oper    = 0;
+                        objoper = document.getElementById(this.id + "_oper" + i);
+
+                        if (objoper != null) {
+                            oper = parseInt(objoper.value) - 1;
+                        }
+
+                        this.otherAttInfo[i].curOper = oper;
+
+                        queryString += this.queryData.buildQueryNode(this.atts[i].name, this.atts[i].type, oper, val);
+                    }
+                }
+                
+                this.source.query(queryString);
+
+            }
+        },
+        
+        /*
+         * Purge error message
+         * @method purgeErrorMessagesOnForm
+         */
+        purgeErrorMessagesOnForm : function queryform_purge_error_messages_on_form() {
+            var
+            i,
+            divID,
+            attList,
+            att,
+            sourceAtt,
+            objDiv,
+            messDivName,
+            attName;
+
+            divID   = this.id;
+            attList = this.attList;
+
+            for (i = 0; i < attList.length; i++) {
+                att         = this.atts[i];
+                sourceAtt   = this.sourceAtts[i];
+                objDiv      = document.getElementById(divID + "_" + idName(attList[i]));
+
+                if (objDiv != null) {
+                    if (sourceAtt.readOnly || att.readOnly || (this.checkIdentifying && !att.identifying) || this.allReadOnly){
+                        objDiv.disabled = true;
+                    } else {
+                        objDiv.disabled = false;
+                    }
+                }
+
+                if (att.kind == "storage" || att.kind == "calculated" || att.kind == "alias") {
+                    attName     = idName(sourceAtt.name);
+                    messDivName = divID + "_" + attName + "__mess";
+
+                    $('#' + divID + "_" + attName).parent().removeClass('AF_ValueWrong');
+                    $('#' + divID + "_" + attName).parent().addClass('AF_ValueOK');
+                    $('#' + messDivName).parent().removeClass('AF_messWrong');
+                    $('#' + messDivName).removeClass('AF_markedWrong');
+                    $('#' + messDivName).html("");
+                }
+            }
+        }
         
     }
 );

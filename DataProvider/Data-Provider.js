@@ -93,6 +93,7 @@ WAF.tools.optionMatchers = [
 		"userData",
 		"addToSet",
 		"atOnce",
+		"refreshOnly",
 		"keepOldCollectionOnError"
 		
 	];
@@ -470,6 +471,11 @@ WAF.DataStore.funcCaller = function(methodref, from, params, options)
             request.filter = sel.queryString;
 		}
 		entityCollection._private.updateOptions(options);
+	}
+	else if (methodref.applyTo == "general")
+	{
+		request.resource = methodref.nameSpace;
+		request.attributesRequested = [ methodref.name ];
 	}
 	else
 	{
@@ -923,11 +929,31 @@ WAF.DataClass.getEntity = function(key, options, userData)
 }
 
 
-WAF.DataClass.newCollection = function()
+WAF.DataClass.newCollection = function(collectionReference, options, userData)
 {
-	var collection = new WAF.EntityCollection(this, null, {createEmptyCollection: true});
-	return collection;
+	if (collectionReference == null)
+	{
+		var collection = new WAF.EntityCollection(this, null, {createEmptyCollection: true});
+		return collection;
+	}
+	else
+	{
+		var resOp = WAF.tools.handleArgs(arguments, 1);
+		userData = resOp.userData;
+		options = resOp.options;
+		
+		options.dataURI = collectionReference.dataURI;
+		options.pageSize = options.pageSize || collectionReference.pageSize;
+		options.autoExpand = options.autoExpand || collectionReference.autoExpand;
+		options.savedQuery = collectionReference.savedQuery || null;
+		options.savedOrderby = collectionReference.savedOrderby || null;
+		
+		var collection = new WAF.EntityCollection(this, null, options, userData);
+		return collection;		
+	}
 }
+
+
 
 WAF.DataClass.getEntityByURI = function(dataURI, options, userData)
 {
@@ -1024,6 +1050,7 @@ WAF.DataClass.query = function(queryString, options, userData)
 	var entityCollection = new WAF.EntityCollection(dataClass, queryString, options, userData)
 	return entityCollection;
 }
+
 
 
 WAF.DataClass.allEntities = function(options, userData)
@@ -1141,6 +1168,13 @@ WAF.EntityCollection = function(dataClass, queryString, options, userData)
 	}
 	else savedQuery = queryString;
 	
+	if (savedQuery == null)
+		savedQuery = options.savedQuery || null;
+		
+	var savedOrderby = options.orderby || null;
+	if (savedOrderby == null)
+		savedOrderby = options.savedOrderby || null;
+		
 	var pageSize = options.pageSize || 40;
 	
 	var entityCollection = this;
@@ -1151,8 +1185,8 @@ WAF.EntityCollection = function(dataClass, queryString, options, userData)
 		owner: this,
 		queryString: queryString,
 		savedQuery: savedQuery,
-		orderby: options.orderby,
-		savedOrderby: options.orderby,
+		orderby: savedOrderby,
+		savedOrderby: savedOrderby,
 		dataURI: options.dataURI,
 		pageSize: pageSize,
 		withQueryPlan: options.queryPlan,
@@ -1534,6 +1568,29 @@ WAF.EntityCollection.getDataClass = function() // returns the datastore class of
 }
 
 
+WAF.EntityCollection.getReference = function() // returns an object to rebuild the selection later, even in another page
+{
+	var result = null;
+	var entityCollection = this;
+	var priv = entityCollection._private;
+	
+	if (priv.dataURI != null)
+	{
+		result = { dataURI: priv.dataURI};
+		if (priv.savedQuery != null)
+			result.savedQuery = priv.savedQuery;
+		if (priv.savedOrderby != null)
+			result.savedOrderby = priv.savedOrderby;
+		if (priv.pageSize != null)
+			result.pageSize = priv.pageSize;
+		if (priv.autoExpand != null)
+			result.autoExpand = priv.autoExpand;
+	}
+	
+	return result;
+}
+
+
 WAF.EntityCollection.query = function(queryString, options, userData)
 {
 	// does a query within an existing set, same options as an datastore class query
@@ -1567,8 +1624,9 @@ WAF.EntityCollection.orderBy = function(orderByString, options, userData)
 	options.dataURI = priv.dataURI;
 	var dataClass = entityCollection.getDataClass();
 	options.pageSize = options.pageSize || priv.pageSize;
-	options.autoExpand = options.autoExpand || priv.autoExpand;	
+	options.autoExpand = options.autoExpand || priv.autoExpand;
 	priv.updateOptions(options);
+	options.savedQuery = priv.savedQuery || null;
 	
 	var subEntityCollection = new WAF.EntityCollection(dataClass, null, options, userData)
 	return subEntityCollection;
@@ -1985,6 +2043,9 @@ WAF.EntityCollection.removeEntity = function(posInSet, options, userData)
 	priv.updateOptions(options);
 	options.removeAtPos = posInSet;
 	
+	options.savedQuery = priv.savedQuery || null;
+	options.savedOrderby = priv.savedOrderby || null;
+	
 	var newEntityCollection = new WAF.EntityCollection(dataClass, null, options, userData)
 	return newEntityCollection;
 
@@ -2057,7 +2118,10 @@ WAF.EntityCollection.buildFromSelection = function(selection, options, userData)
 	//options.fromCollection = entityCollection;
 	options.fromSelection = selection;
 
-	var subEntityCollection = new WAF.EntityCollection(dataClass, null, options, userData)
+	options.savedQuery = priv.savedQuery || null;
+	options.savedOrderby = priv.savedOrderby || null;
+
+	var subEntityCollection = new WAF.EntityCollection(dataClass, null, options, userData);
 	return subEntityCollection;
 
 }
@@ -2846,6 +2910,7 @@ WAF.EntityCollection.prototype.distinctValues = WAF.EntityCollection.distinctVal
 WAF.EntityCollection.prototype.removeEntity = WAF.EntityCollection.removeEntity;
 WAF.EntityCollection.prototype.removeAllEntities = WAF.EntityCollection.removeAllEntities;
 WAF.EntityCollection.prototype.buildFromSelection = WAF.EntityCollection.buildFromSelection;
+WAF.EntityCollection.prototype.getReference = WAF.EntityCollection.getReference;
 
 // DataClass
 WAF.DataClass.prototype.distinctValues = WAF.DataClass.distinctValues;
@@ -2871,6 +2936,14 @@ WAF.DataClass.prototype.newCollection = WAF.DataClass.newCollection
 
 WAF.DataClass.prototype.callMethod = WAF.DataStore.callMethod;
 
+WAF.directory = WAF.directory || {};
+
+WAF.directory.login = WAF.DataStore.makeFuncCaller({ name: "login", applyTo: "general", nameSpace: "$directory"});
+WAF.directory.loginByPassword = WAF.directory.login;
+WAF.directory.logout = WAF.DataStore.makeFuncCaller({ name: "logout", applyTo: "general", nameSpace: "$directory"});
+WAF.directory.loginByKey = WAF.DataStore.makeFuncCaller({ name: "loginByKey", applyTo: "general", nameSpace: "$directory"});
+WAF.directory.currentUser = WAF.DataStore.makeFuncCaller({ name: "currentUser", applyTo: "general", nameSpace: "$directory"});
+WAF.directory.currentUserBelongsTo = WAF.DataStore.makeFuncCaller({ name: "currentUserBelongsTo", applyTo: "general", nameSpace: "$directory"});
 
 
 

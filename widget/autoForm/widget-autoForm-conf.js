@@ -79,6 +79,145 @@ WAF.addWidget({
     {
         name        : 'data-column-name',
         description : 'Column name'
+    },
+    {
+        name            : 'data-column',
+        description     : 'Rows from conf',
+        type            : 'grid',
+        defaultValue    : '[]',
+        reloadOnChange  : true,
+        beforeReady     : function(){
+            var
+            i,
+            tag,
+            json,
+            colName,
+            colAttribute;
+            
+            tag = this.data.tag;            
+            
+            if (tag.getAttribute('data-column-name') && tag.getAttribute('data-column-attribute')) {
+                colName         = tag.getAttribute('data-column-name').getValue().split(',');
+                colAttribute    = tag.getAttribute('data-column-attribute').getValue().split(',');
+                json            = [];
+                
+                for (i in colName) {
+                    if (colName[i] != '') {
+                        json.push({
+                            'title'         : colName[i],
+                            'sourceAttID'   : colAttribute[i]
+                        });
+                    } 
+                }
+            }
+            
+            this.json = json;
+            
+            /*
+             * Hide form if no source binded
+             */
+            if (!tag.getSource()) {
+                this.getForm().hide();
+            }
+        },
+        afterRowAdd    : function(data) {
+            /*
+             * Add row with first datasource attribute
+             */
+            var
+            tag,
+            dsObject,
+            attributes,
+            firstAttribute;
+            
+            tag = this.data.tag;
+            
+            dsObject = Designer.env.ds.catalog.getByName(tag.getSource());
+            if (dsObject && dsObject.getType().match( new RegExp('(array)|(object)') )) {
+                attributes = dsObject.getTag().getAttribute('data-attributes').getValue().split(',');
+                firstAttribute = attributes[0].split(':')[0];
+            } else if (dsObject){
+                attributes = dsObject.getAttributes();
+                if (attributes[0]) {
+                    firstAttribute = attributes[0].name;
+                }
+            }
+            
+            if (data.items[0].getValue() == '' && data.items[1].getValue() == '') {
+                data.items[0].setValue(firstAttribute);
+                data.items[1].setValue(firstAttribute);
+            }
+        },
+        columns         : [{
+            title       : 'label',
+            name        : 'title',
+            type        : 'textfield'
+        },{
+            title       : 'attribute',
+            name        : 'sourceAttID',
+            type        : 'textfield',
+            typeValue   : 'dataSource',
+            onblur      : function() {
+                var 
+                tag,
+                valid,
+                htmlObject,
+                attributeName;
+                
+                tag         = this.data.tag;
+                htmlObject  = this.getHtmlObject();
+                
+                /*
+                 * Check if attribute is valid 
+                 */  
+                attributeName = this.getValue();       
+                valid = Designer.ds.isPathValid(tag.getSource() + '.' + attributeName);
+                
+                if (!valid) {
+                    htmlObject.addClass('studio-form-invalid');
+                } else {                    
+                    htmlObject.removeClass('studio-form-invalid');
+                }
+            },
+            onfocus     : function(){
+                this.data.attID = this.getValue();
+            }
+        }], 
+        onsave          : function(data) {            
+            var
+            tag,
+            name,
+            attribute,
+            colNames,
+            colAttributes;
+            
+            try {
+                tag             = data.tag;
+                colNames        = [];
+                colAttributes   = [];
+                
+                /*
+                 * Get new rows
+                 */
+                $.each(data.value.rows, function() {
+                    name = this[0].value;
+                    attribute = this[1].value;
+                    if (name != '' && attribute != '') {                        
+                        colNames.push(name);
+                        colAttributes.push(attribute);
+                    }
+                });           
+                
+                //tag.getAttribute
+                if (colNames.length > 0 && colAttributes.length > 0) {
+                    tag.setAttribute('data-column-name', colNames.join(','));
+                    tag.setAttribute('data-column-attribute', colAttributes.join(','));                    
+                }
+            } catch(e) {
+                console.log(e);
+            }
+                
+        }
     }
     ],
     events: [
@@ -86,7 +225,6 @@ WAF.addWidget({
         name       : 'onError',
         description: 'On Error Handler',
         category   : 'Form Events'
-
     },
     {
         name        : 'startResize',
@@ -179,13 +317,14 @@ WAF.addWidget({
         if(!isResize){
             // Getting the names list
             if (tag.getAttribute('data-column-name') && tag.getAttribute('data-column-name').getValue() != '') {
-                nameList = tag.getAttribute('data-column-name').getValue().split(',')
+                nameList = tag.getAttribute('data-column-name').getValue().split(',');
             }
 
             // Getting the attributes list
             if (tag.getAttribute('data-column-attribute') && tag.getAttribute('data-column-attribute').getValue() != '') {
-                attrList = tag.getAttribute('data-column-attribute').getValue().split(',')
+                attrList = tag.getAttribute('data-column-attribute').getValue().split(',');
             }
+            
             if (tag.getAttribute('data-columns') && tag.getAttribute('data-columns').getValue() != '' && !tag.getAttribute('data-column-name')) {
                 attrList = tag.getAttribute('data-columns').getValue().split(',');
                 nameList = tag.getAttribute('data-columns').getValue().split(',');
@@ -204,8 +343,7 @@ WAF.addWidget({
             }
             
             WAF.AF.buildForm(tag.getAttribute('id').getValue(), null, attrList, nameList, options, catalog, tag);
-            
-            
+                        
             // message if not binding
             if (nameList.length === 0) {
                 if ($('#' + tag.overlay.id + ' .message-binding-autoform').length == 0) {
@@ -236,5 +374,5 @@ WAF.addWidget({
          * Remove scrollbar on design
          */
         htmlObject.find('.waf-widget-body').css('overflow', 'hidden !important');
-    }    
+    }
 });
