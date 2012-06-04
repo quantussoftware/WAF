@@ -98,7 +98,14 @@ WAF.Widget.prototype.toggle = function toggle () {
  * @method show
  */
 WAF.Widget.prototype.show = function show () {
+    var labels = $('[for = ' + this.id + ']');
+    
+    if (labels.length > 0) {
+        $(labels[0]).show();                        
+    } 
+    
     this.$domNode.show();
+    
 };
            
            
@@ -108,7 +115,13 @@ WAF.Widget.prototype.show = function show () {
  * @method hide
  */
 WAF.Widget.prototype.hide = function hide () {
-    this.$domNode.hide();
+    var labels = $('[for = ' + this.id + ']');
+    
+    if (labels.length > 0) {
+        $(labels[0]).hide();                        
+    } 
+    
+    this.$domNode.hide();      
 };
         
         
@@ -250,9 +263,9 @@ WAF.Widget.prototype.setBackgroundColor = function setBackgroundColor (color) {
 /*
  * Called when the widget is resized
  * @namespace WAF.Widget
- * @method resize
+ * @method _callResizeEvents
  */
-WAF.Widget.prototype.resize = function resize (type) {
+WAF.Widget.prototype._callResizeEvents = function resize (type) {
     var that = null,
     events = null,
     htmlObject = null;
@@ -266,6 +279,7 @@ WAF.Widget.prototype.resize = function resize (type) {
     /*
      * Execute custom method
      */
+    
     switch(type) {
         case 'on':
             if (that.onResize) {
@@ -312,19 +326,18 @@ WAF.Widget.prototype.resize = function resize (type) {
         child       = $(this);
         childWidget = $$(child.attr('id'));
                 
-        if (childWidget && childWidget.checkResize) {
+        if (childWidget && childWidget._checkResize) {
                     
             /*
              * Check if the children is resizable (depending on constraints)
              */
-            checkResize = childWidget.checkResize();
+            checkResize = childWidget._checkResize();
 
             if (childWidget && (checkResize.x == true || checkResize.y == true)) {
-                childWidget.resize(type);
+                childWidget._callResizeEvents(type);
             }
         }
-    });
-        
+    });   
 }; 
 
 /*
@@ -340,26 +353,25 @@ WAF.Widget.prototype.resizable = function (active) {
     
     htmlObject  = '';
     that        = this;
-    active      = active || true;
+    active      = typeof(active) != 'undefined' ? active : true;
         
     htmlObject  = $(this.containerNode);
             
     if (active) {
         htmlObject.resizable({                
             start : function(e) {
-                that.resize('start');
+                that._callResizeEvents('start');
             },
             resize : function(e) {
-                that.resize('on');
+                that._callResizeEvents('on');
             },
             stop : function(e) {
-                that.resize('stop');
+                that._callResizeEvents('stop');
             }
         });
     } else {
         htmlObject.resizable('destroy');
-    }
-            
+    }      
 } 
 
 
@@ -374,18 +386,26 @@ WAF.Widget.prototype.draggable = function draggable (active) {
     htmlObject;
     
     htmlObject  = null;
-    active      = active || true;
+    active      = typeof(active) != 'undefined' ? active : true;
     
     htmlObject  = $(this.containerNode);
             
     if (this.kind != 'autoForm' && this.kind != 'queryForm') {
         htmlObject.css('cursor', 'pointer');
     }
+        
             
     if (active) {
         htmlObject.draggable({
+            start : function (event, ui){               
+                this._zindexBeforeDrag = $(this).css('zIndex');                                
+            },
+            stop : function (event, ui){
+                $(this).css('zIndex', this._zindexBeforeDrag);                                
+            },
             cancel  : '.waf-widget-body',
-            stack   : '.waf-widget'
+            stack   : '.waf-widget',
+            zIndex  : 99999
         });
     } else {
         htmlObject.draggable('destroy');
@@ -399,6 +419,7 @@ WAF.Widget.prototype.draggable = function draggable (active) {
  * @method getFormattedValue
  * @param {String} value
  * @return {String}
+ * @private
  **/ 
 WAF.Widget.prototype.getFormattedValue = function getFormattedValue (value) {
     var test = '',
@@ -414,12 +435,17 @@ WAF.Widget.prototype.getFormattedValue = function getFormattedValue (value) {
     }
         
     /*
-     * Converte 'number' strings into real number variable
+     * Convert 'number' strings into real number variable
      */     
     if (value && /^[0-9.,]+$/i.test(value)) {
         test = parseFloat(value);   
         if (!isNaN(test)) {
-            value = test;
+            if (value.length > 0 && value.substring && value.substring(0,1) == '0' ) {
+            // force to string
+            } else {
+                value = test;
+            }
+            
         }                                
     }
         
@@ -509,18 +535,75 @@ WAF.Widget.prototype.removeClass = function(theme) {
  * @method getValue
  * @return {String}
  **/ 
-WAF.Widget.prototype.getValue = function() {
-    return this.$domNode.val();
+WAF.Widget.prototype.getValue = function () {
+    var value = '',
+    kind = this.kind;      
+     
+    switch (kind) {
+        case 'combobox':
+            value = $('#' + this.id + ' select').val();
+            break;
+        case 'richText':
+            value = this.$domNode.text();
+            break;
+        case 'checkbox':
+            if (this.$domNode.hasClass('waf-state-selected')) {
+                value = 'checked';
+            }
+            break;
+        case 'image':
+            value = this.$domNode.children()[0].src;
+            break;
+        case 'radioGroup':
+            value = $('#' + this.id + ' .waf-state-selected input').val();
+            break;
+        default:
+            value = this.$domNode.val();
+            break;
+    }
+        
+    return value;
 }
 
 /**
- * Set the value showned by the widget, if any
+ * Set the value to a widget
  * @namespace WAF.Widget
  * @method setValue
  * @return {String}
  **/ 
-WAF.Widget.prototype.setValue = function(value) {
-    this.$domNode.val(value);
+WAF.Widget.prototype.setValue = function (value) {
+    var kind = this.kind;      
+     
+    switch (kind) {
+        case 'combobox':
+            $('#' + this.id + ' select').combobox('setValue' , value);
+            break;
+        case 'richText':
+            this.$domNode.text(value);
+            break;
+        case 'checkbox':
+            if (value == 'checked') {
+                this.$domNode.addClass('waf-state-selected');
+            } else {
+                this.$domNode.removeClass('waf-state-selected');
+            }
+            break;
+        case 'image':
+            this.$domNode.children()[0].src = value;
+            break;
+        case 'radioGroup':
+            var radio = $('#' + this.id + ' [value="' + value + '"]')
+            radio.attr('checked', 'checked');            
+            this.$domNode.find('.waf-radio').removeClass('waf-state-selected');                
+            radio.parent().addClass('waf-state-selected');
+            break;
+        case 'slider':
+            this.$domNode.slider('value', value);
+            break;
+        default:
+            this.$domNode.val(value);
+            break;
+    }
 }
     
     
@@ -530,7 +613,7 @@ WAF.Widget.prototype.setValue = function(value) {
  * @method checkResize
  * @return {object}
  */
-WAF.Widget.prototype.checkResize = function checkResize() {
+WAF.Widget.prototype._checkResize = function checkResize() {
     var result = '',
     htmlObject = '';
             
@@ -552,10 +635,20 @@ WAF.Widget.prototype.checkResize = function checkResize() {
  * Get the error div of the widget
  * @namespace WAF.Widget
  * @method getErrorDiv
- * @return {object}
+ * @return {JQueryObj}
  */
 WAF.Widget.prototype.getErrorDiv = function() {
-    return this.errorDiv;
+    var div = this.errorDiv;
+    
+    if (typeof div === 'string') {
+        if (div == '') {
+            div = null;
+        } else {
+            div = $('#' + div);
+        }
+    }
+    
+    return div;
 }
     
 /*
@@ -564,12 +657,12 @@ WAF.Widget.prototype.getErrorDiv = function() {
  * @method setErrorDiv
  * @param {string}
  */  
-WAF.Widget.prototype.setErrorDiv = function(div) {
+WAF.Widget.prototype.setErrorDiv = function (div) {
     if (typeof div === 'string') {
-        if (div == "") {
+        if (div == '') {
             div = null;
         } else {
-            div = $("#" + div);
+            div = $('#' + div);
         }
     }
     
@@ -581,9 +674,18 @@ WAF.Widget.prototype.setErrorDiv = function(div) {
  * @method setLabelText
  * @result {Widget.widget.Label} Label
  */  
-WAF.Widget.prototype.setLabelText = function (value) {
-    $("#" + this.label.id).text(value);
+WAF.Widget.prototype.setLabelText = function (value) {    
+    if (this.kind == 'button') {
+        this.$domNode.text(value);                        
+    } else {                    
+        var labels = $('[for = ' + this.id + ']');
+    
+        if (labels.length > 0) {
+            $(labels[0]).text(value);                        
+        }   
+    }
 }
+
 
 /*
  * @namespace WAF.Widget
@@ -591,16 +693,11 @@ WAF.Widget.prototype.setLabelText = function (value) {
  * @result {Widget.widget.Label} Label
  */  
 WAF.Widget.prototype.setLabelTextColor = function (value) {
-    $("#" + this.label.id).css('color', value);
-}
-
-/*
- * @namespace WAF.Widget
- * @method setLabelBackgroundColor
- * @result {Widget.widget.Label} Label
- */  
-WAF.Widget.prototype.setLabelBackgroundColor = function (value) {
-    $("#" + this.label.id).css('background-color', value);
+    var labels = $('[for = ' + this.id + ']');
+    
+    if (labels.length > 0) {
+        $(labels[0]).css('color', value);                        
+    } 
 }
 
 
@@ -771,6 +868,13 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
      */
     this.errorDiv = null;
     
+    // retro compatibility
+    if (typeof inConfig['data-error-div'] !== 'undefined') {
+        if (inConfig['data-error-div'] != null && typeof inConfig['data-errorDiv'] === 'undefined') {
+            inConfig['data-errorDiv'] = inConfig['data-error-div'];    
+        }
+    }
+ 
     if ('data-errorDiv' in inConfig) {
         /**
         * The id of the container for error information
@@ -779,11 +883,7 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
         * @type String|undefined
         **/
         this.errorDiv = inConfig['data-errorDiv'];
-        
-        if (!this.errorDiv) {
-            this.errorDiv = inConfig['data-error-div'];    
-        }
-        
+              
         /**
          * Clear the error message from the associated error display widget
          *
@@ -885,10 +985,21 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
     WAF.widgets._length += 1;
     
     /*
-     * When all widgets are ready
+     * When the last widget is ready
      */
-    if ($('.waf-widget').length == WAF.widgets._length) {
-        resizableWidgets = $('body').children('.waf-container[data-constraint-right][data-constraint-bottom],.waf-matrix[data-constraint-right][data-constraint-bottom]');
+    if (WAF.Widget.lastWidget == this.id && !WAF.widgets._isReady) {
+        resizableWidgets = $('body').children('.waf-container[data-constraint-right],.waf-container[data-constraint-bottom],\n\
+                                                .waf-matrix[data-constraint-right],waf-matrix[data-constraint-bottom],\n\
+                                                .waf-component[data-constraint-right],.waf-component[data-constraint-bottom]');
+    
+        if (resizableWidgets.length == 0) {
+            var component;
+            
+            component = $('body').children('.waf-component');
+            if (component.width(), $(window).width()) {
+              resizableWidgets = component;  
+            }
+        } 
         
         /*
          * Resize widgets with constraints
@@ -900,8 +1011,8 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
                 id      = $(this).attr('id');
                 widget  = $$(id);
 
-                if (widget.onResize) {
-                    widget.onResize();            
+                if (widget._callResizeEvents) {
+                    widget._callResizeEvents('on');            
                 }
             });
         };
@@ -924,6 +1035,8 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
             $('#' + $(this).attr('for')).select();
             return false;
         });
+        
+        WAF.Widget.ready();
     }
     
     if (!this.clear) {
@@ -1068,8 +1181,62 @@ WAF.Widget.provide = function provide(name, shared, construct, proto) {
 };
 
 
+/**
+ * Get widget children
+ * @namespace WAF.Widget
+ * @method getChildren
+ * @param {array} list of children widgets
+ **/
+WAF.Widget.prototype.getChildren = function () {
+    var
+    widget,
+    children,
+    htmlObject;
+    
+    htmlObject  = this.$domNode;
+    children    = [];
+
+    if (this.kind && this.kind == 'component') {    
+        $.each(htmlObject.children().children(), function(i) {
+            widget = $$($(this).attr('id'));
+        
+            if (widget) {
+                children.push(widget);
+            }
+        });
+    } else {
+        $.each(htmlObject.children(), function(i) {
+            widget = $$($(this).attr('id'));
+        
+            if (widget) {
+                children.push(widget);
+            }
+        });
+    }
+    
+    return children;
+}
 
 
+/**
+ * Executed when all widgets are loaded
+ * @method readys
+ */
+WAF.Widget.ready = function () {
+    var
+    i;
+        
+    /*
+     * Add custom widgets ready
+     */
+    for (i in WAF.widgets) {
+        if (WAF.widgets[i].ready) {
+            WAF.widgets[i].ready();
+        }
+    }
+    
+    WAF.widgets._isReady = true;
+}
 
 /*
  * Open container in a panel
@@ -1127,3 +1294,8 @@ WAF.openContainerInAPanel = function openContainerInAPanel (divID, config) {
 		
     }
 }
+
+/*
+ * Get the last dom element to define the lastWidget
+ */
+WAF.Widget.lastWidget = $('.waf-widget:last').attr('id');

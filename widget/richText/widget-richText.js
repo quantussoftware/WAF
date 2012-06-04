@@ -114,6 +114,7 @@ WAF.Widget.provide(
         
         if (data.autoWidth == 'true') {
             htmlObject.css('width', 'auto');
+            htmlObject.css('min-width', htmlObject.width());
         }
     },{
         

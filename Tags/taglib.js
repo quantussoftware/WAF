@@ -57,7 +57,7 @@ WAF.addWidget({
         description : 'Variable Type',
         defaultValue: 'string',
         type        : 'dropdown',
-        options     : ['string', 'number', 'boolean','object'],
+        options     : ['string', 'number', 'boolean','object' , 'date'],
         tooltip     : 'if source kind is scalar, then is used :  number, string, date, ...',
         category   : 'General'
     },
@@ -153,7 +153,8 @@ WAF.addWidget({
     {
         name        : 'data-platform',
         description : 'Target',
-        category    : 'Platform',
+        visibility  : 'hidden',
+        category    : '',
         type        : 'dropdown',
         options     : [
         {
@@ -208,14 +209,8 @@ WAF.addWidget({
         description : 'Footer Texture'
     },
     {
-        name        : 'class',
-        description : 'Css class'
-    },
-    {
-        name        : 'data-group',
-        defaultValue: '',
-        visibility  : 'hidden',
-        description : 'Group'
+        name       : 'class',
+        description: 'Css class'
     }
     ],
     events      : [

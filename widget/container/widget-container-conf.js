@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'container',
     lib         : 'WAF',
     description : 'Container',
-    category    : 'Layout',
+    category    : 'Containers/Placeholders',
     img         : '/walib/WAF/widget/container/icons/widget-container.png',
     tag         : 'div',
     attributes  : [
@@ -174,8 +174,7 @@ WAF.addWidget({
             firstParent,
             children,
             childrenLength,
-            existingClasses;
-            
+            existingClasses;                
             params              = params        || {};
             nb                  = params.nb     || 2;
             type                = params.type   || 'vertically';
@@ -633,27 +632,30 @@ WAF.addWidget({
             if (containers && containersLength > 0) {
                 for (i = 0; i < containersLength; i += 1) {
                     container       = containers[i];
-                    containerX      = container.getX();
-                    containerY      = container.getY();
                     
-                    
-                    switch(splitType) {
-                        case 'horizontally':
-                            if (containerY != 0) {
-                                container.setHeight(thatHeight - containerY);
-                            }
-                            
-                            container.setWidth(thatWidth);
-                            
-                            break;
+                    if (container._isSplit) {
+                        containerX      = container.getX();
+                        containerY      = container.getY();
 
-                        case 'vertically':
-                            if (containerX != 0) {
-                                container.setWidth((thatWidth - containerX));
-                            }
-                            container.setHeight(thatHeight);
-                            break;
-                    }    
+
+                        switch(splitType) {
+                            case 'horizontally':
+                                if (containerY != 0) {
+                                    container.setHeight(thatHeight - containerY);
+                                }
+
+                                container.setWidth(thatWidth);
+
+                                break;
+
+                            case 'vertically':
+                                if (containerX != 0) {
+                                    container.setWidth((thatWidth - containerX));
+                                }
+                                container.setHeight(thatHeight);
+                                break;
+                        }    
+                    }
                 }
             }
             
@@ -678,14 +680,6 @@ WAF.addWidget({
             });
         }
         
-        /*
-         * If container is inside a tabview
-         */
-        if (isResize) {
-            parent = tag.getParent()
-            if (parent && parent.getType() == 'tabView') {
-            }
-        }        
     },
     
     onCreate : function (tag) {

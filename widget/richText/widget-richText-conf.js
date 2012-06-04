@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'richText',
     lib         : 'WAF',
     description : 'Text',
-    category    : 'Controls',
+    category    : 'Form Controls',
     img         : '/walib/WAF/widget/richText/icons/widget-richText.png',
     include     : [],
     tag         : 'div',

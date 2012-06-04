@@ -551,7 +551,10 @@ WAF.dom.Element.prototype.getAttribute = function (name) {
     var value = '';
     if (this._json['attributes']) {
         value = this._json['attributes'][name];
-    }
+    }    
+    if (value && value.replace) {
+        value = value.replace(/&quot;/g, '"');     
+    }    
     return value;
 };
 
@@ -687,6 +690,9 @@ WAF.dom.Element.prototype.removeAttribute = function (attributeName) {
  * @param {String} value value of the attribute
  */
 WAF.dom.Element.prototype.setAttribute = function (name, value) {
+    if (value && value.indexOf && value.indexOf('"') != -1) {
+        value = value.replace(/"/g, "&quot;");
+    }            
     if (this._json['attributes']) {
         this._json['attributes'][name] = value;
     } else {

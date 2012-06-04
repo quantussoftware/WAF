@@ -41,7 +41,7 @@ WAF.Widget.provide(
         source              = this.source;
         nameList            = [];
         attrList            = [];
-        errorDiv            = config['data-error-div'];
+        errorDiv            = config['data-errorDiv'];
         mustDisplayError    = config['data-display-error'];
         divID               = config['id'];
         options             = config.options ? config.options : {};
@@ -331,7 +331,7 @@ WAF.Widget.provide(
                         htmlobj = document.getElementById(this.id + "_" + idName(attList[i]));
 
                         if (htmlobj.isInFocus) {
-                            htmlobj.value = sourceAtt.getValue(); //form.source[att.name];
+                            htmlobj.value = sourceAtt.getValue(false); //form.source[att.name];
                         } else  {
                             htmlobj.value = htmlobj.getFormattedValue();
                         }
@@ -1909,7 +1909,8 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
 
             bodyDom.height(formHeight-footerHeight-headerHeight);
         } else {
-            widget.afterResize(htmlObject, withToolBar);
+  			if (widget != null)
+				widget.afterResize(htmlObject, withToolBar);
         }
         
 
@@ -2345,8 +2346,8 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
         widget.isQueryForm                  = isQueryForm;
         widget.otherAttInfo                 = otherAttInfo;
         widget.dataTheme                    = dataTheme;
-        widget.mustDisplayError             = mustDisplayError,
-        widget.onError                      = null,
+        widget.mustDisplayError             = mustDisplayError;
+        widget.onError                      = null;
         widget.kill                         = function() {            
             var 
             fName;
@@ -2387,11 +2388,14 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
                 form = e.data.form;
                 
                 if (e.eventKind == 'onCurrentElementChange' || e.eventKind == 'onCollectionChange')  {
-                    if (form.source.getCurrentElement() == null) {
-                        form.clear();
-                    } else {
-                        form.fill();
-                    }
+					if (!widget.withoutTable)
+					{
+	                    if (form.source.getCurrentElement() == null) {
+	                        form.clear();
+	                    } else {
+	                        form.fill();
+	                    }
+					}
                 } else  if (e.eventKind == "onAttributeChange")  {
                     domobj = document.getElementById(form.id + "_" + idName(e.attributeName));
 

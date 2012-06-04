@@ -123,7 +123,7 @@ WAF.addWidget({
             
             
             parent          = tag.getParent();
-            menuItem        = parent.getMenuItems().getByName(tag.getId());
+            menuItem        = parent._getMenuItemDescriptor(tag.getId());
             htmlObject      = $(this);
             htmlObjectP     = htmlObject.children('p');
             htmlObjectPText = htmlObjectP.children('span');
@@ -185,7 +185,7 @@ WAF.addWidget({
 
                     htmlObject  = $(this);
 
-                    menuItem    = tag.getParent().getMenuItems().getByName(tag.getId());
+                    menuItem    = tag.getParent()._getMenuItemDescriptor(tag.getId());
                     oldValue    = menuItem.getText();
                     newValue    = htmlObject.val();
                     

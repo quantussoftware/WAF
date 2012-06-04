@@ -94,8 +94,14 @@ WAF.tools.optionMatchers = [
 		"addToSet",
 		"atOnce",
 		"refreshOnly",
-		"keepOldCollectionOnError"
-		
+		"keepOldCollectionOnError",
+		"isMethodResult",
+		"prefetchedData",
+		"callWithGet",
+		"generateRESTRequestOnly",
+		"forceReload",
+		"doNotAlterElemPos",
+		"queryParams"
 	];
 
 WAF.tools.isOptionParam = function(param)
@@ -126,6 +132,7 @@ WAF.tools.handleArgs = function(args, startingFrom, handleOptions)
 	startingFrom = startingFrom || 0;
 	var noUserData = handleOptions.noUserData || false;
 	var with3funcs = handleOptions.with3funcs || false;
+	var queryParams = handleOptions.queryParams || false;
 	
 	var res = { options: {}, userData: null};
 	var p;
@@ -175,11 +182,62 @@ WAF.tools.handleArgs = function(args, startingFrom, handleOptions)
 				res.options.onError = oldoptions.onError;
 			if (oldoptions.atTheEnd != null)
 				res.options.atTheEnd = oldoptions.atTheEnd;
-			if (nextparam < nbparam && !noUserData)
+			
+			if (queryParams)
 			{
-				res.userData = args[nextparam];
-				++nextparam;
+				if (res.options.userData != null)
+					res.userData = res.options.userData;
+				res.options.params = res.options.params || [];
+				var cont = true;
+				while ((nextparam < nbparam) && cont)
+				{
+					var p = args[nextparam];
+					if (typeof p === "object" && !(p instanceof Date) && !(p instanceof Array))
+					{
+						//cont = false;
+						res.userData = p;
+						++nextparam;
+					}
+					else
+					{
+						res.options.params.push(p);
+						++nextparam;
+					}
+				}
 			}
+			else
+			{
+				if (nextparam < nbparam && !noUserData)
+				{
+					res.userData = args[nextparam];
+					++nextparam;
+				}
+			}
+		}
+		else
+		{
+			if (queryParams)
+			{
+				if (res.options.userData != null)
+					res.userData = res.options.userData;
+				res.options.params = res.options.params || [];
+				var cont = true;
+				while ((nextparam < nbparam) && cont)
+				{
+					var p = args[nextparam];
+					if (typeof p === "object" && !(p instanceof Date) && !(p instanceof Array))
+					{
+						//cont = false;
+						res.userData = p;
+						++nextparam;
+					}
+					else
+					{
+						res.options.params.push(p);
+						++nextparam;
+					}
+				}
+			}			
 		}
 
 	}
@@ -409,7 +467,11 @@ WAF.DataStore.handleFuncResult = function(request, methodref, dataClass)
 {
 	var fullResult = WAF.getRequestResult(request);
 	if (fullResult.__ERROR == null)
-	{		
+	{	
+		if (fullResult.__entityModel != null)
+		{
+			dataClass = dataClass.getDataStore().getDataClass(fullResult.__entityModel);
+		}	
 		if (fullResult.__KEY != null)
 		{
 			var entity = new WAF.Entity(dataClass, fullResult);
@@ -1042,7 +1104,7 @@ WAF.DataClass.distinctValues = function(attributeName, options, userData)
 
 WAF.DataClass.query = function(queryString, options, userData)
 {
-	var resOp = WAF.tools.handleArgs(arguments, 1);
+	var resOp = WAF.tools.handleArgs(arguments, 1, {queryParams:true});
 	userData = resOp.userData;
 	options = resOp.options;
 	
@@ -1064,7 +1126,7 @@ WAF.DataClass.allEntities = function(options, userData)
 
 WAF.DataClass.find = function(queryString, options, userData)
 {
-	var resOp = WAF.tools.handleArgs(arguments, 1);
+	var resOp = WAF.tools.handleArgs(arguments, 1, {queryParams:true});
 	userData = resOp.userData;
 	options = resOp.options;
 	
@@ -1595,7 +1657,7 @@ WAF.EntityCollection.query = function(queryString, options, userData)
 {
 	// does a query within an existing set, same options as an datastore class query
 	
-	var resOp = WAF.tools.handleArgs(arguments, 1);
+	var resOp = WAF.tools.handleArgs(arguments, 1, {queryParams:true});
 	userData = resOp.userData;
 	options = resOp.options;
 	var entityCollection = this;

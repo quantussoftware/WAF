@@ -153,83 +153,76 @@ WAF.Widget.provide(
         // ********* </STATES EVENTS> ********
 
         this.createCombobox= function(divID, binding, params){
+            var
+            thisDS,
+            listenerConfig,
+            bindingInfo;
+            
             if (widget.sourceAtt) {
 
-                var listenerConfig = {
+                listenerConfig = {
                     listenerID  :divID,
                     listenerType:'dropDown',
                     subID       : params.subID ? params.subID : null
-                };
+                };                
 
-
+                widget.source.addListener("all", function(e) {
+                    if (e.eventKind == "onElementSaved") {
+                        widget._build(e.dataSource);
+                    }
+                });
                 //result.source.addListener("all", function(e) {
                 widget.sourceAtt.addListener(function(e) {
+                    var
+                    dsID,
+                    value,
+                    source,
+                    bindingInfo;
+                    
                     //console.log(e.subID)
-                    var dsID = e.dataSource.getID();
+                    dsID = e.dataSource.getID();
 
                     switch(e.eventKind) {
                         case  'onCurrentElementChange' :
                             // Save value if binding "in" is defined
                             if ((autoDispatch && autoDispatch !== 'false' )|| autoDispatch === 'true') {                                
                                 if (sourceOut) {
-                                    var bindingInfo = WAF.dataSource.solveBinding(sourceOut);
-                                    if (dsID === key) {
-                                        bindingInfo.dataSource[dsID].set(e.dataSource);
-                                        comboboxHtml.combobox('setValue', e.dataSource.getAttribute(primary).getValue());
+                                    bindingInfo = WAF.dataSource.solveBinding(sourceOut);
+                                    
+                                    if (dsID === key) {                                        
+                                        source = widget._getRelatedAttribute(bindingInfo.dataSource, dsID);
+                                        
+                                        if (source) {
+                                            source.set(e.dataSource);
+                                        }
+                                        widget.setValue(e.dataSource.getAttribute(primary).getValue());
                                     } else {
                                         value = e.dataSource.getAttribute(key).getValue();
                                         bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(value);
-                                        comboboxHtml.combobox('setValue', value);
+                                        widget.setValue(value);
                                     }
                                 } else {
                                     if (dsID !== key) {
                                         value = e.dataSource.getAttribute(key).getValue();
-                                        comboboxHtml.combobox('setValue', value);
+                                        widget.setValue(value);
                                     }
+                                }
+                            }
+                            
+                            /*
+                             * To built widget if is in a web component
+                             */
+                            if (!widget._isBuilt) {
+                                if (widget.$domNode.parents('.waf-component').length != 0) {
+                                    widget._build(e.dataSource);
                                 }
                             }
                             break;
 
                         case  'onCollectionChange' :
                         case  'onAttributeChange' :
-                            comboboxHtml.children().remove();
-                            for (var i = 0; i <= e.dataSource.length, i <= 100; i += 1) {
-
-                                e.dataSource.getElement(i, {
-                                    onSuccess: function(e){
-                                        if (e.element) {
-                                            var split = options.split(' ');
-                                            var label = '';
-                                            var value = e.element.getAttributeValue(key);
-
-                                            if (typeof(value) === 'undefined') {
-                                                value = e.element.getAttributeValue(primary);
-                                            }
-
-                                            var nb = 0;
-                                            for (var i = 0; i < split.length; i += 1) {
-                                                if (split[i] !== '') {
-                                                    nb += 1;
-                                                    label += e.element.getAttributeValue(split[i].replace('[', '').replace(']', '')) + ' ';
-                                                }
-                                            }
-
-                                            // Format if label is a number
-                                            if (nb === 1 && label.replace(/ /g, '').match('^\\d+$') && !label.replace(/ /g, '').match('-')) {
-                                                label = e.data.widget.getFormattedValue(parseInt(label));
-                                            }
-
-                                            comboboxHtml.append(
-                                                $('<option/>').attr({
-                                                    value: value
-                                                }).html(label)
-                                            );
-                                        }
-                                    }
-                                },{
-                                    widget : e.data.widget
-                                })
-                            }
+                            widget._build(e.dataSource);
+                            
                             break;
                     }
                 }, listenerConfig, {
@@ -240,7 +233,9 @@ WAF.Widget.provide(
                 
         
                 inputHtmlObject.bind( "autocompleteselect", function(event, ui) {
-                        var value = widget.source[key];
+                    var
+                    source,
+                    bindingInfo;
 
                     if ((autoDispatch && autoDispatch !== 'false' )|| autoDispatch === 'true' ) {
                         widget.source.select(ui.item.option.index)
@@ -249,11 +244,16 @@ WAF.Widget.provide(
 
                     // Save value if binding "out" is defined
                     if (sourceOut) {
-                        var bindingInfo = WAF.dataSource.solveBinding(sourceOut);
+                        bindingInfo = WAF.dataSource.solveBinding(sourceOut);
 
                         if (typeof(value) === 'undefined' && widget.source.getID() === key) {
                             widget.source.select(ui.item.option.index);
-                            bindingInfo.dataSource[widget.source.getID()].set(widget.source);
+                                                               
+                            source = widget._getRelatedAttribute(bindingInfo.dataSource, widget.source.getID());
+
+                            if (source) {
+                                source.set(widget.source);
+                            }
                         } else {
                             bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(event.target.value);
                         }
@@ -261,22 +261,33 @@ WAF.Widget.provide(
                 });
 
                 if (sourceOut) {
-                    var bindingInfo = WAF.dataSource.solveBinding(sourceOut);
-                    var thisDS = bindingInfo.dataSource;
-
+                    bindingInfo = WAF.dataSource.solveBinding(sourceOut);
+                    thisDS      = bindingInfo.dataSource;
+                    
                     thisDS.addListener('onCurrentElementChange', function(e) {
-                        var value = e.dataSource.getAttribute(bindingInfo.attName).getValue();
+                        var 
+                        i,
+                        value,
+                        source;
+                        
+                        value = e.dataSource.getAttribute(bindingInfo.attName).getValue();
 
                         if (e.data.source.getID() === e.data.search) {
-                            e.dataSource[e.data.source.getID()].load({
-                                onSuccess : function(e) {
-                                    if (e.entity) {
-                                        comboboxHtml.combobox('setValue', e.entity[primary].getValue());
+                            source = widget._getRelatedAttribute(e.dataSource, e.data.source.getID());
+                            
+                            if (source) {
+                                source.load({
+                                    onSuccess : function(e) {
+                                        if (e.entity) {
+                                            widget.setValue(e.entity[primary].getValue());
+                                        } else {
+                                            widget.setValue('');
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
                         } else {
-                            comboboxHtml.combobox('setValue', value);
+                            widget.setValue(value);
                         }
 
                         if ((autoDispatch && autoDispatch !== 'false' )|| autoDispatch === 'true' ) {
@@ -288,14 +299,29 @@ WAF.Widget.provide(
                     })
                 }
             } else {
+                if (sourceOut) {
+                    bindingInfo = WAF.dataSource.solveBinding(sourceOut);
+                }
+                
                 // Change current entity on change event
                 inputHtmlObject.bind( "autocompleteselect", function(event, ui) {
                     // Save value if binding "out" is defined
                     if (sourceOut) {
-                        var bindingInfo = WAF.dataSource.solveBinding(sourceOut);
                         bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(ui.item.value);
                     }
-                });
+                });      
+                     
+                if (sourceOut) {   
+                    thisDS = bindingInfo.dataSource;
+                    
+                    if (thisDS) {
+                        thisDS.addListener('onCurrentElementChange', function(e) {
+                            if (e.dataSource.isNewElement()) {
+                               e.dataSource.getAttribute(bindingInfo.attName).setValue(widget.getValue());
+                            }
+                        });
+                    }
+                }
             }
         }
 
@@ -303,6 +329,120 @@ WAF.Widget.provide(
             
     },        
     {
+        _primary : 'ID',
         
+        _isBuilt : false,
+        
+        _getRelatedAttribute : function(source, attr) {
+            var
+            i,
+            result,
+            widget,
+            currentSource;
+            
+            widget = this;
+            
+            for (i in source) {
+                currentSource = source[i];
+                if (currentSource && currentSource.emAtt) {
+                    if (WAF.utils.ucFirst(attr) == currentSource.emAtt.path) {
+                        result = currentSource
+                    }
+                }
+            }
+            
+            return result;        
+        },
+        
+        _build : function (ds) {
+            var
+            i,
+            key,
+            options,
+            primary,
+            widgetHtml;
+            
+            this._isBuilt   = true;
+            
+            key             = this.config['data-binding-key'];
+            primary         = "ID";
+            options         = this.config['data-binding-options'];
+            widgetHtml      = this.$domNode.children('select');
+            
+            widgetHtml.children().remove();                           
+                            
+            
+            for (i = 0; i <= ds.length-1; i += 1) {
+                if (i <= 250) {
+                    ds.getElement(i, {
+                        onSuccess: function(e){
+                            var
+                            i,
+                            nb,
+                            val,
+                            split,
+                            label,
+                            value,
+                            display;
+                            
+                            display = false;
+                            if (e.element) {
+                                split = options.split(' ');
+                                label = '';
+                                value = e.element.getAttributeValue(key);
+
+                                if (typeof(value) === 'undefined') {
+                                    value = e.element.getAttributeValue(primary);
+                                }
+
+                                nb = 0;
+                                for (i = 0; i < split.length; i += 1) {
+                                    
+                                    if (split[i] !== '') {
+                                        nb += 1;
+                                        val = e.element.getAttributeValue(split[i].replace('[', '').replace(']', ''));
+                                        label += val + ' ';
+                                        
+                                        if (val != null) {
+                                            display = true;
+                                        }
+                                    }
+                                }
+
+                                // Format if label is a number
+                                if (nb === 1 && label.replace(/ /g, '').match('^\\d+$') && !label.replace(/ /g, '').match('-') && e.data) {
+                                    label = e.data.widget.getFormattedValue(parseInt(label));
+                                }
+
+                                if (display) {
+                                    widgetHtml.append(
+                                        $('<option/>').attr({
+                                            value: value
+                                        }).html(label)
+                                    );
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        },
+        
+        setValue : function(value) {
+            var
+            inputHtml,
+            htmlObject,
+            comboBoxHtml;
+            
+            htmlObject      = this.$domNode;
+            inputHtml       = htmlObject.children('input');
+            comboBoxHtml    = htmlObject.children('select');
+            
+            if (value == '' && value != 0) {
+                inputHtml.val('');
+            } else {
+                comboBoxHtml.combobox('setValue', value);
+            }
+        }
     }
 );

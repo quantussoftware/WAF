@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'autoForm',
     lib        : 'WAF',
     description: 'Auto Form',
-    category   : 'Controls',
+    category   : 'Automatic Controls',
     img        : '/walib/WAF/widget/autoForm/icons/widget-autoForm.png',
     tag        : 'div',
     attributes : [
@@ -48,19 +48,23 @@ WAF.addWidget({
         description : 'Resizable',
         type        : 'checkbox'
     },
-	{
+    {
         name        : 'data-display-error',
         description : 'Display error',
         type        : 'checkbox',
         category    : 'Error Handling',
-        defaultValue:'true'
+        defaultValue: 'true'
     },
-	{
-        name        : 'data-error-div',
+    {
+        name        : 'data-errorDiv',
         description : "Place holder for the error's description",
- 		category   : 'Error Handling'
+        category   : 'Error Handling'
     },
-	{
+    {
+        name        : 'data-error-div',
+        visibility  : 'hidden'
+    },
+    {
         name        : 'data-withoutTable',
         description : 'With included widgets',
         type        : 'checkbox',
@@ -297,7 +301,7 @@ WAF.addWidget({
         }
     }],
     onInit: function (config) {
-       new WAF.widget.AutoForm(config);
+        new WAF.widget.AutoForm(config);
     },
     onDesign: function (config, designer, tag, catalog, isResize) {
         var
@@ -343,11 +347,14 @@ WAF.addWidget({
             }
             
             WAF.AF.buildForm(tag.getAttribute('id').getValue(), null, attrList, nameList, options, catalog, tag);
-                        
             // message if not binding
-            if (nameList.length === 0) {
-                if ($('#' + tag.overlay.id + ' .message-binding-autoform').length == 0) {
+            if (nameList.length === 0) { 
+                if ($('#' + tag.overlay.id + ' .message-binding-autoform').length == 0  && !config['data-binding']) {
                     $('<div class="message-binding-autoform">Drop a datasource<br> here</div>').appendTo($('#' + tag.overlay.id));
+                } else if (config['data-binding']){
+                    $(tag.overlay.element).find('.message-binding-autoform').each(function(i) {
+                        $(this).remove();
+                    });
                 }
             } else {
                 $(tag.overlay.element).find('.message-binding-autoform').each(function(i) {

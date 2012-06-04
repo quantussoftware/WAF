@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'textField',
     lib        : 'WAF',
     description: 'Text Input',
-    category   : 'Controls',
+    category   : 'Form Controls',
     img        : '/walib/WAF/widget/textField/icons/widget-textField.png',
     tag        : 'input',
     attributes : [

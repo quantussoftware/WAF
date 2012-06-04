@@ -145,6 +145,22 @@ WAF.Widget.provide(
             }   
         }        
     },{
-        
+        /**
+         * Custom getValue function
+         * @method getValue
+         * @return {number|array} value or values (if many handle)
+         */
+        getValue : function() {
+            var
+            result;
+
+            if (this.$domNode.slider('option', 'values')) {
+                result = this.$domNode.slider('option', 'values');
+            } else {
+                result = this.$domNode.slider('value');
+            }
+
+            return result;
+        }
     }
 );

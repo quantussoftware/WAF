@@ -37,7 +37,7 @@ if (typeof(WAF) === 'undefined') {
          * @property VERSION
          * @type String
          **/
-        'VERSION': 'Developer Preview 2',
+        'VERSION': 'V1 Beta',
         /**
          * The version of the platform (OS, browser, device)
          *
@@ -116,8 +116,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/dataGrid/skin/default/css/widget-dataGrid-skin-default.css',
                 '+/widget/dataGrid/skin/metal/css/widget-dataGrid-skin-metal.css',
                 '+/widget/dataGrid/skin/light/css/widget-dataGrid-skin-light.css',
-                /* NOTIFY */
-                '+/lib/notify/ui.notify.css',
                 /* WAF AUTOFORM */
                 '+/widget/autoForm/css/widget-autoForm.css',
                 '+/widget/autoForm/skin/default/css/widget-autoForm-skin-default.css',
@@ -166,8 +164,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/progressBar/skin/metal/css/widget-progressBar-skin-metal.css',
                 '+/widget/progressBar/skin/light/css/widget-progressBar-skin-light.css',
                 '+/widget/progressBar/skin/roundy/css/widget-progressBar-skin-roundy.css',
-                /* WAF YAHOO WEATHER */
-                '+/widget/yahooWeather/css/widget-yahooWeather.css',
                 /* WAF Combobox */
                 '+/widget/combobox/css/widget-combobox.css',
                 '+/widget/combobox/skin/default/css/widget-combobox-skin-default.css',
@@ -202,15 +198,10 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/login/skin/light/css/widget-login-skin-light.css',        
                 /* WAF Component */
                 '+/widget/component/css/widget-component.css',
-                /* WAF Chart */
-                '+/widget/chart/css/widget-chart.css',
-                /* WAF FileUpload */
-                '+/widget/fileUpload/css/widget-fileUpload.css',
                 /* Error Div */
                 '+/widget/errorDiv/css/widget-errorDiv.css',
                 
                 /* PUT LINKS TO CSS FOR YOUR CUSTOM WIDGETS HERE */
-                
                 ],
                 require: [
                 /* WAF */
@@ -259,9 +250,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/Tags/descriptor/property/tags-descriptor-property-style.js',
                 '+/Tags/descriptor/column/tags-descriptor-column.js',
                 '+/Tags/descriptor/column/attribute/tags-descriptor-attributecolumn.js',
-
-                /* Notify */
-                '+/lib/notify/jquery.notify.js',
                 
                 /* widgets */
                 '+/widget/widget.js',                
@@ -292,12 +280,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/slider/widget-slider-conf.js',
                 '+/widget/textField/widget-textField.js',
                 '+/widget/textField/widget-textField-conf.js',				
-                '+/widget/googleMap/widget-googleMap.js',
-                '+/widget/googleMap/widget-googleMap-conf.js',                
-                '+/widget/googleChart/widget-googleChart.js',
-                '+/widget/googleChart/widget-googleChart-conf.js',								
-                '+/widget/yahooWeather/widget-yahooWeather.js',
-                '+/widget/yahooWeather/widget-yahooWeather-conf.js',				
                 '+/widget/progressBar/widget-progressBar.js',
                 '+/widget/progressBar/widget-progressBar-conf.js',                
                 '+/widget/matrix/widget-matrix.js',
@@ -313,12 +295,8 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/menuitem/widget-menuitem-conf.js',
                 '+/widget/login/widget-login.js',
                 '+/widget/login/widget-login-conf.js',
-                '+/widget/component/widget-component-conf.js',
-                '+/widget/chart/widget-chart-conf.js',
-                '+/widget/chart/widget-chart.js',
-                '+/widget/fileUpload/jquery.form.js',
-                '+/widget/fileUpload/widget-fileUpload-conf.js',
-                '+/widget/fileUpload/widget-fileUpload.js'
+                '+/widget/component/widget-component.js',
+                '+/widget/component/widget-component-conf.js'
 
                 ]
             },
@@ -399,8 +377,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/progressBar/skin/metal/css/widget-progressBar-skin-metal.css',
                 '+/widget/progressBar/skin/light/css/widget-progressBar-skin-light.css',
                 '+/widget/progressBar/skin/roundy/css/widget-progressBar-skin-roundy.css',
-                /* WAF YAHOO WEATHER */
-                '+/widget/yahooWeather/css/widget-yahooWeather.css',
                 /* WAF Combobox */
                 '+/widget/combobox/css/widget-combobox.css',
                 '+/widget/combobox/skin/default/css/widget-combobox-skin-default.css',
@@ -435,13 +411,9 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/login/skin/light/css/widget-login-skin-light.css',        
                 /* WAF Component */
                 '+/widget/component/css/widget-component.css',
-                /* WAF Chart */
-                '+/widget/chart/css/widget-chart.css',
-                /* WAF FileUpload */
-                '+/widget/chart/fileUpload/widget-fileUpload.css',
                 /* Error Div */
                 '+/widget/errorDiv/css/widget-errorDiv.css'
-
+                
                 
                 ],
                 require: [
@@ -468,6 +440,7 @@ if (typeof(WAF) === 'undefined') {
                 
                 /* External Librairy */
                 '+/lib/raphael/raphael-min.js',
+                '+/lib/jquery.svg/jquery.svg.min.js',
                 '+/lib/selectbox/jquery-selectbox.js',
                 '+/lib/combobox/jquery-combobox.js',
                 
@@ -500,7 +473,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/richText/widget-richText-conf.js',
                 '+/widget/errorDiv/widget-errorDiv.js',
                 '+/widget/errorDiv/widget-errorDiv-conf.js',
-                '+/widget/dataGrid/widget-dataGrid.js',
+                '+/widget/dataGrid/widget-dataGrid-mobile.js',
                 '+/widget/dataGrid/widget-dataGrid-conf.js',
                 '+/widget/autoForm/widget-autoForm.js',
                 '+/widget/autoForm/widget-autoForm-conf.js',
@@ -535,11 +508,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/menuitem/widget-menuitem-conf.js',
                 '+/widget/login/widget-login.js',
                 '+/widget/login/widget-login-conf.js',
-                '+/widget/chart/widget-chart-conf.js',
-                '+/widget/chart/widget-chart.js',
-                '+/widget/fileUpload/jquery.form.js',
-                '+/widget/fileUpload/widget-fileUpload-conf.js',
-                '+/widget/fileUpload/widget-fileUpload.js',
                 
                 /* mobile */ 
                 '+/lib/mobile/iscroll/iscroll-lite.js',
@@ -579,6 +547,15 @@ if (typeof(WAF) === 'undefined') {
                 console: {
                     log: function (string) { }
                 }
+            },
+            
+            ucFirst : function (str) {
+                var
+                f;
+
+                f = str.charAt(0).toUpperCase();
+                
+                return f + str.substr(1);
             }
         },
 
@@ -633,6 +610,17 @@ if (typeof(WAF) === 'undefined') {
          * @type Object
          **/
         components : {
+        },
+        
+        /**
+         * components core class
+         *
+         * @static
+         * @property component
+         * @type Object
+         **/
+        component : {
+            
         },
 
         /**
@@ -740,6 +728,26 @@ if (typeof(WAF) === 'undefined') {
      * @event onAfterInit
      */
     WAF.onAfterInit = function () {};
+    
+    /**
+     * on ready   
+     * @static
+     * @method onReady
+     */  
+    WAF.onReady = function () {
+        try {            
+            // compatibility
+            WAF.widget.ComponentPlaceHolder = WAF.widget.Component;
+            
+            WAF.onAfterInit();
+        } catch (e) {
+            if (typeof console !== 'undefined' && 'log' in console) {
+                console.log('There is an error in WAF.afterInit method', e);
+            } else {
+                alert('There is an error in WAF.afterInit method' + e.message);
+            }
+        }
+    };
 
     /**
      * <p>Create a namespace</p>
@@ -783,7 +791,11 @@ if (typeof(WAF) === 'undefined') {
 
         lib = lib || 'waf';
         lib = lib.toLowerCase();
-
+        
+        if (typeof callback === 'undefined') {            
+            return false;
+        }
+                      
         if (typeof(obj) == 'string') {
             objtemp = WAF.widgets[obj];
             if (typeof(objtemp) == 'undefined') {
@@ -794,15 +806,26 @@ if (typeof(WAF) === 'undefined') {
 
         // keep events into WAF.events
         eventName = event.replace('on','');
+
+        // change scope of the callback
+        function changeScope(scope, fn) {
+            return function () {
+                var undefVar;
+                return fn ? fn.apply(scope, arguments) : undefVar;
+            };
+        } 
         
         if (obj.id) {
             if (!WAF.events[obj.id]) {
                 WAF.events[obj.id] = [];
             }
             WAF.events[obj.id].push({
-                name    : (event == 'onResize' || event == 'startResize' || event == 'stoptResize') ? event : eventName,
+                name    : (event == 'onResize' || event == 'startResize' || event == 'stopResize') ? event : eventName,
                 fn      : callback
             });
+                
+            callback = changeScope($$(obj.id), callback); 
+            
         }
         
         if (event == 'onResize' || event == 'startResize' || event == 'stopResize') {
@@ -872,12 +895,9 @@ if (typeof(WAF) === 'undefined') {
                                 break;    
 
                             case 'combobox':
-                                var
-                                htmlInput,
-                                htmlButton;
+                                var htmlInput;
 
-                                htmlInput   = $("#" + obj.renderId).children('input');
-                                htmlButton  = $("#" + obj.renderId).children('button');
+                                htmlInput = $("#" + obj.renderId).children('input');
 
                                 switch(event) {
                                     case 'change':
@@ -930,12 +950,19 @@ if (typeof(WAF) === 'undefined') {
                                 params.attributeName = option;
                                 event = 'onAttributeChange';
                             }
+                            else if (event == 'onAttributeChange')
+                            {
+                                params.attributeName = obj;
+                            }
+                            callback = changeScope(WAF.source[obj], callback); 
                             WAF.source[obj].addListener(event, callback, params);  						
                         } else {
                             // Onload for body or onorientationchange for window
                             if (event == 'onorientationchange') {
+                                callback = changeScope(document, callback); 
                                 window.onorientationchange = callback;
                             } else if (event == 'onLoad') {
+                                callback = changeScope(document, callback); 
                                 $(document).ready(callback)
                             } else if (document.getElementById(obj)) {
                                 if (document.getElementById(obj).addEventListener){
@@ -989,15 +1016,16 @@ if (typeof(WAF) === 'undefined') {
         }
         
         WAF.config.taglib.push(config);        
-    };   
+    };  
     
+          
     /**
      * Loader
      * 
      * @class WAF.loader
      */
     WAF.loader = {
-
+                                              
         simplePath: {},
 		
         /**
@@ -1017,6 +1045,35 @@ if (typeof(WAF) === 'undefined') {
          * @type Array
          */
         styleToLoad : [],
+        
+        /**
+         * manage the components loading
+         *
+         * @static
+         * @property componentsManager
+         * @type object
+         */
+        componentsManager : {            
+            
+            _components: 0,
+            
+            init : function () {
+                WAF.loader.componentsManager._components = 0;
+            },
+            
+            add : function () {
+              WAF.loader.componentsManager._components++;              
+            },
+            
+            remove : function (callback) {
+                WAF.loader.componentsManager._components--;
+                callback();
+            },
+
+            hasComponent : function () {
+                return !(WAF.loader.componentsManager._components == 0);
+            }
+        },
 
         /**
          * init the loading of required files
@@ -1114,7 +1171,8 @@ if (typeof(WAF) === 'undefined') {
             var path = WAF.loader.scriptToLoad[0],
             head = null,
             script = null,
-            loadHandler = null;
+            loadHandler = null,
+            compManager = WAF.loader.componentsManager;
             
             // case of jQuery is already defined
             if (typeof jQuery != 'undefined' && path.indexOf('jquery.js') != -1) {
@@ -1134,12 +1192,20 @@ if (typeof(WAF) === 'undefined') {
                 }
   
                 loadHandler = function (event) {
+                                                            
                     WAF.loader.scriptToLoad = WAF.loader.scriptToLoad.slice(1);
                     if (WAF.loader.scriptToLoad.length > 0) {
                         WAF.loader.loadScripts();
                     } else {    		
+                        
                         var onCatalogLoad = function (event) {
-                            var length = 0, i = 0, desc = {};
+                            var length = 0, 
+                            i = 0, 
+                            j = 0,
+                            desc = {},
+                            nbComponents = 0,
+                            component = null,
+                            components = [];
                                                         
                             if (event.error != null) {
                                 WAF.ds = null;
@@ -1157,29 +1223,43 @@ if (typeof(WAF) === 'undefined') {
                                 }
                             }
 						
-                            if (!(typeof(WAF.tags) === "undefined")) {
-                                WAF.tags.createView();   
+                            if (typeof(WAF.tags) !== 'undefined') {
+                                
+                                // check if components need to be loaded
+                                components = $('[data-type=component]');
+                                nbComponents = components.length;
+                                if (components.length > 0) {
+                                    compManager.init();
+                                    for (j = 0; j < nbComponents; j++) {
+                                        component = components[j];
+                                        
+                                        // check if we need to load
+                                        if (component.getAttribute('data-start-load') == null || component.getAttribute('data-start-load') == 'true') {
+                                        
+                                            // check if we have a valid path
+                                            if (component.getAttribute('data-path') != null && component.getAttribute('data-path') != '') {
+                                                compManager.add();
+                                            }
+                                        }
+                                    }                                                                      
+                                }                                                                
+                                
+                                WAF.tags.createView();
+                                
                                 // show body
                                 document.body.style.display = 'block';   
                                 document.body.style.visibility = 'visible';   
                             }
-						
-                            // show a message when an error happens in WAF.afterInit
-                            try {
-                                WAF.onAfterInit();
-                            } catch (e) {
-                                if (typeof console !== 'undefined' && 'log' in console) {
-                                    console.log('There is an error in WAF.afterInit method', e);
-                                } else {
-                                    alert('There is an error in WAF.afterInit method' + e.message);
-                                }
-                            }						
+                            
+                            if (!compManager.hasComponent()) {
+                                WAF.onReady();			
+                            }
                         }
 					
                         if (WAF.DataStore != null) {
                             WAF.ds = new WAF.DataStore({
                                 onSuccess: onCatalogLoad,
-                                onError: onCatalogLoad
+                                onError  : onCatalogLoad
                             })
                         }															
                     }
@@ -1198,7 +1278,7 @@ if (typeof(WAF) === 'undefined') {
                 head.appendChild(script);
             }
         },
-
+        
         /**
          * Load style
          *
@@ -1501,7 +1581,6 @@ if (typeof(WAF) === 'undefined') {
                         if ( modulesString === 'auto' ) {
                             modulesString = this.getModuleByDeviceType();
                         }
-                        
                         modulesString = modulesString.toLowerCase();
                         WAF.PLATFORM.modulesString = modulesString;
                         

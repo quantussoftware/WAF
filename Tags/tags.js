@@ -130,6 +130,7 @@ WAF.tags = {
         config = {},
         elt = {},
         eltStyle = {},
+        value = '',
         component = null,
         widget = WAF.config.widget,
         sID = '';
@@ -169,7 +170,11 @@ WAF.tags = {
                 // create the config
                 for (i = 0, nbAttributes = definition.attributes.length; i < nbAttributes; i++) {
                     attributeName = definition.attributes[i].name;
-                    config[attributeName] = domObj.getAttribute(attributeName);
+                    value = domObj.getAttribute(attributeName);
+                    if (value && value.replace) {
+                        value = value.replace(/&quot;/g, '"');
+                    }     
+                    config[attributeName] = value;
                 }
 
                 // force getting the mandatory attribute
@@ -202,7 +207,7 @@ WAF.tags = {
                 // create the config
                 nbAttributes = definition.attributes.length;
                 for (i = 0; i < nbAttributes; i++) {
-                    attributeName = definition.attributes[i].name;
+                    attributeName = definition.attributes[i].name;         
                     config[attributeName] = domObj.getAttribute(attributeName);
                 }
 
@@ -221,6 +226,56 @@ WAF.tags = {
 
                 // creation of the component
                 component = definition.onInit(config);
+                
+                // creation of the variable if dataSource variable
+                if (config['data-source-type'] == 'scalar') {
+                    switch (config['data-dataType']) {
+                        case 'number':
+                            if (typeof window[config.id] === 'undefined') {
+                                window[config.id] = 0;
+                            }
+                            break;
+                        case 'boolean':
+                            if (typeof window[config.id] === 'undefined') {
+                                window[config.id] = false;
+                            }
+                            break;
+                        case 'object':
+                            if (typeof window[config.id] === 'undefined') {
+                                window[config.id] = {};
+                            }
+                            break;
+                        case 'date':
+                            if (typeof window[config.id] === 'undefined') {
+                                window[config.id] = new Date();
+                            }
+                            break;
+                        default:
+                            if (typeof window[config.id] === 'undefined') {
+                                window[config.id] = '';
+                            }
+                            break;
+                    }
+                    return component;
+                }
+                if (config['data-source-type'] == 'object') {
+                    if (typeof window[config.id] === 'undefined') {
+                        window[config.id] = {};
+                    }
+                    return component;
+                }
+                if (config['data-source-type'] == 'array') {
+                    if (typeof window[config.id] === 'undefined') {
+                        window[config.id] = [];
+                    }
+                    return component;
+                }
+                if (config['data-source-type'] == 'date') {
+                    if (typeof window[config.id] === 'undefined') {
+                        window[config.id] = new Date();
+                    }
+                    return component;
+                }                
 
                 return component;                                    
             }
@@ -235,28 +290,50 @@ WAF.tags = {
      * @static
      * @method generate
      * @param {String} id id of the element where to integrate the fragment
+     * @param {Boolean} includeItself do we have to genrate from the DOM id itself
+     * (otherwise it is from its children) 
      **/
-    generate : function generate(id) {
+    generate : function generate(id, includeItself) {
         var tabDom = [],
         domobj = null, 
         domId = '',
         domDataType = '',
+        domDataScope = '',
         i = 0,
+        container = $$(id),
         source = null,
         nbComponent = 0,
         privateData = '',
-        dataSourceList = [];
+        position = 0,
+        dataSourceList = [],
+        dataSourceNameGlobalList = {};
         
+        if (typeof includeItself === 'undefined') {
+            includeItself = true;
+        } 
+        
+        var tabDomFirst = $('#' + id + '[data-type]');
+		
         tabDom = $('#' + id + ' [data-type]');
+        if (tabDomFirst.length != 0 && includeItself) {
+            tabDom.push(tabDomFirst[0]);
+        }
+			
         nbComponent = tabDom.length;
         
         // create first the data source        
-        for (i = 0, nbComponent; i < nbComponent; i++) {
+        for (i = 0; i < nbComponent; i++) {
             domobj = tabDom[i];
             domId = domobj.getAttribute('data-id');
             domDataType = domobj.getAttribute('data-type');
-            
+            domDataScope = domobj.getAttribute('data-scope');
+                      
             if (sources && typeof (sources[domId]) === 'undefined' && domDataType === 'dataSource') {      
+                
+                if (domDataScope == 'global') {
+                    dataSourceNameGlobalList[domId] = domId;
+                }
+                
                 this.createComponent(domobj, true);
             }
         }
@@ -276,10 +353,31 @@ WAF.tags = {
         for (var e in dataSourceList)  {
             source = dataSourceList[e];
             privateData = source._private;
+            position = source.getPosition();
             if (source.mustResolveOnFirstLevel()) {             					
                 // catch the error if there is a pb with the dataSource
-                try {                        
-                    source.resolveSource();
+                try {   
+                    
+                    if (position >= 0) {                    
+                        if (source.select) {
+                            if (position > 0) {
+                                source.select(0);
+                            } else {
+                                source.select(1);
+                            }
+                        }
+                    
+                        if (dataSourceNameGlobalList[e]) {
+                            source.resolveSource(); 
+                        }
+                                            
+                        if (source.select) {
+                            source.select(position);
+                        }            
+                    } else {
+                        source.resolveSource(); 
+                    }
+                    
                 } catch (e) {
                     // TODO change alert on a kind of Error
                     if (typeof console !== 'undefined' && 'log' in console) {
@@ -290,6 +388,25 @@ WAF.tags = {
                 }				                				
             }
         }
+        
+        // resizable
+        if (container && container.resizable && $('#'+ id).attr('data-resizable') == 'true') {
+            container.resizable(true);           
+        }
+        
+        // draggable
+        if (container && container.resizable && $('#'+ id).attr('data-draggable') == 'true') {           
+            container.draggable(true);          
+        }
+        
+        //modal
+        if ($('#'+ id).attr('data-modal') == 'true') {                       
+            $('#'+ id).css('z-index', '99999');            
+            $('body').append('<div id="waf-component-fade"></div>'); 
+            $('#waf-component-fade').css({
+                'filter': 'alpha(opacity=50)'
+            }).fadeIn();                                                   
+        } 
                 
     }
 }; 

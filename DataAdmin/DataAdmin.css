@@ -303,8 +303,15 @@
 	height:auto;
 }
 
+.em-draggable
+{
+	cursor:move;
+}
 
-
+.em-draggable .autoForm-title-col
+{
+	cursor:move;
+}
 
 
 

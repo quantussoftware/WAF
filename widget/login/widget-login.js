@@ -63,7 +63,7 @@ WAF.Widget.provide(
 			setTimeout( function() { loginManager.refresh() }, 100 );
                 
     },{
-        loginDialog: function login_dialog() {
+        showLoginDialog: function login_show_login_dialog() {
 			var loginManager = this;
 			var htmlObject  = $(this.containerNode);
 			var html = "";
@@ -71,8 +71,11 @@ WAF.Widget.provide(
 			
 			function loginButton(event)
 			{
-				var userName = $(".waf-login-dialog-user input", loginManager.dialog).val();
-				var password = $(".waf-login-dialog-password input", loginManager.dialog).val();
+				var userNameRef = $(".waf-login-dialog-user input", loginManager.dialog);
+				var userName = userNameRef.val();
+				var passwordRef = $(".waf-login-dialog-password input", loginManager.dialog);
+				var password = passwordRef.val();
+				passwordRef.val("");
 				loginManager.dialog.dialog("close");
 				loginManager.login(userName, password);
 			}
@@ -136,15 +139,27 @@ WAF.Widget.provide(
 			}
 		},
 		
+                /*
+                 * DEPRECATED
+                 */
+                showLogin : function(){
+                    this.showLoginDialog();
+                },
+                
 		login: function login_login(userName, password)
 		{
 			var loginManager = this;
 			WAF.directory.login({onSuccess:function(event) {
 				loginManager.refresh();
-				if (loginManager.onlogin != null)
+				if (event.result === true)
 				{
-					loginManager.onlogin();
+					if (loginManager.onlogin != null)
+					{
+						loginManager.onlogin();
+					}
 				}
+				else
+					alert("Wrong user or password");
 			}}, userName, password)
 		},
 		
@@ -193,20 +208,35 @@ WAF.Widget.provide(
 				{
 					var user = event.result;
 					displayLoggedUser(user);
-					
-					if (user == null)
+					var aaa = $('a', htmlObject);
+				
+					function installClickHandler()
 					{
-						$('a', htmlObject).click(function(event) {
-							loginManager.loginDialog();
-							return false;
-						});
+						aaa = $('a', htmlObject);
+						if (user == null)
+						{
+							aaa.click(function(event) {
+								loginManager.showLoginDialog();
+								return false;
+							});
+						}
+						else
+						{
+							aaa.click(function(event) {
+								loginManager.logout();
+								return false;
+							});
+						}
+					}
+					
+					if (aaa.length == 0)
+					{
+						var xdebug = 1;
+						setTimeout(installClickHandler, 10);
 					}
 					else
 					{
-						$('a', htmlObject).click(function(event) {
-							loginManager.logout();
-							return false;
-						});
+						installClickHandler();
 					}
 				}});
 			}

@@ -50,14 +50,6 @@ WAF.Widget.provide(
 
         that                = this;
         htmlObject          = $(this.containerNode);   
-        
-        /*
-         * To prevent bug on preview into webcomponent
-         */
-        if (this.$domNode.parents('#cms-body').length > 0) {
-            return false;
-        }
-        
         matrix              = {};
     
         that.subIDPrefix    = config.id + '-clone-';
@@ -128,7 +120,7 @@ WAF.Widget.provide(
             if (split.length > 1) {
                 tmpBinding = split[0];
             }
-               
+            
             sources[tmpBinding].addListener("onCollectionChange", function(e) {
                 that.create();
             });
@@ -137,18 +129,9 @@ WAF.Widget.provide(
         that.tmpElt = 0;
         that.tmp = 0;
         that.scrollDirection = null;
-    },{        
-        /*
-         * Resize method called on stop resize
-         * @method onResize
-         */
-        onResize : function matrix_on_resize() { 
-            if (this.eventData) {
-                this.display(this.eventData)
-            }
-        },
+    },{
         
-        getPosByRow : function matrix_get_pos_by_row (row) {
+        getPosByRow : function getPosByRow (row) {
             var 
             that,
             result;
@@ -159,7 +142,7 @@ WAF.Widget.provide(
             return result;
         },
 
-        getRowByPos : function matrix_get_row_by_pos (pos) {
+        getRowByPos : function getRowByPos (pos) {
             var 
             that,
             result,
@@ -176,14 +159,15 @@ WAF.Widget.provide(
             return result;
         },
 
-        getDisplayedRow : function matrix_get_displayed_row () {
+        getDisplayedRow : function getDisplayedRow () {
             var 
             that,
             result,
             scrollPosition;
 
             that            = this;
-            scrollPosition  = that.scrolling === 'vertical' ? $('#' + that.config.id).scrollTop() : $('#' + that.config.id).scrollLeft();
+            //scrollPosition  = that.scrolling === 'vertical' ? $('#' + that.config.id).scrollTop() : $('#' + that.config.id).scrollLeft();
+            scrollPosition  = that.scrolling === 'vertical' ? -($("#mainContainer-"+that.config.id).position().top) : -($("#mainContainer-"+that.config.id).position().left); //for mobile cannot use scrollTop
             // determine what is the row displayed depending on the scroll bar
             result = Math.floor(scrollPosition / (that.elt[that.typeSize] + (that.margin[that.typePos])));
 
@@ -203,7 +187,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method create
          */
-        create  : function matrix_create() {     
+        create  : function () {             
             var
             htmlObject,
             currentSource,
@@ -215,7 +199,6 @@ WAF.Widget.provide(
             result,
             elt,
             i,
-            child,
             that,
             config,
             params,
@@ -245,7 +228,7 @@ WAF.Widget.provide(
             htmlObject      = $(this.containerNode); 
             matrixChildren  = htmlObject.children();        
         
-            that.tmpSubID   = 0;
+            that.tmpSubID = 0;
         
             if (WAF.events[config.id] && WAF.events[config.id][0] && WAF.events[config.id][0].fn) {
                 that.ChildrenEvent = WAF.events[config.id][0].fn;
@@ -255,68 +238,52 @@ WAF.Widget.provide(
 
             // Get the matrix children to find a datasource
             matrixChildren.each(function(e) {
-                var
-                subChild;
-                
-                child = $(this);
-                
-                if (child.attr('data-type') === 'container') {
+                if ($(this).attr('data-type') === 'container') {
                     elt = {
-                        id      : child.attr('id'),
-                        widget  : WAF.widgets[child.attr('id')],
-                        width   : parseInt(child.css('width')),
-                        height  : parseInt(child.css('height')),
-                        left    : parseInt(child.css('left')),
-                        top     : parseInt(child.css('top')),
-                        htmlObj : $('#' + child.attr('id')),
+                        id      : $(this).attr('id'),
+                        widget  : WAF.widgets[$(this).attr('id')],
+                        width   : parseInt($(this).css('width')),
+                        height  : parseInt($(this).css('height')),
+                        left    : parseInt($(this).css('left')),
+                        top     : parseInt($(this).css('top')),
+                        htmlObj : $('#' + $(this).attr('id')),
                         children: []
                     }
-                    //children = $('#' + child.attr('id') + ' [data-binding]');
-                    children = $('#' + child.attr('id') + ' .waf-widget');
-                    
+                    children = $('#' + $(this).attr('id') + ' [data-binding]');
+
                     // Get the container children
                     children.each(function(e) {
-                        subChild = $(this);
-                        
-                        /*
-                         * Remove draggable and resizable to prevent function duplication
-                         */
-                        subChild.resizable('destroy');
-                        subChild.draggable('destroy');
-                        
-                        widget = WAF.widgets[subChild.attr('id')];
-                        if (subChild.attr('data-binding') && widget.source) {
+                        widget = WAF.widgets[$(this).attr('id')];
+                        if ($(this).attr('data-binding') && widget.source) {
                             // Get the source of widget
                             thisSource.push(widget.source);
                         }
-                        
                         elt.children.push(widget)
                     });
-                    
                 } else {
-                    if (child.attr('data-binding')) {
+                    if ($(this).attr('data-binding')) {
                         containerConfig = {
                             id: 'waf-tmp-container',
                             'data-type' : 'container',
                             'data-lib'  : 'WAF'
 
                         };
-                        thisId          = child.attr('id');
+                        thisId          = $(this).attr('id');
                         widgetContainer = new WAF.widget['Container'](containerConfig);
-                        width           = child[0].offsetWidth;
-                        height          = child[0].offsetHeight;
-                        label           = $("[for='" + thisId+ "']");
+                        width           = parseInt($(this).width());
+                        height          = parseInt($(this).height());
+                        label           = $("[data-linked='" + thisId+ "']");
                         margin          = params['data-margin'] ? parseInt(params['data-margin']) : 10;
-                        
+
                         $('<div />').attr({
                             'id'        : 'waf-tmp-container',
                             'data-type' : 'container'
-                        }).css('position', 'absolute').appendTo('#' + config.id).append(child);
+                        }).css('position', 'absolute').appendTo('#' + config.id).append($(this));
 
                         widgetContainer.config = containerConfig;
 
                         // Get the source of widget
-                        widget = WAF.widgets[child.attr('id')];
+                        widget = WAF.widgets[$(this).attr('id')];
                         thisSource.push(widget.source);
 
                         elt = {
@@ -335,7 +302,7 @@ WAF.Widget.provide(
                             widgetLabel = WAF.widgets[label.attr('id')];
                             elt.children.push(widgetLabel)
 
-                            switch (child.attr('data-label-position')) {
+                            switch ($(this).attr('data-label-position')) {
                                 case 'top':
                                 case 'bottom':
                                     height += parseInt(document.getElementById(label.attr('id')).offsetHeight);
@@ -349,16 +316,14 @@ WAF.Widget.provide(
                         }
 
                         $('#waf-tmp-container').children().each(function(e) {
-                            subChild = $(this);
-                            subChild.css('left', parseInt(subChild.css('left')) - margin + 'px');
-                            subChild.css('top', parseInt(subChild.css('top')) - margin + 'px');
+                            $(this).css('left', parseInt($(this).css('left')) - margin + 'px');
+                            $(this).css('top', parseInt($(this).css('top')) - margin + 'px');
                         })
 
                         $('#waf-tmp-container').addClass('waf-widget');
 
                         elt.width = width;
                         elt.height = height;
-                        
                     }
                 }
             });
@@ -411,17 +376,16 @@ WAF.Widget.provide(
                         element         = $('#' + config.id + ' [data-dspos="' + pos + '"]');
 
                         subIDValue      = that.subIDPrefix + $('#' + element.attr('id')).attr('data-area');
-                                
+
                         switch (e.eventKind) {
                             case 'onBeforeCurrentElementChange' :
                                 // Do not automatically save if it's a slider
-                                if ($('#' + e.dispatcherID).attr('data-type') != 'slider' && e.data.that.clickOnElement) {
+                                if ($('#' + e.dispatcherID).attr('data-type') != 'slider') {
                                     e.dataSource.save({
                                         subID : subIDValue
                                     });
                                 }
                             
-                                e.data.that.clickOnElement = false;
                                 break;
 
                             case 'onAttributeChange' :
@@ -459,365 +423,15 @@ WAF.Widget.provide(
                             case 'onCollectionChange' :
                                 firstPos = e.dataSource.getPosition();
                                 e.data.that.selectedDS = firstPos;
-                                
-                                e.changeDs = true;
-                                
                                 e.data.that.display(e);
-                                
+
                                 // force select on the first element
                                 e.dataSource.select(firstPos, {
                                     dispatcherID : config.id
-                                });  
-                                
-                                /*
-                                 * ADD SCROLL EVENTS
-                                 */
-                                htmlObject.bind('scroll', function matrix_scroll(e){
-                                    var 
-                                    displayedRow,
-                                    i,
-                                    j,
-                                    orderLength,
-                                    num,
-                                    pos,
-                                    thisRowLength,
-                                    firstEltPos,
-                                    firstEltIndex,
-                                    currentRow,
-                                    currentContainer,
-                                    thisRow,
-                                    order,
-                                    firstEltDisplayed,
-                                    totalRows,
-                                    totalRealRow,
-                                    eltPos,
-                                    subIDValue,
-                                    limit2,
-                                    typePos,
-                                    sourceRef,
-                                    thatHtml;
-
-                                    thatHtml            = $(this);
-                                    displayedRow        = 0;
-                                    i                   = 0;
-                                    j                   = 0;
-                                    orderLength         = 0;
-                                    num                 = 0;
-                                    pos                 = 0;
-                                    thisRowLength       = 0;
-                                    firstEltPos         = 0;
-                                    firstEltIndex       = 0;
-                                    currentRow          = {};
-                                    currentContainer    = {};
-                                    thisRow             = {};
-                                    order               = [];
-                                    firstEltDisplayed   = null;
-                                    totalRows           = (that.limit1 + that.moreToShow);
-                                    totalRealRow        = Math.ceil(that.sourceRef.length/that.limit2);
-                                    eltPos              = 0;
-                                    sourceRef           = that.sourceRef;
-                                    limit2              = that.limit2;
-                                    typePos             = that.typePos;
-
-                                    /*
-                                     * Fix resize handle moving on scroll
-                                     */
-                                    if (thatHtml.attr('data-resizable')) {
-                                        if (that.scrolling == 'vertical') {                                  
-                                            thatHtml.find('.ui-resizable-s,.ui-resizable-se').css('bottom', - thatHtml.scrollTop() + 'px')
-                                        } else {                                   
-                                            thatHtml.find('.ui-resizable-e,.ui-resizable-se').css('right', - thatHtml.scrollLeft() + 'px')
-                                        }
-                                    }
-                
-                                    /*
-                                     * Do not move containers if they are all displayed
-                                     */
-                                    if (totalRealRow <= totalRows) {
-                                        return false;
-                                    }     
-
-                                    /*
-                                     * determine what is the row displayed depending on the scroll bar
-                                     */
-                                    displayedRow = that.getDisplayedRow();
-
-                                    if (displayedRow !== that.tmp) {
-
-                                        that.nbTmp += 1;
-
-                                        if (that.nbTmp === 1){
-                                            that.nbTmp = 0;
-
-                                            firstEltPos = that.getPosByRow(displayedRow); 
-
-                                            /*
-                                             * To improve live scrolling
-                                             */
-                                            sourceRef.setDisplayLimits(that.divID, displayedRow*limit2, (displayedRow*limit2 + (totalRows*limit2)) );                   
-
-                                            /*
-                                             * Get the first element that must be displayed depending on the scroll
-                                             */ 
-                                            for (i = 0; i < totalRows; i += 1,firstEltIndex +=1) {
-                                                currentRow = $('#' + config.id + " [data-pos=" + i + "][data-type!=label]");
-
-                                                if ( parseInt(currentRow.css(typePos)) === firstEltPos) {
-                                                    firstEltDisplayed = currentRow;
-                                                    break;
-                                                }
-                                            }
-                                            if (firstEltDisplayed === null) {
-                                                firstEltIndex = -1;
-                                            }
-
-                                            order = [];
-                                            /* 
-                                             * Get next element to order them
-                                             */
-                                            for (i = firstEltIndex + 1; i < totalRows; i += 1) {
-                                                num += 1;
-                                                order.push($('#' + config.id + " [data-pos=" + i + "][data-type!=label]"));
-                                            }
-
-                                            /* 
-                                             * Get previous element to order them
-                                             */
-                                            for (i = 0; i < firstEltIndex; i += 1) {
-                                                order.push($('#' + config.id + " [data-pos=" + i + "][data-type!=label]"));
-                                            }
-
-                                            num = 0;
-
-                                            orderLength = order.length;
-
-                                            /*
-                                             * change first element position attribute
-                                             */
-                                            if (firstEltDisplayed && !firstEltDisplayed.is(':hidden')) {
-                                                firstEltDisplayed.attr('data-pos', num);
-                                            } else {
-
-                                                orderLength -= 1;
-                                                order[orderLength].show();
-
-                                                order[orderLength].css(typePos, firstEltPos + 'px');
-                                                order[orderLength].attr('data-pos', num);
-                                                order[orderLength].attr("data-dspos", displayedRow);
-
-                                                thisRowLength = order[orderLength].length;
-
-                                                for (j = 0; j <= thisRowLength; j += 1){
-                                                    currentContainer = $(order[orderLength][j]);
-                                                    if (currentContainer.attr('data-type') === 'container') {
-
-                                                        pos = ((displayedRow*limit2) + j);
-
-                                                        currentContainer.show();
-
-                                                        currentContainer.attr("data-dspos", pos);
-                                                        
-                                                        currentContainer.onDraw = that.ChildrenEvent;
-                                                        subIDValue = that.subIDPrefix + currentContainer.attr("data-area");
-                                                        
-                                                        var 
-                                                        widget;
-                                                        
-                                                        widget = WAF.widgets[currentContainer.attr('id')];
-                                                        if (widget.setSplitPosition) {
-                                                            widget.setSplitPosition(WAF.widgets[currentContainer.attr('data-ref')].getSplitPosition());
-                                                        }
-                                                        
-                                                        $.each(currentContainer.children(), function() {
-                                                            var
-                                                            thatHtml,
-                                                            refHtml,
-                                                            currentWidget;
-
-                                                            currentWidget   = WAF.widgets[this.id];
-                                                            thatHtml        = $(this);
-                                                            refHtml         = $('#' + thatHtml.attr('data-ref'));
-                                                            
-                                                            if (currentWidget && currentWidget.kind != 'container') {
-                                                                currentWidget.clear();
-                                                            }
-                                                            
-                                                            if (currentWidget && currentWidget.setSplitPosition) {
-                                                                currentWidget.setSplitPosition(WAF.widgets[thatHtml.attr('data-ref')].getSplitPosition());
-                                                            }
-                                                        
-                                                            if (thatHtml.attr('data-resizable') && thatHtml.attr('data-resizable') == 'true') {
-                                                                thatHtml.width(refHtml.width());
-                                                                thatHtml.height(refHtml.height());
-                                                            }
-                                                                    
-                                                            if (thatHtml.attr('data-draggable') && thatHtml.attr('data-draggable') == 'true') {
-                                                                thatHtml.css('top', refHtml.css('top'));
-                                                                thatHtml.css('left', refHtml.css('left'));
-                                                            }
-
-                                                        });
-
-                                                        if (sourceRef.getPosition() == pos &&  that.currentPos == pos) {
-                                                            sourceRef.dispatch('onCurrentElementChange', {
-                                                                subID : subIDValue
-                                                            });
-                                                        }                                
-
-                                                        that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
-                                                    }
-                                                }
-
-                                            }
-
-                                            /*
-                                             * Order elements
-                                             */
-                                            for (i = 0; i < orderLength; i += 1) {
-                                                num += 1;
-
-                                                order[i].attr('data-pos', num );
-
-                                                thisRow = (displayedRow+num);
-
-                                                thisRowLength = order[i].length;
-
-                                                eltPos  = that.getPosByRow(thisRow);
-
-                                                /*
-                                                 * Move only those wrongly positioned
-                                                 */
-                                                if (parseInt(order[i].css(typePos)) != eltPos){
-
-                                                    for (j = 0; j <= thisRowLength; j += 1){
-                                                        currentContainer = $(order[i][j]);
-
-                                                        if (currentContainer.attr('data-type') === 'container') {
-
-                                                            pos = ((thisRow*limit2) + j);
-
-                                                            if (pos >= sourceRef.length) {
-                                                                currentContainer.hide();
-                                                            } else {
-                                                                currentContainer.show();
-                                                            }
-
-                                                            if (currentContainer.attr("data-dspos") != pos) {
-                                                                currentContainer.attr("data-dspos", pos);
-                                                                
-                                                                currentContainer.onDraw = that.ChildrenEvent;
-                                                                subIDValue = that.subIDPrefix +  currentContainer.attr("data-area");
-
-                                                                var 
-                                                                widget;
-
-                                                                widget = WAF.widgets[currentContainer.attr('id')];
-                                                                if (widget.setSplitPosition) {
-                                                                    widget.setSplitPosition(WAF.widgets[currentContainer.attr('data-ref')].getSplitPosition());
-                                                                }
-                                                        
-                                                                $.each(currentContainer.children(), function() {
-                                                                    var
-                                                                    thatHtml,
-                                                                    refHtml,
-                                                                    currentWidget;
-
-                                                                    currentWidget   = WAF.widgets[this.id];
-                                                                    thatHtml        = $(this);
-                                                                    refHtml         = $('#' + thatHtml.attr('data-ref'));
-                                                                    
-                                                                    if (currentWidget && currentWidget.kind != 'container') {
-                                                                        currentWidget.clear();
-                                                                    }
-                                                                    
-                                                                    if (currentWidget && currentWidget.setSplitPosition) {
-                                                                        currentWidget.setSplitPosition(WAF.widgets[thatHtml.attr('data-ref')].getSplitPosition());
-                                                                    }
-                                                                    
-                                                                    if (thatHtml.attr('data-resizable') && thatHtml.attr('data-resizable') == 'true') {
-                                                                        thatHtml.width(refHtml.width());
-                                                                        thatHtml.height(refHtml.height());
-                                                                    }
-                                                                    
-                                                                    if (thatHtml.attr('data-draggable') && thatHtml.attr('data-draggable') == 'true') {
-                                                                        thatHtml.css('top', refHtml.css('top'));
-                                                                        thatHtml.css('left', refHtml.css('left'));
-                                                                    }
-                                                                });
-
-                                                                if (sourceRef.getPosition() == pos &&  that.currentPos == pos) {
-                                                                    sourceRef.dispatch('onCurrentElementChange', {
-                                                                        subID : subIDValue
-                                                                    });
-                                                                } else {       
-                                                                    
-                                                                    that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
-                                                                }
-                                                            }
-                                                        }
-
-                                                    }
-
-                                                    /*
-                                                     * Margin for the first element of the matrix
-                                                     */
-                                                    if (thisRow >= sourceRef.length || (thisRow*limit2) >= sourceRef.length) {
-                                                    // DO NOTHING
-                                                    } else {
-                                                        order[i].css(typePos, eltPos + 'px' );
-                                                        order[i].children().blur();
-                                                    }
-                                                }
-                                            }
-
-                                            $('#' + that.matrix.id + ' [data-dspos="' + that.selectedDS + '"][data-type!="checkbox"]').addClass('waf-matrix-element waf-state-selected');
-                                            $('#' + that.matrix.id + ' [data-dspos!="' + that.selectedDS + '"][data-type!="checkbox"]').removeClass('waf-state-selected');
-
-                                            /*sourceRef.select(that.selectedDS, {
-                                                dispatcherID : config.id
-                                            });*/
-
-                                        }
-                                        
-                                        that.tmp = displayedRow;
-                                    }            
-                                });
-
-                                /*
-                                 * Scrollstop event
-                                 */
-                                htmlObject.bind('scrollstop', function matrix_scroll_stop(e){
-                                    var
-                                    sourceRef;
-
-                                    sourceRef = that.sourceRef;
-
-                                    $.each($(this).find('.waf-matrix-element'), function(i){
-                                        var 
-                                        currentContainer,
-                                        pos,
-                                        subIDValue;
-
-                                        currentContainer = $(this);
-
-                                        subIDValue = that.subIDPrefix + currentContainer.attr("data-area");
-
-                                        pos = currentContainer.attr('data-dspos');
-
-                                        currentContainer.onDraw = that.ChildrenEvent;
-
-                                        that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
-
-                                    });  
-                                    
-                                    //console.log("======>", that.getDisplayedRow())
-                                });
-                                
+                                    });
                                 break;
                         }
                     }
-            
-                    that.eventData = e;
 
                 }, {
                 }, {
@@ -834,7 +448,8 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method goTo
          */
-        goTo : function matrix_goto(pos) {
+        goTo : function (pos) {
+             
             var 
             that,
             htmlObject,
@@ -850,7 +465,10 @@ WAF.Widget.provide(
 
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
-            htmlObject.animate(scrollConfig, that.scrollSpeed);     
+            htmlObject.animate(scrollConfig, that.scrollSpeed);    
+            
+            //trigger touch end because no native scoll event is fired    
+            $('#' + that.config.id).trigger('touchend'); 
         },
 
         /**
@@ -858,7 +476,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method goToFirst
          */
-        goToFirst : function matrix_goto_first() {
+        goToFirst : function () {
             var 
             that;
 
@@ -871,7 +489,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method goToLast
          */
-        goToLast : function matrix_goto_last() {
+        goToLast : function () {
             var 
             that;
 
@@ -884,7 +502,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method goNext
          */
-        goToNextPage : function matrix_goto_next_page() {
+        goToNext : function () {
             var 
             that,
             htmlObject,
@@ -903,6 +521,9 @@ WAF.Widget.provide(
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
             htmlObject.animate(scrollConfig, that.scrollSpeed); 
+            
+            //trigger touch end because no native scoll event is fired    
+            $('#' + that.config.id).trigger('touchend');
         },
 
         /**
@@ -910,7 +531,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method goPrevious
          */
-        goToPreviousPage : function matrix_goto_previous_page() {
+        goToPrevious : function () {
             var 
             that,
             htmlObject,
@@ -929,6 +550,9 @@ WAF.Widget.provide(
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
             htmlObject.animate(scrollConfig, that.scrollSpeed); 
+            
+            //trigger touch end because no native scoll event is fired    
+            $('#' + that.config.id).trigger('touchend');
         },
 
         /**
@@ -936,7 +560,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method getTotalPages
          */
-        getTotalPages : function matrix_get_total_pages() {
+        getTotalPages : function () {
             var 
             that,
             totalRows,
@@ -954,7 +578,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method getCurrentPage
          */
-        getCurrentPage : function matrix_get_current_page() {
+        getCurrentPage : function () {
             var 
             that,
             totalRows,
@@ -976,7 +600,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method cloneEvents
          */
-        cloneEvents : function matrix_clone_events(id, element) {  
+        cloneEvents : function(id, element) {  
             var 
             k,
             events;
@@ -996,7 +620,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method display
          */
-        display : function matrix_display(e) {
+        display : function(e) {
             var 
             thisConfig,
             cloneConfig,
@@ -1015,6 +639,8 @@ WAF.Widget.provide(
             j,
             c,
             n,
+            tmp,
+            nbTmp,
             moreToShow,
             params,
             scrolling,
@@ -1037,12 +663,7 @@ WAF.Widget.provide(
             inputElements,
             that,
             htmlObject,
-            config,
-            idList,
-            totalRow,
-            currentRow,
-            childrenLength,
-            eltChildrenLength;
+            config;
         
             that            = this;
             htmlObject      = $(this.containerNode);
@@ -1096,7 +717,7 @@ WAF.Widget.provide(
             
             pos2 = margin.top;
             pos1 = margin.left;
-            
+
             // First : remove all created clones
             $('#' + thisConfig.id).show();
 
@@ -1111,10 +732,8 @@ WAF.Widget.provide(
                 limit1 = columns;
                 limit2 = rows;
             }   
-            
-            /*
-             * Set variables as attribute of the matrix widget
-             */
+
+            // Set variables as attribute of the matrix widget
             that.elt            = elt;
             that.typePos        = typePos;
             that.typePos2       = typePos2;
@@ -1124,61 +743,17 @@ WAF.Widget.provide(
             that.scrolling      = scrolling;
             that.limit2         = limit2;
             that.limit1         = limit1;
-            that.moreToShow     = moreToShow;
-            that.sourceRef      = sourceRef;  
-                         
-            /*
-             * FOR MATRIX RESIZE
-             */
-            if (that.tmpColumns != columns || that.tmpRows != rows) {
-                // DO NOTHING
-                if (typeof(that.tmpColumns) != 'undefined') { 
-                    currentRow  = that.getDisplayedRow();
-                    totalRow    = Math.ceil(that.sourceRef.length/that.limit2);
-                    
-                    /*
-                     * To prevent resize bug when on last row
-                     */
-                    if (currentRow > totalRow) {
-                        currentRow = totalRow
-                    }                        
-                
-                    dsPos   = currentRow * that.limit2;                    
-                    pos2    = that.getPosByRow(currentRow);   
-                    
-                    if (dsPos >= sourceRef.length) {
-                        dsPos = (sourceRef.length-1) - (that.limit2*(that.limit1 + moreToShow));
-                    }
-                    
-                    sourceRef.setDisplayLimits(that.divID, currentRow*that.limit2, (currentRow*that.limit2 + (currentRow*that.limit2)) );                    
-                }
-                
-                /*
-                 * Remove existing listeners
-                 */
-                idList = []
-                $.each(htmlObject.find('.waf-widget'), function() {
-                    idList.push($(this).attr('id'))
-                })
-
-                $.each(sourceRef._private.listeners, function() {
-                    if (this.id && new RegExp(this.id).test(idList.join(','))) {
-                        sourceRef.removeListener(this)
-                    }
-                });
-            } else if (!e.changeDs){
-                eltHtml.hide();
+            that.sourceRef      = sourceRef;        
             
-                return;
-            }
-            
-            that.tmpRows = rows;
-            that.tmpColumns = columns;                  
-            
-            htmlObject.children('.waf-widget, .matrix-container, .waf-splitter').remove();     
+            htmlObject.children().remove();
 
             // Container is used to define the scroll size
             container = $('<div/>').addClass('matrix-container').appendTo(htmlObject);
+            container.get()[0].id = "mainContainer-"+matrix.id;            
+            setTimeout(function () {
+                scrollObj = new iScroll(matrix.id);
+            }, 100);
+            
             that.totalSize = ((elt[typeSize] + margin[typePos]) * Math.ceil(sourceRef.length/limit2));
         
             container.css(typeSize, that.totalSize + margin[typePos2] + 'px');
@@ -1194,16 +769,15 @@ WAF.Widget.provide(
 
                     // if container, also clone children
                     if (elt.widget.kind === 'container' && elt.children && elt.children.length > 0 ) {
-                        if (dsPos < sourceRef.length) {
+                        if (dsPos <  sourceRef.length) {
                             /// Clone html element
                             eltHtml.clone(true, true).attr('id', cloneConfig.id).appendTo(container);
-                            
+
                             containerClone = $('#' + cloneConfig.id);
-                            containerClone.children('.waf-splitter').remove();
                         
                             // Add on draw function on the matrix
                             containerClone.onDraw = that.ChildrenEvent;
-                            
+
                             containerClone.css(typePos, pos2 + 'px');
                             containerClone.css(typePos2, pos1 + 'px');
 
@@ -1219,65 +793,41 @@ WAF.Widget.provide(
                             .attr({
                                 'data-area' : i + '-' + j,
                                 'data-pos'  : i,
-                                'data-dspos': dsPos,
-                                'data-ref'  : thisConfig.id
+                                'data-dspos': dsPos
                             })
                             // Add class
-                            .addClass('waf-matrix-element waf-matrix-clone waf-clone-' + elt.id);
-                            
-                            
+                            .addClass('waf-matrix-element waf-clone-' + elt.id);
+
                             // Clone widget
                             new WAF.widget[that.ucfirst(elt.widget.kind)](cloneConfig);
 
                             children = $('#' +  cloneConfig.id + ' [id]');
-                            
-                            childrenLength = children.length;
-                            
-                            for (c = 0; c < childrenLength; c += 1) {
+                            for (c = 0; c < children.length; c += 1) {
                                 childrenHtml = $(children[c]);
                             
                                 oldID = childrenHtml.attr('id');
                                 oldChild = $('#' + oldID);
-                                
-                                var width = oldChild[0].offsetWidth + 'px';
-                                var height = oldChild[0].offsetHeight + 'px';
-                                
-                                if (oldChild.attr('data-constraint-right') == 'true' && oldChild.attr('data-constraint-left') == 'true') {
-                                    width = 'auto';
-                                }
-
-                                if (oldChild.attr('data-constraint-top') == 'true' && oldChild.attr('data-constraint-bottom') == 'true') {
-                                    height = 'auto';
-                                }           
 
                                 // fix clones position
                                 childrenHtml.css({
                                     'top'       : oldChild.css('top'),
                                     'left'      : oldChild.css('left'),
-                                    'right'     : oldChild.css('right'),
-                                    'bottom'    : oldChild.css('bottom'),
                                     'position'  : oldChild.css('position'),
-                                    'width'     : width,
-                                    'height'    : height
+                                    'width'     : oldChild[0].offsetWidth + 'px',
+                                    'height'    : oldChild[0].offsetHeight + 'px'
                                 });
                                 
                                 // add class
                                 childrenHtml.addClass('waf-clone-' + oldID);
 
                                 // change id
-                                childrenHtml.attr({
-                                    'id'        : 'clone-' + oldID + '-' + i + '-' + j,
-                                    'data-ref'  : oldID
-                                });
-                                childrenHtml.addClass('waf-matrix-clone');
+                                childrenHtml.attr('id', 'clone-' + oldID + '-' + i + '-' + j);
 
                                 // Add events
                                 that.cloneEvents(oldID, childrenHtml);
                             }
-                            
-                            eltChildrenLength = elt.children.length;
                         
-                            for (c = 0; c < eltChildrenLength; c += 1) {
+                            for (c = 0; c < elt.children.length; c += 1) {
                                 // Get the widget config
                                 childConfig = {};
                                 childrenConfig = elt.children[c];                            
@@ -1289,17 +839,11 @@ WAF.Widget.provide(
                                 if (childrenConfig.config && childrenConfig.source && (dsPos <  childrenConfig.source.length)) {
                                     // Clone children element only if there is a DS
                                     childConfig.id = 'clone-' + childrenConfig.config.id + '-' + i + '-' + j;
+
                                     childConfig.subID = subIDValue;
 
                                     new WAF.widget[that.ucfirst(childrenConfig.kind)](childConfig);
-                                } 
-                                
-                                if (childrenConfig.config['data-type'] == 'container') {
-                                    childConfig.id = 'clone-' + childrenConfig.config.id + '-' + i + '-' + j;
-                                    new WAF.widget[that.ucfirst(childrenConfig.kind)](childConfig);
-                                }                                
-                                
-                                
+                                }
                             
                                 // CASE OF SOURCE IS RELATED
                                 if (childrenConfig.source && childrenConfig.source._private.sourceType != 'dataClass' && childrenConfig.source._private.sourceType != 'relatedEntity') {
@@ -1316,7 +860,8 @@ WAF.Widget.provide(
                             // dispatch value to widgets
                             if (sourceRef) {   
                                 that.sourceSelect(sourceRef, dsPos, subIDValue, containerClone);
-                            }   
+                            }
+   
                         
                             //return;
                             inputElements = $('#' + containerClone.attr('id') + ' input[data-binding],textarea[data-binding]');
@@ -1325,22 +870,14 @@ WAF.Widget.provide(
                                 that.focused = null;
                             });
 
-
-                            inputElements.bind('focusin', {
-                                source  : sourceRef,
-                                element : containerClone
-                            }, function(e) {
+                            inputElements.bind('focus', {}, function(e) {
                                 this.textInputChanged = WAF.widgets[this.id].change;
                             
                                 $(this).bind('change', {}, function() {
                                     this.textInputChanged();
                                 });
-                                
-                                
-                                    focusOnElement(e);
-                                
+
                                 that.focused = this;
-                                
                             });
 
                             focusOnElement = function focusOnElement (e) {
@@ -1358,8 +895,7 @@ WAF.Widget.provide(
 
                                 thatElt    = e.data.element;
                                 source     = e.data.source;
-                                
-                                that.clickOnElement = true;
+
                                 source.select(parseInt(thatElt.attr('data-dsPos')));
                             }
 
@@ -1399,10 +935,70 @@ WAF.Widget.provide(
             // Do not display the originale element
             $('#' + thisConfig.id).hide();
 
-            // Reset tmp variables
-            that.tmp     = 0;
-            that.nbTmp   = 0;
+            // Scroll into the matrix
+            tmp     = 0;
+            nbTmp   = 0;
             
+            htmlObject.bind('scrollstop', function(e){
+                $.each($(this).find('.waf-matrix-element'), function(e, ui){
+                    var 
+                    currentContainer,
+                    pos,
+                    subIDValue;
+                    
+                    currentContainer = $(this);
+                    
+                    subIDValue = that.subIDPrefix + currentContainer.attr("data-area");
+                    
+                    pos = currentContainer.attr('data-dspos');
+                    
+                    currentContainer.onDraw = that.ChildrenEvent;
+                            
+                    that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
+                });
+            });
+            
+            htmlObject.bind('touchmove',function(e) {
+                
+                that.timeoutID = window.setTimeout(function(){
+                    that.scrollManager( limit1 , limit2, moreToShow, tmp, nbTmp, sourceRef, config, typePos, that );
+                }, 500);
+               
+            });
+            htmlObject.bind('touchstart',function(e) {
+
+     
+            });
+            htmlObject.bind('touchend',function(e) {
+                
+                window.clearTimeout(that.timeoutID);
+                
+                var cont        = $("#mainContainer-"+matrix.id),
+                    topStart    = cont.position().top,
+                    topVal,
+                    count = true;
+
+                var timer = setInterval( function() { //add interval in order to handle inertie srolling
+
+                    topVal = cont.position().top;
+
+                    if( topVal != topStart || count ) {
+
+                        if( !count ) { 
+                            that.scrollManager( limit1 , limit2, moreToShow, tmp, nbTmp, sourceRef, config, typePos, that );
+                        }
+
+                        count = false;
+
+                        topStart = topVal;
+                    } else {
+                        clearInterval(timer);
+                    }
+
+                }, 200);
+     
+            });
+
             that.matrix = matrix;
             that.matrix.limit1 = limit1;
             that.matrix.limit2 = limit2;
@@ -1420,6 +1016,7 @@ WAF.Widget.provide(
             
             that = this;
             pos = parseInt(pos);
+			
             source.select(pos, {
                 subID: subId, 
                 stop: true,
@@ -1434,21 +1031,250 @@ WAF.Widget.provide(
                 subID      : subId
             });
         },
-        
         /**
-         * DEPRECATED
+         * manage the scroll position
+         * @namespace WAF.widget.Matrix
+         * @method scrollManager
          */
-        goToNext : function(){
-            return this.goToNextPage()
-        },
+        scrollManager : function matrix_scroll_manager( limit1 , limit2, moreToShow, tmp, nbTmp, sourceRef, config, typePos, elem  ) {
+           
+            that = elem;
+           
+            var 
+            displayedRow,
+            i,
+            j,
+            orderLength,
+            num,
+            pos,
+            thisRowLength,
+            firstEltPos,
+            firstEltIndex,
+            currentRow,
+            currentContainer,
+            thisRow,
+            order,
+            firstEltDisplayed,
+            totalRows,
+            totalRealRow,
+            eltPos,
+            subIDValue;
+
+            displayedRow        = 0;
+            i                   = 0;
+            j                   = 0;
+            orderLength         = 0;
+            num                 = 0;
+            pos                 = 0;
+            thisRowLength       = 0;
+            firstEltPos         = 0;
+            firstEltIndex       = 0;
+            currentRow          = {};
+            currentContainer    = {};
+            thisRow             = {};
+            order               = [];
+            firstEltDisplayed   = null;
+            totalRows           = (limit1 + moreToShow);
+            totalRealRow        = Math.ceil(that.sourceRef.length/that.limit2);
+            eltPos              = 0;
+
+            /*
+             * Do not move containers if they are all displayed
+             */
+            if (totalRealRow <= totalRows) {
+                return false;
+            }     
+                    
+            /*
+             * determine what is the row displayed depending on the scroll bar
+             */
+            displayedRow = that.getDisplayedRow();
+
+            if (displayedRow !== tmp) {
+
+
+                nbTmp += 1;
+
+                if (nbTmp === 1){
+                    nbTmp = 0;
+
+                    firstEltPos = that.getPosByRow(displayedRow); 
+            
+                    /*
+                     * To improve live scrolling
+                     */
+                    sourceRef.setDisplayLimits(that.divID, displayedRow*limit2, (displayedRow*limit2 + (totalRows*limit2)) );                   
+
+                    /*
+                     * Get the first element that must be displayed depending on the scroll
+                     */ 
+                    for (i = 0; i < totalRows; i += 1,firstEltIndex +=1) {
+                        currentRow = $('#' + config.id + " [data-pos=" + i + "][data-type!=label]");
+
+                        if ( parseInt(currentRow.css(typePos)) === firstEltPos) {
+                            firstEltDisplayed = currentRow;
+                            break;
+                        }
+                    }
+                    if (firstEltDisplayed === null) {
+                        firstEltIndex = -1;
+                    }
         
-        /**
-         * DEPRECATED
-         */
-        goToPrevious : function(){
-            return this.goToPreviousPage()
+                    order = [];
+                    /* 
+                     * Get next element to order them
+                     */
+                    for (i = firstEltIndex + 1; i < totalRows; i += 1) {
+                        num += 1;
+                        order.push($('#' + config.id + " [data-pos=" + i + "][data-type!=label]"));
+                    }
+
+                    /* 
+                     * Get previous element to order them
+                     */
+                    for (i = 0; i < firstEltIndex; i += 1) {
+                        order.push($('#' + config.id + " [data-pos=" + i + "][data-type!=label]"));
+                    }
+
+                    num = 0;
+
+                    orderLength = order.length;
+
+                    /*
+                     * change first element position attribute
+                     */
+                    if (firstEltDisplayed && !firstEltDisplayed.is(':hidden')) {
+                        firstEltDisplayed.attr('data-pos', num);
+                    } else {
+
+                        orderLength -= 1;
+                        order[orderLength].show();
+            
+                        order[orderLength].css(typePos, firstEltPos + 'px');
+                        order[orderLength].attr('data-pos', num);
+                        order[orderLength].attr("data-dspos", displayedRow);
+
+                        thisRowLength = order[orderLength].length;
+
+                        for (j = 0; j <= thisRowLength; j += 1){
+                            currentContainer = $(order[orderLength][j]);
+                            if (currentContainer.attr('data-type') === 'container') {
+
+                                pos = ((displayedRow*limit2) + j);
+
+                                currentContainer.show();
+                    
+                                currentContainer.attr("data-dspos", pos);
+                    
+                                currentContainer.onDraw = that.ChildrenEvent;
+                                subIDValue = that.subIDPrefix + currentContainer.attr("data-area");
+                                 $.each(currentContainer.children(), function() {
+                                        var
+                                        currentWidget;
+                                        
+                                        currentWidget = WAF.widgets[this.id];
+                                        
+                                        if (currentWidget) {
+                                            currentWidget.clear();
+                                        }
+                                    });
+                                if (sourceRef.getPosition() == pos &&  that.currentPos == pos) {
+                                    sourceRef.dispatch('onCurrentElementChange', {
+                                        subID : subIDValue
+                                    });
+                                }                                
+                        
+                                that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
+                            }
+                        }
+
+                    }
+
+                    /*
+                     * Order elements
+                     */
+                    for (i = 0; i < orderLength; i += 1) {
+                        num += 1;
+
+                        order[i].attr('data-pos', num );
+
+                        thisRow = (displayedRow+num);
+
+                        thisRowLength = order[i].length;
+
+                        eltPos  = that.getPosByRow(thisRow);
+
+                        /*
+                         * Move only those wrongly positioned
+                         */
+                        if (parseInt(order[i].css(typePos)) != eltPos){
+
+                            for (j = 0; j <= thisRowLength; j += 1){
+                                currentContainer = $(order[i][j]);
+
+                                if (currentContainer.attr('data-type') === 'container') {
+
+                                    pos = ((thisRow*limit2) + j);
+
+                                    if (pos >= sourceRef.length) {
+                                        currentContainer.hide();
+                                    } else {
+                                        currentContainer.show();
+                                    }
+                        
+                                    if (currentContainer.attr("data-dspos") != pos) {
+                                        currentContainer.attr("data-dspos", pos);
+                            
+                                        currentContainer.onDraw = that.ChildrenEvent;
+                                        subIDValue = that.subIDPrefix +  currentContainer.attr("data-area");
+                                         $.each(currentContainer.children(), function() {
+                                                var
+                                                currentWidget;
+                                                
+                                                currentWidget = WAF.widgets[this.id];
+                                                
+                                                if (currentWidget) {
+                                                    currentWidget.clear();
+                                                }
+                                            });
+
+                                        if (sourceRef.getPosition() == pos &&  that.currentPos == pos) {
+                                            sourceRef.dispatch('onCurrentElementChange', {
+                                                subID : subIDValue
+                                            });
+                                        } else {          
+                                           that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
+                                        }
+                                
+                                    }
+                                }
+
+                            }
+
+                            /*
+                             * Margin for the first element of the matrix
+                             */
+                            if (thisRow >= sourceRef.length || (thisRow*limit2) >= sourceRef.length) {
+                            // DO NOTHING
+                            } else {
+                                order[i].css(typePos, eltPos + 'px' );
+                                order[i].children().blur();
+                            }
+                        }
+                    }
+        
+            
+                    $('#' + that.matrix.id + ' [data-dspos="' + that.selectedDS + '"][data-type!="checkbox"]').addClass('waf-matrix-element waf-state-selected');
+                    $('#' + that.matrix.id + ' [data-dspos!="' + that.selectedDS + '"][data-type!="checkbox"]').removeClass('waf-state-selected');
+
+                    sourceRef.select(that.selectedDS, {
+                        dispatcherID : config.id
+                    });
+
+                }
+                tmp = displayedRow;
+            }
         }
-        
     }
 );
        

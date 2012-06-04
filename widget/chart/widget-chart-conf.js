@@ -37,7 +37,7 @@ WAF.addWidget({
     description : 'Chart',
 
     // {String} category in which the widget is displayed in the GUI Designer
-    category    : 'Reporting',//'Reporting',
+    category    : 'Misc. Controls',//'Reporting',
 
     // {Array} css file needed by widget (optional)
     css         : [],                                                     
@@ -455,17 +455,6 @@ WAF.addWidget({
                 subTitle    : subTitle,
                 legendary   : legendary
             };
-            
-            var group = new Designer.ui.group.Group();
-            
-            group.add(container);
-            group.add(title);
-            group.add(subTitle);
-            group.add(legendary);
-            group.add(tag);
-                       
-            Designer.ui.group.save();
-            
             this.refresh();
         }
         /*

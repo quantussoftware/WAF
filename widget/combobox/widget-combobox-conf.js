@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'combobox',
     lib         : 'WAF',
     description : 'Combo Box',
-    category    : 'Controls',
+    category    : 'Form Controls',
     img         : '/walib/WAF/widget/combobox/icons/widget-combobox.png',
     tag         : 'div',
     attributes  : [

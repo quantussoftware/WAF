@@ -70,7 +70,7 @@ WAF.Widget.provide(
             function () {
                 $(this).removeClass("waf-state-hover");
             }
-        );
+            );
 
         htmlObject.unbind('focusin');
         htmlObject.unbind('focusout');
@@ -117,37 +117,50 @@ WAF.Widget.provide(
                 enumValueList   = [];                
                 htmlObject      = $('#' + widgetID)
                 
-                widget.clearErrorMessage();     
+                widget.clearErrorMessage();        
     
                 /*
                  * Set the value
                  */
+
                 if (!widget.att.simple) {
                     text = "";
+                    
+                    // case of dataSource var/array/object
+
+                    if (widget && widget.source && widget.source._private && widget.source._private.sourceType && 
+                        (widget.source._private.sourceType == 'scalar' || widget.source._private.sourceType == 'array' || widget.source._private.sourceType == 'object')) {
+                        if (widget.isInFocus) {
+                            text = widget.sourceAtt.getValue(); 
+                        } else {
+                            text = widget.getFormattedValue();
+                        }
+                    }
+                    
                 } else {
                     if (widget.isInFocus) {
                         text = widget.sourceAtt.getValue(); 
                     } else {
                         text = widget.getFormattedValue();
                     }
-		}
+                }
                 
                 htmlObject.val(text);
                 isParentMatrix = htmlObject.parents('.waf-matrix');
                 
-		if (widget.att.enumeration != null && !widget.att.readOnly && !widget.sourceAtt.readOnly) {
+                if (widget.att.enumeration != null && !widget.att.readOnly && !widget.sourceAtt.readOnly) {
                     items = widget.att.enumeration.item;
                     
                     for (var i = 0, nb = items.length; i < nb; i++) {
-                            enumValueList.push(items[i].name);
+                        enumValueList.push(items[i].name);
                     }
-		}
+                }
 		
                 mustAutoComplete = false;
                 
-		if (widget.att.autoComplete) {
+                if (widget.att.autoComplete) {
                     mustAutoComplete = true;
-		}
+                }
                 
                 if (data.autocomplete != null && !data.autocomplete){
                     mustAutoComplete = false;
@@ -157,14 +170,14 @@ WAF.Widget.provide(
                 if (enumValueList.length > 0) {
                     if (isParentMatrix.length == 0 || (e.subID && isParentMatrix.length != 0)) {
                         htmlObject
-                            .data('enumValueList', enumValueList)
-                            .autocomplete({
-                                source: function(request, response) {
-                                    response($.grep($(this.element.context).data('enumValueList'), function(item, index) {
-                                        return item.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
-                                    }));
-                                }
-                            });                        
+                        .data('enumValueList', enumValueList)
+                        .autocomplete({
+                            source: function(request, response) {
+                                response($.grep($(this.element.context).data('enumValueList'), function(item, index) {
+                                    return item.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
+                                }));
+                            }
+                        });                        
 
                         autoCompleteWidget = htmlObject.autocomplete('widget');
                         
@@ -217,7 +230,7 @@ WAF.Widget.provide(
                              */
                             if (data['datapicker-icon-only']) {
                                 dateOptions.showOn          =  "button";
-                                dateOptions.buttonImage     = "waLib/WAF/widget/png/date-picker-trigger.png?id=" + widgetID;
+                                dateOptions.buttonImage     = "/waLib/WAF/widget/png/date-picker-trigger.png?id=" + widgetID;
                                 dateOptions.buttonImageOnly = true;   
                             }
                             
@@ -232,7 +245,7 @@ WAF.Widget.provide(
                              * Get linked calendar button
                              */
                             if (data['datapicker-icon-only'] && htmlObject[0]) {
-                                dateIcon        = $('img[src="waLib/WAF/widget/png/date-picker-trigger.png?id=' + widgetID + '"]');
+                                dateIcon        = $('img[src="/waLib/WAF/widget/png/date-picker-trigger.png?id=' + widgetID + '"]');
                                 
                                 dateIconLeft    = (parseInt(htmlObject.css('left')) + htmlObject[0].offsetWidth);
                                 
@@ -253,9 +266,9 @@ WAF.Widget.provide(
                  */
                 if (autoCompleteWidget != null) {
                     ["font-family","font-size","font-style","font-variant","font-weight","text-align","letter-spacing","background-color","color"].forEach(function(elem) {
-                            autoCompleteWidget.css(elem, htmlObject.css(elem));
+                        autoCompleteWidget.css(elem, htmlObject.css(elem));
                     });
-		}
+                }
                  
                 /*
                  * Change datasource value on change event
@@ -309,7 +322,7 @@ WAF.Widget.provide(
                 /*
                  * Active/Desactive input depending on readOnly attribute
                  */
-		if (widget.att.readOnly || widget.sourceAtt.readOnly){
+                if (widget.att.readOnly || widget.sourceAtt.readOnly){
                     htmlObject.disabled = true;
                 } else {
                     htmlObject.disabled = false;
@@ -324,16 +337,26 @@ WAF.Widget.provide(
             });
         } else {
             this._tmpVal = htmlObject.attr('value');
-            text = this.getFormattedValue(htmlObject.val());            
+            if (this._tmpVal && this._tmpVal.replace()) {
+                this._tmpVal = this._tmpVal.replace(/&quot;/g, '"');  
+            }
+            text = this.getFormattedValue(htmlObject.val()); 
+            if (text && text.replace()) {
+                text = text.replace(/&quot;/g, '"');  
+            }
             htmlObject.val(text);
             
             htmlObject.focusin(function() {
-               $(this).val(that._tmpVal);
+                if (that._tmpVal) { 
+                    $(this).val(that._tmpVal);
+                }
             });
             
             htmlObject.focusout(function() {
                 that._tmpVal = $(this).val();
-               $(this).val(that.getFormattedValue(that._tmpVal));
+                if (that._tmpVal) { 
+                    $(this).val(that.getFormattedValue(that._tmpVal));
+                }
             });
         }
     }, {
@@ -358,10 +381,14 @@ WAF.Widget.provide(
                     validation  = sourceAtt.validate(value);
 
                     if (validation.valid) {
-                        sourceAtt.setValue(value, {dispatcherID:widget.divID});
+                        sourceAtt.setValue(value, {
+                            dispatcherID:widget.divID
+                        });
                         widget.clearErrorMessage();
                     } else {
-                        sourceAtt.setValue(value, {dispatcherID:widget.divID});
+                        sourceAtt.setValue(value, {
+                            dispatcherID:widget.divID
+                        });
                         widget.setErrorMessage(validation.messages.join(", "));
                     }
                 }
@@ -386,4 +413,4 @@ WAF.Widget.provide(
             }
         }
     }
-);
+    );

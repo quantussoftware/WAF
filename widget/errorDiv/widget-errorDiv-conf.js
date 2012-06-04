@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'errorDiv',
     lib         : 'WAF',
     description : 'Display Error',
-    category    : 'Controls',
+    category    : 'Form Controls',
     img         : '/walib/WAF/widget/errorDiv/icons/widget-errorDiv.png',
     tag         : 'div',
     attributes  : [

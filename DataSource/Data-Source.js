@@ -2435,7 +2435,7 @@ WAF.DataSourceEm.getEntityCollection = function()
 
 WAF.DataSourceEm.setCurrentEntity = function(entity, options)
 {
-	options = options;
+	options = options || {};
 	this._private.currentElemPos = -1;
 	if (this._private.currentEntity != null)
     {
@@ -2468,7 +2468,7 @@ WAF.DataSourceEm.newEntity = function(options)
 
 WAF.DataSourceEm.query = function(queryString, options, userData)
 {
-	var resOp = WAF.tools.handleArgs(arguments, 1);
+	var resOp = WAF.tools.handleArgs(arguments, 1, {queryParams:true} );
 	userData = resOp.userData;
 	options = resOp.options;
 	var xoptions = 
@@ -2493,7 +2493,7 @@ WAF.DataSourceEm.query = function(queryString, options, userData)
 
 WAF.DataSourceEm.filterQuery = function(queryString, options, userData)
 {
-	var resOp = WAF.tools.handleArgs(arguments, 1);
+	var resOp = WAF.tools.handleArgs(arguments, 1, {queryParams:true});
 	userData = resOp.userData;
 	options = resOp.options;
 	var xoptions = 

@@ -106,6 +106,9 @@
     cursor: pointer;
 }
 
+.waf-combobox-list li a{
+    min-height: 15px;
+}
 
 /**
  * -------------------------------------------------------

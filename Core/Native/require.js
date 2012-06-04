@@ -150,6 +150,7 @@ Object.defineProperty(
                 wafModuleFile = File(id + '.js');
             } else {
                 switch (typeof wafModuleFolder) {
+				case "function":
                 case "object":
                     if (wafModuleFolder.toString() !== "[object Folder]") {
                         wafModuleFolder = Folder(wafModuleFolder.toString());

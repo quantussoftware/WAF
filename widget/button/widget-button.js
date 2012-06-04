@@ -49,7 +49,7 @@ WAF.Widget.provide(
         thisI;
 
         that        = this;
-        htmlObject  = $(this.containerNode);
+        htmlObject  = this.$domNode;
         text        = data.text ? data.text : data.action;
         nb          = 0;
 
@@ -170,6 +170,10 @@ WAF.Widget.provide(
                         
                     case 'first' :
                         that.source.select(0);
+                        break;                        
+                        
+                    case 'remove' :
+                        that.source.removeCurrent();
                         break;
                         
                     default:
@@ -178,6 +182,22 @@ WAF.Widget.provide(
             })
         }
     },{
+        /**
+         * Custom getValue function
+         * @method getValue
+         * @param {string} value
+         */
+        getValue : function button_set_value (value) {
+            return this.$domNode.text();
+        },
         
+        /**
+         * Custom setValue function
+         * @method setValue
+         * @param {string} value
+         */
+        setValue : function button_set_value (value) {
+            this.$domNode.text(value);
+        }
     }
 );

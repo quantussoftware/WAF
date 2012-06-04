@@ -106,7 +106,7 @@ function optimize( request, response)
 			if (text != null)
 			{
 				var file = File(fullFileName);
-				var fileDate = file.modificationDate;
+				var fileDate = file.lastModifiedDate;
 				if (fileDate > maxModifDate)
 					maxModifDate = fileDate;
 				if (contentType == null)

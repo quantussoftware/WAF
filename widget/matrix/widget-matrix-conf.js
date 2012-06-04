@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'matrix',
     lib         : 'WAF',
     description : 'Matrix',
-    category    : 'Layout',
+    category    : 'Containers/Placeholders',
     img         : '/walib/WAF/widget/matrix/icons/widget-matrix.png',
     tag         : 'div',
     attributes  : [
@@ -210,9 +210,13 @@ WAF.addWidget({
                 idToClone,
                 resizeWidth,
                 resizeHeight,
-                label;                
+                label,
+                calcul,
+                autoFit;                
                 
                 tag.isRebuild = true;
+                
+                autoFit         =tag.getAttribute('data-fit').getValue() === true || tag.getAttribute('data-fit').getValue() === 'true' ? true : false;
                 
                 child   = tag._childTag;
                 except  = '[id!="' + child.getOverlayId() + '"]';
@@ -290,17 +294,27 @@ WAF.addWidget({
                 /*
                  * Calcul number of elements for the height
                  */ 
-                rows        = Math.ceil(matrixHeight / initHeight) - 1;
+                calcul      = matrixHeight / initHeight;
+                rows        = Math.ceil(calcul) - 1;
+                
+                if (calcul%1==0) {
+                    rows += 1;
+                }
                 
                 /*
                  * Calcul number of elements for the width
                  */ 
-                columns = Math.ceil(matrixWidth / initWidth) - 1;
+                calcul      = matrixWidth / initWidth;
+                columns     = Math.ceil(matrixWidth / initWidth) - 1;
+                
+                if (calcul%1==0) {
+                    columns += 1;
+                }
                 
                 /*
                  * Resize the matrix to appropriate size
                  */ 
-                if (tag.getAttribute('data-fit').getValue() === true || tag.getAttribute('data-fit').getValue() === 'true') {
+                if (autoFit) {
                     if (columns === 0) {
                         columns = 1;
                     }

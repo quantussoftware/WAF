@@ -21,7 +21,7 @@
 WAF.addWidget({    
     type       : 'dataGrid',
     lib        : 'WAF',
-    category   : 'Datagrid',
+    category   : 'Automatic Controls',
     description: 'Grid',
     img        : '/walib/WAF/widget/dataGrid/icons/widget-dataGrid.png',
     attributes : [
@@ -84,9 +84,13 @@ WAF.addWidget({
         defaultValue:'true'
     },
     {
-        name        : 'data-error-div',
+        name        : 'data-errorDiv',
         description : "Place holder for the error's description",
         category    : 'Error Handling'
+    },
+    {
+        name        : 'data-error-div',
+        visibility  : 'hidden'
     },
     {
         name            : 'data-column',
@@ -479,7 +483,8 @@ WAF.addWidget({
             tag.grid = grid;
 
             // message if not binding
-            if (tag.getColumns().count() === 0) {
+         
+            if (tag.getColumns().count() === 0 && !config['data-binding']) { 
                 if ($('#' + tag.overlay.id + ' .message-binding-grid ').length == 0) {
                     $('<div class="message-binding-grid ">Drop a datasource<br> here</div>').appendTo($('#' + tag.overlay.id));
                 }
@@ -503,6 +508,10 @@ WAF.addWidget({
             } else {
                 $("#" + tagID + " .waf-dataGrid-footer .waf-toolbar").show();
             }
+            
+            
+        } else {
+            tag.refresh();
         }
     }    
 });

@@ -205,9 +205,9 @@ WAF.Widget.provide(
                 value       = '';
                 
                 if(checkboxHtml.is(':checked')) {
-                    value = sourceAtt.normalize('true');
+                    value = true;
                 } else {
-                    value = sourceAtt.normalize('false');
+                    value = false;
                 }
 
                 sourceAtt.setValue(value, {
@@ -263,6 +263,20 @@ WAF.Widget.provide(
             });
         }
     }, {
+        check : function () {
+            
+        },
         
+        /**
+         * Custom setValue function
+         * @setValue getValue
+         */
+        setValue : function checkbox_set_value(value) {
+            if (value) {
+                this.check();
+            } else {
+                this.uncheck();
+            }
+        }
     }
 );

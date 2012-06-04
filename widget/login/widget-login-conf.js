@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'login',
     lib        : 'WAF',
     description: 'Login Dialog',
-    category   : 'Controls',
+    category   : 'Automatic Controls',
     img        : '/walib/WAF/widget/login/icons/widget-login.png',
     attributes : [
     {

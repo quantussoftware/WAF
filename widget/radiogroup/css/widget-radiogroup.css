@@ -42,16 +42,27 @@
  * -------------------------------------------------------
  */
 .waf-radioGroup li {
+    position: relative;
     clear: both;
     padding: 2px;
 }
 
 .waf-radioGroup li label {
-    float: left;
-    margin-left: 5px;
-    line-height: 16px;
-}
+    position: absolute;
+    left: 19px;
+    right: 0;
 
+    line-height: 16px;
+    
+    /* HERITED FROM RADIOGROUP */
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-align: inherit;
+    text-decoration: inherit;
+    color: inherit;
+}
 
 /**
  * -------------------------------------------------------

@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'button',
     lib        : 'WAF',
     description: 'Button',
-    category   : 'Controls',
+    category   : 'Form Controls',
     img        : '/walib/WAF/widget/button/icons/widget-button.png',
     tag        : 'button',
     attributes : [

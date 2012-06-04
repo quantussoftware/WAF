@@ -250,42 +250,58 @@ WAF.addWidget({
              */
             tag._refreshPosition();
         }
-        
+                
         /**
          * Refresh position with contraints
          * @method refreshPositionWithConstraints
          */
         tag.refreshPositionWithConstraints = function refreshPositionWithConstraints () {
-            var linked  = this.getLinkedTag(),
-            parentElt = this.getParent(),
-            left = '',
-            top = ''; 
+            var
+            pos,
+            linked,
+            parentElt,
+            parentBorder;
+            
+            linked          = this.getLinkedTag();
+            parentElt       = this.getParent();
+            parentBorder    = 0;
+            
+            if (parentElt) {
+                parentBorder = parseInt(parentElt.getComputedStyle('border-width')) * 2;
+            }                    
                         
-            if (linked) {
-                                
-                if (!linked.isFitToRight() && !this.isFitToRight()) {                    
+            if (linked) {                                             
+                if (!linked.isFitToRight() && !this.isFitToRight()) {     
                     // no right constraint
                     
                     if (!parentElt.isDocument()) {
-                        left = parentElt.getWidth() - (this.getStyle('right') + this.getWidth());
+                        pos = parentElt.getWidth() - (this.getStyle('right') + this.getWidth());
                     } else {
-                        left = this.getStyle('left') + 'px';
-                    }                                                                                                                                                
-                    $('#' + this.getOverlayId()).css('left', left);
-                    if (left.toString().indexOf('px') == -1) {
-                        left = left+'px';
-                    }
-                    this.style['left'] = left;                                    
+                        pos = this.getStyle('left');
+                    }     
+                    
+                    pos -= parentBorder;
+                    
+                    pos += 'px';
+                    
+                    $('#' + this.getOverlayId()).css('left', pos);
+                    
+                    this.style['left'] = pos;   
+                    
                     $('#' + this.getOverlayId()).css('right', '');
+                    
                     this.style['right'] = '';
                 } else {                    
-                    // right constraint
-                                        
+                    // right constraint                                        
                     if (!linked.isFitToLeft() && !this.isFitToLeft()) {
+                        pos = (this.getStyle('right')) + 'px';
+                        
                         // no left constraint
-                        $('#' + this.getOverlayId()).css('right', this.getStyle('right') + 'px');                                       
-                        this.style['right'] = this.getStyle('right') + 'px'; 
+                        $('#' + this.getOverlayId()).css('right', pos);  
+                        this.style['right'] = pos; 
+                        
                         $('#' + this.getOverlayId()).css('left', '');
+                        
                         this.style['left'] = '';
                     } else {
                         // already a left constraint
@@ -296,33 +312,43 @@ WAF.addWidget({
                 if (!linked.isFitToBottom() && !this.isFitToBottom()) {                
                     // no bottom constraint
                     if (!parentElt.isDocument()) {
-                        top = parentElt.getHeight() - (this.getStyle('bottom') + this.getHeight());
+                        pos = parentElt.getHeight() - (this.getStyle('bottom') + this.getHeight());
                     } else {
-                        top = this.getStyle('top') + 'px';
-                    }                                        
-                    $('#' + this.getOverlayId()).css('top', top);
-                    if (top.toString().indexOf('px') == -1) {
-                        top = top+'px';
-                    }
-                    this.style['top'] = top;
+                        pos = this.getStyle('top');
+                    }   
+                    
+                    pos -= parentBorder;
+                    
+                    pos += 'px';            
+                    
+                    
+                    $('#' + this.getOverlayId()).css('top', pos);
+                    
+                    this.style['top'] = pos;
+                                        
                     $('#' + this.getOverlayId()).css('bottom', '');
+                    
                     this.style['bottom'] = '';                                    
                 } else {
                     // bottom constraint
                     
                     if (!linked.isFitToTop() && !this.isFitToTop()) {
+                        pos = (this.getStyle('bottom')) + 'px';
+                        
                         // no top contraint
-                        $('#' + this.getOverlayId()).css('bottom', this.getStyle('bottom') + 'px');
-                        this.style['bottom'] = this.getStyle('bottom')+ 'px'; 
+                        $('#' + this.getOverlayId()).css('bottom', pos);
+                        
+                        this.style['bottom'] = pos; 
+                        
                         $('#' + this.getOverlayId()).css('top', '');
+                        
                         this.style['top'] = '';                                                            
                     } else {
                         // already a top constraint
                         // do nothing
                     }
                 }                
-            }
-            
+            }            
         }
         
         /**

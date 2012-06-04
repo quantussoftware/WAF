@@ -445,17 +445,17 @@ WAF.tags.Descriptor.prototype.addAttribute = function (name) {
  * Add a new menuItem to the descriptor
  * @namespace WAF.tags.Descriptor
  * @method addMenuItem
- * @param {Object} config menuItem properties
+ * @param {Obejct} config menuItem properties
  */
-WAF.tags.Descriptor.prototype.addMenuItem = function (config, callback) {
+WAF.tags.Descriptor.prototype.addMenuItem = function (config) {
     var 
-    menuItem,
-    tagDefinition,
-    subMenu,
-    direction,
-    borderLeft,
-    borderTop,
-    parentBar;
+        menuItem,
+        tagDefinition,
+        subMenu,
+        direction,
+        borderLeft,
+        borderTop,
+        parentBar;
         
     config.parent   = this;
     parentBar       = this.getParent();
@@ -509,14 +509,6 @@ WAF.tags.Descriptor.prototype.addMenuItem = function (config, callback) {
 
     if (this.getParent().isMenuItem()) {
         this.getParent().displayInfo();
-    }
-    
-    if (callback) {
-        callback(menuItem);
-    }
-    
-    if (this.afterItemAdd) {
-        this.afterItemAdd(menuItem);
     }
     
 };

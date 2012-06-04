@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'menuBar',
     lib         : 'WAF',
     description : 'Menu Bar',
-    category    : 'Controls',
+    category    : 'Misc. Controls',
     img         : '/walib/WAF/widget/menuBar/icons/widget-menuBar.png',
     tag         : 'ul',
     attributes  : [
@@ -55,7 +55,7 @@ WAF.addWidget({
         }],
         defaultValue: 'hover'
     }],
-    events : [{
+    events: [{
         name       : 'click',
         description: 'On Click',
         category   : 'Mouse Events'
@@ -85,7 +85,7 @@ WAF.addWidget({
         description: 'On Mouse Up',
         category   : 'Mouse Events'
     }],
-    style : [
+    style: [
     {
         name        : 'width',
         defaultValue: '300px'
@@ -94,7 +94,7 @@ WAF.addWidget({
         name        : 'height',
         defaultValue: '26px'
     }],
-    properties : {
+    properties: {
         style: {
             theme       : true,
             fClass      : true,
@@ -111,40 +111,11 @@ WAF.addWidget({
         description : 'menuItem',
         selector    : '.waf-menuItem'
     }],
-    menu : [{
-        icon        : '/walib/WAF/widget/menubar/icons/round_plus.png',
-        title       : 'Add an item',
-        callback    : function(){
-            var
-            menuItems,
-            nbMenuItems,
-            labelText;
-            
-            /*
-             * Get the number of submenu to format menu item text
-             */
-            menuItems   = this.getMenuItems();
-            nbMenuItems = menuItems.count() + 1;
-            labelText   = this.getParent().isMenuItem() ? '[Sub Item ' + nbMenuItems + ']' : '[Menu Item ' + nbMenuItems + ']';       
-            
-            /*
-             * Add a menu item to the menu bar
-             */
-            this.addMenuItem({
-                text : labelText
-            });
-            
-            /*
-             * Refresh property panel
-             */
-            Designer.tag.refreshPanels();
-        }
-    }],
     onInit: function (config) {
         var widget  = new WAF.widget.MenuBar(config);
         return widget;
     },
-    onDesign : function (config, designer, tag, catalog, isResize) {
+    onDesign : function (config, designer, tag, catalog, isResize) { 
         var 
         htmlObject,
         menuItems,
@@ -223,6 +194,72 @@ WAF.addWidget({
         
         if (parent && parent.isMenuItem()) {
             $('#' + tag.getOverlayId()).css('position', 'absolute !important');
+        }
+        
+        /**
+         * Change the orientation of the menubar
+         * @method changeOrientation
+         * @param {string} type : horizontal/vertical
+         */
+        tag.changeOrientation = function menubar_change_orientation (type) {
+            var
+            j,
+            maxWidth,
+            menuItem,
+            menuItems,
+            maxHeight,
+            menuItemsLength;
+            
+            /*
+             * Only if orientation has change
+             */
+            if (this.getAttribute('data-display').getValue() != type) {            
+                maxWidth        = 0;
+                maxHeight       = 0;
+                menuItems       = this.getMenuItems();
+                menuItemsLength = menuItems.count();
+
+                this.getAttribute('data-display').setValue(type);
+
+                for (j = 0; j < menuItemsLength; j += 1) {
+                    menuItem    = menuItems.get(j);
+                    maxWidth    = (maxWidth < menuItem.getTag().getWidth()) ? menuItem.getTag().getWidth() : maxWidth;
+                    maxHeight   = (maxHeight < menuItem.getTag().getHeight()) ? menuItem.getTag().getHeight() : maxHeight;
+                }               
+
+                if (type === 'horizontal') {
+                    this.setHeight(maxHeight + 2, true);
+                } else {
+                    this.setWidth(maxWidth + 2, true);
+                }
+                
+                this.onDesign(true);
+            }
+        }
+        
+        tag._getMenuItemDescriptor = function (id) {
+            var
+            i,
+            list,
+            result,
+            menuItem,
+            menuItems,
+            menuItemsL;
+            
+            menuItems   = this.getMenuItems();
+            list        = menuItems._list;
+            
+            if (list) {
+                menuItemsL  = menuItems._list.length;
+
+                for (i = 0; i < menuItemsL; i += 1) {
+                    if (menuItems._list[i]._id == id) {
+                        result = menuItems._list[i];
+                    }
+                }
+            }
+            
+            return result;
         }
     }
 });

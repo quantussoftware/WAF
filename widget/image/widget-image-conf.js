@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'image',
     lib        : 'WAF',
     description: 'Image',
-    category   : 'Image',
+    category   : 'Misc. Controls',
     img        : '/walib/WAF/widget/image/icons/widget-image.png',
     attributes : [
     {

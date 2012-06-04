@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'slider',
     lib        : 'WAF',
     description: 'Slider',
-    category   : 'Controls',
+    category   : 'Form Controls',
     img        : '/walib/WAF/widget/slider/icons/widget-slider.png',
     tag        : 'div',
     attributes : [
@@ -75,7 +75,7 @@ WAF.addWidget({
         type        : 'dropdown',
         options     : [{
                 key     : '',
-                value   : ''
+                value   : 'None'
         },{
                 key     : 'min',
                 value   : 'Min'

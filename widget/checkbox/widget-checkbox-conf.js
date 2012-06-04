@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'checkbox',
     lib        : 'WAF',
     description: 'Checkbox',
-    category   : 'Controls',
+    category   : 'Form Controls',
     img        : '/walib/WAF/widget/checkbox/icons/widget-checkbox.png',
     tag        : 'div',
     attributes : [
@@ -100,11 +100,6 @@ WAF.addWidget({
     }],
     events: [
     {
-        name       : 'blur',
-        description: 'On Blur',
-        category   : 'Focus Events'
-    },
-    {
         name       : 'change',
         description: 'On Change',
         category   : 'Focus Events'
@@ -113,11 +108,6 @@ WAF.addWidget({
         name       : 'click',
         description: 'On Click',
         category   : 'Mouse Events'
-    },
-    {
-        name       : 'focus',
-        description: 'On Focus',
-        category   : 'Focus Events'
     },
     {
         name       : 'mousedown',

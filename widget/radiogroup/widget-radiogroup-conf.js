@@ -21,7 +21,7 @@ WAF.addWidget({
     type        : 'radioGroup',
     lib         : 'WAF',
     description : 'Radio Button Group',
-    category    : 'Controls',
+    category    : 'Form Controls',
     img         : '/walib/WAF/widget/radiogroup/icons/widget-radiogroup.png',
     tag         : 'ul',
     attributes  : [
@@ -42,7 +42,13 @@ WAF.addWidget({
         name        : 'data-display',
         description : 'Display',
         type        : 'dropdown',
-        options     : ['Vertical', 'Horizontal'],
+        options     : [{
+            key : 'vertical', 
+            value : 'Vertical'
+        }, {
+            key : 'horizontal',
+            value : 'Horizontal'
+        }],
         defaultValue: 'vertical'
     },
     {
@@ -110,11 +116,6 @@ WAF.addWidget({
     }],
     events: [
     {
-        name       : 'blur',
-        description: 'On Blur',
-        category   : 'Focus Events'
-    },
-    {
         name       : 'change',
         description: 'On Change',
         category   : 'Focus Events'
@@ -123,11 +124,6 @@ WAF.addWidget({
         name       : 'click',
         description: 'On Click',
         category   : 'Mouse Events'
-    },
-    {
-        name       : 'focus',
-        description: 'On Focus',
-        category   : 'Focus Events'
     },
     {
         name       : 'mousedown',

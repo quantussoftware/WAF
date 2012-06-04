@@ -155,7 +155,6 @@ table.autoForm-data {
 	position: relative;
 }
 .attribute-col {
-	font-weight: bold;
 	cursor: default;
 	
 	-moz-user-select: none;
@@ -425,7 +424,8 @@ table.autoForm-data {
 
 .waf-widget .waf-form-body
 {
-	padding-top:15px;
+	padding-top:15px;        
+	font-weight: bold;
 	/*background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(rgba(0, 0, 0, 0.1)), to(rgba(0, 0, 0, 0.3)));
 	background-image:-moz-linear-gradient(center top , rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));*/
 }

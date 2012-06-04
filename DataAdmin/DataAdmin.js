@@ -335,10 +335,12 @@ function emClickHandler(event)
 						render: datagridID,
 						id: datagridID,
 						dataSource: sourceID,
-						binding: sourceID,
+						'data-binding': sourceID,
 						columns: choixcolumns,
+						'data-column':JSON.stringify(choixcolumns),
 						cls: datagridID
 					});
+			
 			
 			grid.gridController.onRowClick = function(position)
 			{
@@ -351,6 +353,8 @@ function emClickHandler(event)
 				
 				openFormView(dataClass, source, { top : pos.top, left: pos.left, width: w, height: h});
 			}
+			
+			
 			source.resolveSource();
 		}	
 	}
@@ -362,113 +366,108 @@ function emClickHandler(event)
 	}
 }
 
-
-function openFormView(dataClass, source, pos)
-{
+function openFormView(dataClass, source, pos){
 	var sourceID = source.getID();
 	var emName = dataClass.getName();
 	var id = info.findFormView(sourceID);
-	if (id == 0)
-	{
+	if (id == 0) {
 		id = info.getNewID();
 		var panelColor = null;
-		if (dataClass.extraProperties != null)
+		if (dataClass.extraProperties != null) 
 			panelColor = dataClass.extraProperties.panelColor;
 		var panelH = 400;
 		var panelW = 400;
-		if (pos != null)
-		{
+		if (pos != null) {
 			panelW = pos.width;
 			panelH = pos.height;
 		}
-		var html = '<div id="panel'+id+'"> </div>';
+		var html = '<div id="panel' + id + '"> </div>';
 		$(html).appendTo('body');
-		var panel = $('#panel'+id);
-		var formID = "panel"+id;
-		panel.addClass("em-formview-panel-content roundy waf-widget waf-autoform");
+		var panel = $('#panel' + id);
+		var formID = "panel" + id;
+		panel.addClass("em-formview-panel-content metal waf-widget waf-autoForm metal");
 		panel.css({
-			top:'0px',
-			height:''+panelH+'px',
-			left:'0px',
-			width:''+panelW+'px',
-			position:'relative'
+			top: '0px',
+			height: '' + panelH + 'px',
+			left: '0px',
+			width: '' + panelW + 'px',
+			position: 'relative'
 		});
 		panel.attr({
 			'data-type': 'autoForm',
-		    'data-theme': 'roundy'
+			'data-theme': 'metal',
+			'data-withoutTable': 'true',
+			'data-resize-each-widget': 'true',
+			'data-lib':'WAF',
+			'data-display-error':'true',
+			'data-binding':sourceID
+			
 		});
-		
-		if (false && panelColor != null)
-		{
+ 
+		if (false && panelColor != null) {
 			panel.css("background-color", panelColor);
 		}
-		
 		var attrList = [];
-        var nameList = [];
-		
-		
+		var nameList = [];
 		var panelInfo = {
-				id:id,
-				emName:emName,
-				dataClass:dataClass,
-				source:source,
-				sourceID:sourceID,
-				panel:panel,
-				isListView:false,
-				formID:formID,
-				panelColor:panelColor
-				};
-				
+			id: id,
+			emName: emName,
+			dataClass: dataClass,
+			source: source,
+			sourceID: sourceID,
+			panel: panel,
+			isListView: false,
+			formID: formID,
+			panelColor: panelColor
+		};
 		info.addFormViewPanel(panelInfo);
-			
 		var options = {
 			dialogClass: 'em-formview-panel',
-			title:emName,
-			width:panelW,
-			height:panelH,
-			resize: function(event, ui)
-			{
-				$('.waf-widget-body',panel).css('width', parseInt(panel.css('width')));
-                var newHeight = parseInt(panel.css('height')) - parseInt($('.waf-widget-footer', panel).css('height'));
-                newHeight -= parseInt($('.waf-widget-header', panel).css('height'));
-                $('.waf-widget-body', panel).css('height',  newHeight+ 'px');
+			title: emName,
+			width: panelW,
+			height: panelH,
+			resize: function(event, ui){
+				$('.waf-widget-body', panel).css('width', parseInt(panel.css('width')));
+				var newHeight = parseInt(panel.css('height')) - parseInt($('.waf-widget-footer', panel).css('height'));
+				newHeight -= parseInt($('.waf-widget-header', panel).css('height'));
+				$('.waf-widget-body', panel).css('height', newHeight + 'px');
 			},
-			resizeStop: function(event, ui)
-			{
-				
+			resizeStop: function(event, ui){
 			}
-
+			
 		};
-		
-		if (pos != null)
-		{
-			options.position = [ pos.left, pos.top ];
+		if (pos != null) {
+			options.position = [pos.left, pos.top];
 		}
-		
 		panel.dialog(options);
 		
-		var form = WAF.AF.buildForm(formID, source, attrList, nameList,{ toolBarForRelatedEntity: false,
-																noToolBar: false,
-																allowResizeInput: true,
-																withoutTable:true,
-																formTitle: emName,
-																checkIdentifying: false,
-																level: 1,
-																allReadOnly: false,
-																parent: null,
-																included: false,
-																inAPanel: true });
-		
-		form.visible = true;
-		
+		WAF.tags.generate(formID);
+		/*
+		var form = WAF.AF.buildForm(formID, source, attrList, nameList, {
+			toolBarForRelatedEntity: false,
+			noToolBar: false,
+			allowResizeInput: true,
+			withoutTable: true,
+			formTitle: emName,
+			checkIdentifying: false,
+			level: 1,
+			allReadOnly: false,
+			parent: null,
+			included: false,
+			inAPanel: true
+		});
+		*/
+		$$(formID).visible = true;
 		panel.dialog("widget").draggable("destroy");
-		panel.dialog("widget").draggable({ handle: ".waf-autoform-header" });
-			
+		panel.dialog("widget").draggable({
+			handle: $("#"+formID+" .waf-form-header")
+		});
+		
+		$("#"+formID+" .waf-form-header").addClass("em-draggable");
 	}
-	else
-	{
-		 var panelInfo = info.getPanel(id);
-		 panelInfo.panel.dialog("open");
+	else {
+		var panelInfo = info.getPanel(id);
+		panelInfo.panel.dialog("open");
 	}
 }
 

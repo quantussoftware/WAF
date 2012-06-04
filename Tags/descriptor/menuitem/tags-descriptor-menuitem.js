@@ -71,8 +71,7 @@ WAF.tags.descriptor.MenuItem.prototype.init = function ( init ) {
         borderTop   = borderLeft;  
         // create the tag
         menuItem.create({
-            parent      : this._parent,
-            silentMode  : true
+            parent : this._parent
         });
         
         menuItem.setCss('text-align', 'center');
@@ -143,6 +142,19 @@ WAF.tags.descriptor.MenuItem.prototype.setIcon = function (value) {
     this.refreshContaint();
     this.getTag().domUpdate();
 };
+
+/**
+ * Set the icon value of the menu item
+ * @namespace WAF.tags.descriptor.MenuItem
+ * @method setIcon
+ * @param {String} value
+ */
+WAF.tags.descriptor.MenuItem.prototype.update = function (tag) {
+    this._id    = tag.getId();
+    this._name  = tag.getId();
+    this._tag   = tag;
+    console.log(this)
+}
 
 /**
  * Set the icon value of the menu item
@@ -448,6 +460,7 @@ WAF.tags.descriptor.MenuItem.prototype.remove = function () {
             break;
         }
     }       
+    
 }
     
 

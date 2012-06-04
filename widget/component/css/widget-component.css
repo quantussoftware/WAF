@@ -68,3 +68,13 @@ textarea.ui-dialog-content
     border-radius:0px 0px 4px 4px;
 
 }
+
+#waf-component-fade {
+    display: none;
+    background: #000; 
+    position: fixed; left: 0; top: 0; 
+    z-index: 10;
+    width: 100%; height: 100%;
+    opacity: .50;
+    z-index: 10;
+}

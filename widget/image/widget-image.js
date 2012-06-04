@@ -104,7 +104,9 @@ WAF.Widget.provide(
                 this.source.getElement(this.source.getPosition(), {
                     onSuccess:function(e) {
                         //console.log(e.element[sourceAtt])
-                         htmlImg.attr('src', sourceAtt.getValue().__deferred.uri)
+                        if (sourceAtt.getValue()) {
+                            htmlImg.attr('src', sourceAtt.getValue().__deferred.uri)
+                        }
                     }
                 })
             }

@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'progressBar',
     lib        : 'WAF',
     description: 'Progress Bar',
-    category   : 'Controls',
+    category   : 'Misc. Controls',
     img        : '/walib/WAF/widget/progressBar/icons/widget-progressBar.png',
     tag        : 'div',
     attributes : [

@@ -89,6 +89,8 @@ WAF.Widget.provide(
                     splitterWidth   = htmlObject.width(); 
                     splitterTop     = parseInt($(splitted[0]).css('height')) - (splitterHeight/2);
                     
+                    this._tmpPosition = splitterTop;
+                    
                     splitterCss['border-top'] = splitterCss['border-bottom'] = '1px solid #AEAEAE';
                     
                     splitterConfig  = {                        
@@ -97,11 +99,16 @@ WAF.Widget.provide(
                     
                     dragMethod = function(e, ui) {
                         var
+                        calcul,
                         splitted,
                         htmlObject;
                         
                         splitted    = e.data.splitted;
                         htmlObject  = e.data.htmlObject;
+                            
+                        calcul      = ui.position.top + (splitterHeight/2);
+                        
+                        widget._tmpPosition = calcul;
                         
                         $.each(splitted, function() {
                             var
@@ -112,9 +119,9 @@ WAF.Widget.provide(
                             container = $(this);                                
 
                             if (container.is(":first-child")) {
-                                container.css('height', (ui.position.top + (splitterHeight/2)) + 'px');
+                                container.css('height', calcul + 'px');
                             } else {
-                                container.css('top', ui.position.top + (splitterHeight/2) + 'px');
+                                container.css('top', calcul + 'px');
                                 container.css('height', ((tagHeight - ui.position.top) - (splitterHeight/2)) + 'px');
                             }   
 
@@ -131,6 +138,8 @@ WAF.Widget.provide(
                     splitterWidth   = widget._splitterWidth;
                     splitterHeight  = htmlObject.height();  
                     splitterLeft    = parseInt($(splitted[0]).css('width')) - (splitterWidth/2);
+                    
+                    this._tmpPosition = splitterLeft;
                     
                     splitterCss['border-left'] = splitterCss['border-right'] = '1px solid #AEAEAE';
                     
@@ -150,16 +159,21 @@ WAF.Widget.provide(
                         
                         $.each(splitted, function() {
                             var
+                            calcul,
                             container,
                             tagWidth;
 
                             tagWidth    = htmlObject.width();
-                            container = $(this);       
-
+                            container   = $(this);       
+                            
+                            calcul      = ui.position.left + (splitterWidth/2);
+                            
+                            widget._tmpPosition = calcul;
+                            
                             if (container.is(":first-child")) {
-                                container.css('width', (ui.position.left + (splitterWidth/2)) + 'px');
+                                container.css('width', calcul + 'px');
                             } else {
-                                container.css('left', ui.position.left + (splitterWidth/2) + 'px');
+                                container.css('left', calcul + 'px');
                                 container.css('width', ((tagWidth - ui.position.left) - (splitterWidth/2)) + 'px');
                             }   
 
@@ -180,41 +194,194 @@ WAF.Widget.provide(
                 'left'          : splitterLeft + 'px',
                 'top'           : splitterTop + 'px',
                 'cursor'        : splitType == 'horizontally' ? 'row-resize' : 'col-resize',
-                'z-index'       : htmlObject.css('z-index')
+                'z-index'       : 9999999
             });
             
-            if ((!data.hideSplitter || data.hideSplitter !== 'true') && htmlObject.parents('[data-hideSplitter="true"]').length == 0) {
-                splitter    = $('<div>');
+            splitter    = $('<div>');
 
-                splitter
-                    .attr('id', 'waf-splitter-' + htmlObject.attr('id'))
-                    .addClass('waf-splitter')
-                    .css(splitterCss)
-                    .draggable(splitterConfig)
-                    .appendTo(htmlObject); 
-            
-                splitter.bind( "drag", {
-                    splitted    : splitted,
-                    htmlObject  : htmlObject
-                    
-                }, dragMethod);
+            splitter
+                .attr('id', 'waf-splitter-' + htmlObject.attr('id'))
+                .addClass('waf-splitter')
+                .css(splitterCss)
+                .draggable(splitterConfig)
+                .appendTo(htmlObject) 
+                .bind( "drag", {
+                        splitted    : splitted,
+                        htmlObject  : htmlObject
+                    }, dragMethod)
+                .bind( "dblclick", function(){
+                    widget.toggleSplitter();
+                });
+
+            widget._splitter = splitter;
+                
+            if ((!data.hideSplitter || data.hideSplitter !== 'true') && htmlObject.parents('[data-hideSplitter="true"]').length == 0) {
+            } else {
+                splitter.css('visibility', 'hidden');
             }
+            
+            this._initTmpPosition = this._tmpPosition;
+            
+            /*
+             * Case of loaded from a component into GUI
+             */
+            if (this.$domNode.parents('#cms-body')) {
+                var checkResize = this._checkResize();
+                
+                if (checkResize) {
+                    this._callResizeEvents('on');
+                    $(window).resize(function(){
+                        if (checkResize.x || checkResize.y) {
+                            widget._callResizeEvents('on');
+                        }
+                    });
+                }
+            }
+            
         }   
-    },{           
-        /*
+    },{      
+        ready : function(){
+            var
+            that,
+            splitted,
+            splittedLength;
+            
+            that            = this;
+            splitted        = this.$domNode.children('.waf-split-container');
+            splittedLength  = splitted.length;
+            if (splittedLength > 0) { 
+                $.each(splitted, function(){
+                    that._splitted.push($$($(this).attr('id')));
+                });                
+            
+                /*
+                 * @todo : USE LINK TO ASSOCIATE BUTTON TO SPLIT CONTAINER
+                 */
+                this._button = $$(this.config['data-popup-display-button']);
+                
+                if (this._button) {
+                    this._button.hide();            
+
+                    this._button.$domNode.bind('click', {that : this}, function(e){
+                        var
+                        thatHtml,
+                        floatContainer;
+
+                        thatHtml        = $(this);
+                        floatContainer  = e.data.that._splitted[0];
+
+                        floatContainer.toggle();
+
+                        floatContainer.$domNode
+                            .css({
+                                left    : thatHtml.offset().left + 'px',
+                                top     : thatHtml.offset().top + thatHtml.height() + 15 + 'px'
+                            })
+                            .addClass('waf-container-split-mobile');
+                    });
+                }
+            }
+
+        },
+        
+        _button : null,
+        
+        _splitType : null,
+        
+        _splitted : [],
+        
+        _tmpPosition : 0,
+        
+        _display : false,
+        
+        /**
          * Resize method called during resize
          * @method onResize
          */
         onResize : function container_resize() {   
-            this._resizeSplitters('on');
-        },    
+            if (this.hasSplitter()) {
+                this._resizeSplitters('on');
+            } else {
+                $.each(this.getChildren(), function() {
+                    this._callResizeEvents('on');
+                });
+            }
+        },  
+        
+        /**
+         * Show or hide the splitter and the left/top splitted container
+         * @method toggleSplitter
+         */
+        toggleSplitter : function container_toggle_splitter() {
+            if (this._tmpPosition <= 2) {
+                this._tmpPosition = this._initTmpPosition;
+                this.expandSplitter(); 
+            } else {
+                if (this._splitStatus == 'collapse') {
+                   this.expandSplitter(); 
+                } else {
+                    this.collapseSplitter();
+                }
+            }
+        },
+        
+        /**
+         * Hide the splitter and the left/top splitted container
+         * @method collapse
+         */
+        collapseSplitter : function container_collapse_splitter() {
+            this._splitStatus = "collapse";
+            this.setSplitPosition(0);
+        },
+        
+        /**
+         * Show the splitter and the left/top splitted container
+         * @method expand
+         */
+        expandSplitter : function container_expand_splitter() {
+            if (this._tmpPosition <= 2) {
+                this._tmpPosition = this._initTmpPosition;
+            }
+            
+            this._splitStatus = "expand";
+            this.setSplitPosition(this._tmpPosition);
+        },
+        
+        /*
+         * Indicate if the container has a splitter
+         * @method hasSplitter
+         * @return {boolean}
+         */
+        hasSplitter : function container_has_splitter() {
+            var
+            result;
+            
+            result = false;
+            
+            if (this._hasSplitter) {
+                result = this._hasSplitter;
+            } else {            
+                if (this.$domNode.find('.waf-splitter').length > 0) {
+                    result = true;
+                    this._hasSplitter = result;
+                }
+            }
+            
+            return result;
+        },
         
         /*
          * Resize method called on stop resize
          * @method onResize
          */
         stopResize : function container_stop_resize() {   
-            this._resizeSplitters('stop');
+            if (this.hasSplitter()) {
+                this._resizeSplitters('stop');
+            } else {
+                $.each(this.getChildren(), function() {
+                    this._callResizeEvents('stop');
+                });
+            }
         },    
         
         /*
@@ -222,7 +389,13 @@ WAF.Widget.provide(
          * @method onResize
          */
         startResize : function container_start_resize() {   
-            this._resizeSplitters('start');
+            if (this.hasSplitter()) {
+                this._resizeSplitters('start');
+            } else {
+                $.each(this.getChildren(), function() {
+                    this._callResizeEvents('start');
+                });
+            }
         },       
         
         /*
@@ -237,11 +410,11 @@ WAF.Widget.provide(
             htmlObject,
             position;
             
-            splitType = this._getSplitType();   
-            htmlObject      = $(this.containerNode);
+            splitType   = this._getSplitType();   
+            htmlObject  = $(this.containerNode);
             
             
-            splitter        = htmlObject.children('.waf-splitter');  
+            splitter    = htmlObject.children('.waf-splitter');  
             
             if (splitType === 'horizontally') {
                 position = parseInt(splitter.css('top'));
@@ -257,7 +430,7 @@ WAF.Widget.provide(
          * @method setSplitPosition
          * @param {number} value position to define
          */
-        setSplitPosition   : function container_set_split_size(value) {
+        setSplitPosition   : function container_set_split_size(value, force) {
             var
             widget,
             htmlObject,
@@ -287,15 +460,22 @@ WAF.Widget.provide(
                     
                     $.each(splitted, function() {
                         var
+                        calcul,
                         container;
+                        
+                        if (force) {
+                            calcul = 0;
+                        } else {
+                            calcul = (splitterSize/2);
+                        }
                         
                         container = $(this);       
 
                         if (container.is(":first-child")) {
-                            container.css('height', (value + (splitterSize/2)) + 'px');
+                            container.css('height', (value + calcul) + 'px');
                         } else {
-                            container.css('top', value + (splitterSize/2));
-                            container.css('height', ((tagSize - value) - (splitterSize/2)) + 'px');
+                            container.css('top', value + calcul);
+                            container.css('height', ((tagSize - value) - calcul) + 'px');
                         }   
 
                         $$(container.attr('id'))._resizeSplitters();
@@ -314,15 +494,22 @@ WAF.Widget.provide(
                     
                     $.each(splitted, function() {
                         var
+                        calcul,
                         container;
-
+                        
+                        if (force) {
+                            calcul = 0;
+                        } else {
+                            calcul = (splitterSize/2);
+                        }
+                        
                         container = $(this);       
 
                         if (container.is(":first-child")) {
-                            container.css('width', (value + (splitterSize/2)) + 'px');
+                            container.css('width', (value + calcul) + 'px');
                         } else {
-                            container.css('left', value + (splitterSize/2));
-                            container.css('width', ((tagSize - value) - (splitterSize/2)) + 'px');
+                            container.css('left', value + calcul);
+                            container.css('width', ((tagSize - value) - calcul) + 'px');
                         }   
 
                         $$(container.attr('id'))._resizeSplitters();
@@ -355,17 +542,23 @@ WAF.Widget.provide(
             
             children = $(this.containerNode).children();
             
-            /*
-             * Get splitter type
-             */
-            if (children.length > 1) {
-                if ($(children[0]).css('left') == '0px' && $(children[1]).css('left') == '0px') {
-                    splitType   = 'horizontally';
-                } else {
-                    splitType   = 'vertically';
-                }
+            if (this._splitType != null) {
+                splitType = this._splitType;
             } else {
-                splitType = '';
+                /*
+                 * Get splitter type
+                 */
+                if (children.length > 1) {
+                    if ($(children[0]).css('left') == '0px' && $(children[1]).css('left') == '0px') {
+                        splitType   = 'horizontally';
+                    } else {
+                        splitType   = 'vertically';
+                    }
+                } else {
+                    splitType = '';
+                }
+                
+                this._splitType = splitType;
             }
             
             return splitType;            
@@ -379,13 +572,16 @@ WAF.Widget.provide(
             var
             that,
             child,
+            orient,
             children,
             thatHeight,
             thatWidth,
             splitType,
-            splitter;
+            splitter,
+            container;
             
             that        = $(this.containerNode);
+            container   = this;
             children    = that.children();
             
             type        = type || 'on';
@@ -400,15 +596,16 @@ WAF.Widget.provide(
             thatHeight  = parseInt(that.css('height'));
             thatWidth   = parseInt(that.css('width'));            
 
-            splitter    = that.children('.waf-splitter');
+            splitter    = that.children('.waf-splitter');   
 
             /*
              * Get splitter type
              */
             splitType = this._getSplitType();
-                
+                        
             $.each(children, function(e){
                 var
+                calcul,
                 containerX,
                 containerY,
                 childWidget,
@@ -419,26 +616,27 @@ WAF.Widget.provide(
                 containerX  = parseInt(child.css('left'));
                 containerY  = parseInt(child.css('top'));
                 
-                child.resizeChildren = that.resizeChildren;
-            
-                
+                child.resizeChildren = that.resizeChildren;                
+                                
                 //if (checkResize.x && checkResize.y) {
-                if (child.is('.waf-split-container')) {
+                if (child.is('.waf-split-container')) {                            
                     switch(splitType) {
                         case 'horizontally':
 
-                            if (containerY != 0) {
-                                child.css('height', (thatHeight - containerY) + 'px');
+                            if (containerY != 0 || container._display) {
+                                calcul = thatHeight - containerY;
+                                child.css('height', thatHeight + 'px');
                             }
-
                             child.css('width', thatWidth + 'px');
 
-                            splitter.css('width', thatWidth + 'px');
+                            splitter.css('width', thatWidth + 'px');                            
+                            
                             break;
 
                         case 'vertically':
-                            if (containerX != 0) {
-                                child.css('width', (thatWidth - containerX) + 'px');
+                            if (containerX != 0 || container._display) {
+                                calcul = thatWidth - containerX;
+                                child.css('width', calcul + 'px');
                             }
                             child.css('height', thatHeight + 'px');
 
@@ -451,26 +649,42 @@ WAF.Widget.provide(
                     }
                 }
 
-                if (childWidget && childWidget.checkResize) {
-                    checkResize = childWidget.checkResize();                    
+                if (childWidget && childWidget._checkResize) {
+                    checkResize = childWidget._checkResize();                    
                 
                     if (checkResize.x || checkResize.y) {
-                        childWidget.resize(type);
+                        childWidget._callResizeEvents(type);
                         
                     }
                     
                 }
-                
-            });
+            });  
+            
+            
+            if( WAF.PLATFORM.isTouch ) { 
+                orient = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";
+
+                if (orient == 'profile') {
+                    this.mobileSplitView(true);
+                } else {
+                    this.mobileSplitView(false);
+                }
+            }
         },
         
-        _saveSplitPosition: function(position) {    
+        /**
+         * Save the splittter position into private property
+         * @method _saveSplitPosition
+         * @param {number} position : position of the splitter
+         */
+        _saveSplitPosition: function container_save_split_position(position) {    
             var
             dsPos,
             dsParent,
             htmlObject;
             
             htmlObject = $('#' + this.id);
+            
             if (htmlObject.attr('data-dsPos')) {
                 dsPos = htmlObject.attr('id') + '-' + htmlObject.attr('data-dsPos');
             } else {
@@ -488,6 +702,75 @@ WAF.Widget.provide(
             if (dsPos) {
                 WAF._tmpSplitPosition[this.id] = position;
             } 
+        },
+        
+        /**
+         * Display the splitter has a mobile splitview
+         * @method mobileSplitView
+         * @param {boolean} mobile : true to display as mobile
+         */
+        mobileSplitView : function container_mobile_split_view (mobile) {
+            var
+            that,
+            splitted,
+            firstSplitted;
+            
+            if (mobile == this._display || !this._splitter) {
+                return false;
+            }
+            
+            that            = this;
+            this._display   = mobile;   
+            firstSplitted   = this._splitted[0];
+            
+            
+            if (mobile) {
+                splitted        = firstSplitted.$domNode;
+                /*
+                 * Collapse splitted
+                 */
+                this.setSplitPosition(0, true);
+
+                splitted
+                    .css({
+                        'width'     : this._initTmpPosition + 'px',
+                        'z-index'   : 10
+                    })
+                    .appendTo('body');
+
+                firstSplitted.hide();                    
+
+                this._splitted[1].$domNode.css({
+                    'left'      : '0px',
+                    'width'     : window.innerWidth + 'px',
+                    'z-index'   : 9
+                });
+
+                /*
+                 * Hide splitter
+                 */
+                this._splitter.hide();                    
+
+                this._button.show();                    
+            } else {
+                firstSplitted.show();
+
+                firstSplitted.$domNode
+                    .css({
+                        'left'      : 0,
+                        'top'       : 0,
+                        'z-index'   : 9
+                    })
+                    .appendTo(that.$domNode)
+                    .removeClass('waf-container-split-mobile');
+
+                this._button.hide();
+
+                this._splitted[1].$domNode.css({
+                    'left'      : firstSplitted.$domNode.width() + 'px',
+                    'z-index'   : 10
+                });
+            }
         }
     }
 );

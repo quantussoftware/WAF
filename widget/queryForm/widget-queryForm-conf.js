@@ -21,7 +21,7 @@ WAF.addWidget({
     type       : 'queryForm',
     lib        : 'WAF',
     description: 'Query Form',
-    category   : 'Controls',
+    category   : 'Automatic Controls',
     img        : '/walib/WAF/widget/queryForm/icons/widget-queryForm.png',
     tag        : 'div',
     attributes : [
@@ -296,7 +296,7 @@ WAF.addWidget({
             WAF.AF.buildForm(tag.getAttribute('id').getValue(), null, attrList, nameList, options, catalog, tag);    
                         
             // message if not binding
-            if (nameList.length === 0) {
+            if (nameList.length === 0  && !config['data-binding']) {
                 if ($('#' + tag.overlay.id + ' .message-binding-queryform').length == 0) {
                     $('<div class="message-binding-queryform">Drop a datasource<br> here</div>').appendTo($('#' + tag.overlay.id));
                 }
