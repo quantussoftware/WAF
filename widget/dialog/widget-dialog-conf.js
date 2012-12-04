@@ -24,7 +24,7 @@ WAF.addWidget({
     attributes  : [
     {
         name        : 'data-load',
-        description : 'Interface Page to Include'
+        description : 'HTML file to include'
     },{
         name        : 'data-resizable',
         description : 'Resizable',
@@ -46,10 +46,6 @@ WAF.addWidget({
         description : 'Draggable',
         type        : 'checkbox'
     }, {
-        name        : 'data-autoopen',
-        description : 'Closed by default',
-        type        : 'checkbox'
-    }, {
         name        : 'data-modal',
         description : 'Modal',
         type        : 'checkbox',
@@ -62,10 +58,20 @@ WAF.addWidget({
             if(this.getValue()){
                 tag.getAttribute('data-front').setValue('true');
                 tag.getAttribute(this.data.aName).setValue('true');
-                D.tag.refreshPanels();
             }
+            
+            else{
+                tag.getAttribute(this.data.aName).setValue('false');
+            }
+            
+            D.tag.refreshPanels();
         }
     }, {
+        name        : 'data-hideOnOutsideClick',
+        visibility  : 'hidden',
+        defaultValue: 'false',
+        type        : 'checkbox'
+    },{
         name        : 'data-front',
         description : 'Float on top',
         type        : 'checkbox',

@@ -308,7 +308,11 @@ WAF.tags = {
         tabDomBindings = [],
         lstDomBindings = {},
         binding = {},
-        dataSourceNameGlobalList = {};
+        dataSourceNameGlobalList = {},
+        components = [],
+        compManager = WAF.loader.componentsManager,
+        nbComponents = 0,
+        component = null;
         
         if (typeof includeItself === 'undefined') {
             includeItself = true;
@@ -345,8 +349,28 @@ WAF.tags = {
         		
         // if some sources depends from others, need a second pass
         WAF.dataSource.fullyInitAllSources();
+        
+        // check if components need to be loaded
+        components = $('#' + id + ' [data-type=component]');
+        nbComponents = components.length;
+        if (nbComponents > 0) {
+            
+            for (i = 0; i < nbComponents; i++) {
+                component = components[i];
+	                                        
+                // check if we need to load
+                if (component.getAttribute('data-start-load') == null || component.getAttribute('data-start-load') == 'true') {
+	                                        
+                    // check if we have a valid path
+                    if (component.getAttribute('data-path') != null && component.getAttribute('data-path') != '') {
+                        compManager.add();
+                    }
+                }
+            }                                                                      
+        } 
+        
                 
-        // create first the widget      
+        // create then the widget      
         for (i = 0, nbComponent; i < nbComponent; i++) {
             domobj = tabDom[i];
             this.createComponent(domobj, false);

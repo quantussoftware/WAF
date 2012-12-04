@@ -45,6 +45,7 @@ WAF.loadComponent = function (param) {
     nbAttributes = 0,
     domObj = null,
     sourceName = '',
+    localSourceName = '',
     wigdetName = '',
     tempId = '',
     styleUpdate = '',
@@ -110,10 +111,16 @@ WAF.loadComponent = function (param) {
     // read the ressources from the client cache
     icomponent = WAF.components[param.path];
     if (icomponent && icomponent.cache && icomponent.cache.html && icomponent.cache.style && icomponent.cache.script) {                                       
-        // clean the component placeholder
+        // clean the component widgets
         if ($$(param.id) && $$(param.id).widgets) {
             for (wigdetName in $$(param.id).widgets) {                
                 $('#' + param.id + '_' + wigdetName).remove();
+            } 
+        }
+        // clean the component sources
+        if ($$(param.id) && $$(param.id).sources) {
+            for (localSourceName in $$(param.id).sources) {                                
+                delete sources[param.id + '_' + localSourceName];
             } 
         }
         $('#' + param.id).empty();        
@@ -159,19 +166,7 @@ WAF.loadComponent = function (param) {
         
         // create the instance of the component                                          
         myComp = new WAF.widget[param.name](param.data);
-        WAF.widgets[param.id] = myComp; 
-        
-        for (wigdetName in WAF.widgets) {
-            if (wigdetName.indexOf(param.id + '_') == 0) {
-                
-                /*
-                 * Execute widget component load custom event
-                 */
-                if (WAF.widgets[wigdetName].onComponentLoad) {
-                    WAF.widgets[wigdetName].onComponentLoad();
-                }
-            }
-        } 
+        WAF.widgets[param.id] = myComp;         
          
         if (myComp.load) {
             myComp.load(param.data);  
@@ -214,6 +209,18 @@ WAF.loadComponent = function (param) {
             }                                                                                    
                                         
         }  
+        
+        for (wigdetName in WAF.widgets) {
+            if (wigdetName.indexOf(param.id + '_') == 0) {
+                
+                /*
+                 * Execute widget component load custom event
+                 */
+                if (WAF.widgets[wigdetName].onComponentLoad) {
+                    WAF.widgets[wigdetName].onComponentLoad();
+                }
+            }
+        } 
                
         param.onSuccess();
     } else {    
@@ -249,7 +256,7 @@ WAF.loadComponent = function (param) {
             
                 // get the html            
                 $.get(param.path + '/' + params.html + '?tmp=' + tempId, function (html) {
-                
+                   
                     var tabRequire = [],
                     scripts = [],
                     script = '',
@@ -270,6 +277,10 @@ WAF.loadComponent = function (param) {
                     htmlUpdate = html.replace(/{id}/g, param.id + '_');
                     htmlUpdate = htmlUpdate.replace('<!DOCTYPE html >', '');
                     htmlUpdate = htmlUpdate.replace('<meta name="generator" content="Wakanda GUIDesigner"/>', '');
+                    
+                    if($('script[src="/waLib/WAF/lib/tiny_mce/tiny_mce.js"]').length){
+                        htmlUpdate = htmlUpdate.replace('<script type="text/javascript" src="/waLib/WAF/lib/tiny_mce/tiny_mce.js"></script>', '');
+                    }
                     
                     // clean the component placeholder
                     $('#' + param.id).empty();
@@ -533,19 +544,7 @@ WAF.loadComponent = function (param) {
                                     // DO NOTHING
                                     }
 
-                                    myComp = new WAF.widget[param.name](param.data);
-          
-                                    for (wigdetName in WAF.widgets) {
-                                        if (wigdetName.indexOf(param.id + '_') == 0) {                                     
-                
-                                            /*
-                                             * Execute widget component load custom event
-                                             */
-                                            if (WAF.widgets[wigdetName].onComponentLoad) {
-                                                WAF.widgets[wigdetName].onComponentLoad();
-                                            }
-                                        }
-                                    }     
+                                    myComp = new WAF.widget[param.name](param.data);            
                                                      
                                     if (myComp.load) {
                                         myComp.load(param.data);  
@@ -586,7 +585,19 @@ WAF.loadComponent = function (param) {
                                             }
                                         }                                                                                    
                                         
-                                    }                                                                
+                                    }         
+                                    
+                                    for (wigdetName in WAF.widgets) {
+                                        if (wigdetName.indexOf(param.id + '_') == 0) {                                     
+                
+                                            /*
+                                             * Execute widget component load custom event
+                                             */
+                                            if (WAF.widgets[wigdetName].onComponentLoad) {
+                                                WAF.widgets[wigdetName].onComponentLoad();
+                                            }
+                                        }
+                                    }  
                                                                 
                                     WAF.widgets[param.id] = myComp;
                                                                         
@@ -597,24 +608,24 @@ WAF.loadComponent = function (param) {
                                     tagScript.innerHTML = includeJavascript;
                                     document.getElementsByTagName('head')[0].appendChild(tagScript);
                                 }
-                                                             
-                                compManager.remove(
-                                    function () {
-                                        if (!compManager.hasComponent() && !rpcFileManager.hasRpcFile() && WAF._private.catalogLoaded) {                                
-                                            WAF.onReady();			
-                                        }
-                                    });
+                                                                                                               
+                                if (myComp.$domNode.attr('data-start-load') == null || myComp.$domNode.attr('data-start-load') == 'true') {	                                                                                                                                          
+                                    compManager.remove(
+                                        function () {
+                                            if (!compManager.hasComponent() && !rpcFileManager.hasRpcFile() && WAF._private.catalogLoaded) {                                                                                 
+                                                WAF.onReady();			
+                                            }
+                                        });                                     
+                                }
                                     
                                 param.onSuccess();                                
                             }
                         }
                     };
                         
-                    reqScript.send(null);
-                    
-                    
+                    reqScript.send(null);                                        
                        
-                });
+                }, 'html');
                 
             }    
         })

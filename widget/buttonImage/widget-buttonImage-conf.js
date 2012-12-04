@@ -106,7 +106,10 @@ WAF.addWidget({
                 data    = this.data;
                 tag     = data.tag;
                 icon    = tag.getLinks()[0];
-                label   = icon.getLabel();
+				
+				if (typeof icon !== 'undefined') {
+					label   = icon.getLabel();
+				}
                 
                 if (label && label.status != 'destroy') {
                     this.setValue(label.getAttribute('data-text').getValue());

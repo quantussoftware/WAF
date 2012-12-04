@@ -1880,8 +1880,14 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
                     html += '</textarea>';
 
                 } else {
+					html += '<div data-lib="WAF" type="checkbox" class="'+dataTheme+'waf-form-att-value-checkbox waf-widget waf-checkbox" data-type="checkbox" style="width:16px;height:16px;position:relative;top:3px;" ';
+                    html += 'data-binding="'+binding+'" id="' + divID + "_" + htmlIDName + '"></div>';
+					/*
+					  "waf-checkbox-level-0 waf-level-0"
+					 
                     html += '<input type="checkbox" class="'+dataTheme+'waf-form-att-value-checkbox waf-widget waf-checkbox" datatype="checkbox" ';
                     html += 'data-binding="'+binding+'" id="' + divID + "_" + htmlIDName + '"/>';
+                    */
                 }
 
                 html += '<div class="errormess-div" id="' + divID + '_' + htmlIDName + '__mess"></div>';

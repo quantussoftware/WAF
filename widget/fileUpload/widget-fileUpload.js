@@ -86,7 +86,7 @@ WAF.Widget.provide(
             if (that.source && that.source.getDataClass() && that.source.getDataClass().getName) {
                 extraConfig.datasource  = {
                     dsname  : that.source.getDataClass().getName(),
-                    id      : that.source.ID,
+                    id      : that.source.getCurrentElement()?that.source.getCurrentElement().getKey():null,
                     field   : that.sourceAtt.name,
                     saveOnDS: config['data-action'] === 'true'
                 }
@@ -448,7 +448,7 @@ WAF.Widget.provide(
         _sendFiles : function(filesInfo, files, config){
             var that = this;
             if(that.source && config.datasource){
-                config.datasource.id = that.source.ID;
+                config.datasource.id = that.source.getCurrentElement().getKey();
             }
             
             if(files.length < 1) {

@@ -284,7 +284,7 @@ WAF.Widget.provide(
         renameMenuItem : function menuitem_rename_menuItem(label) {
             var
             richText;
-            richText = this.$domNode.children('.waf-richText');
+            richText = this.$domNode.children('.waf-menuItem-text');
             richText.html(label);
         },
        

@@ -479,20 +479,33 @@ WAF.Widget.provide(
         *
         * @/shared
         * @/method setValue
+        * @returns selectedValue (can be the previous one if itemValue couldn't be found)
         **/
         setValue: function setValue(itemValue){
             
-            var 
-            cont = $(this.containerNode),
-            label;
+            var cont = $(this.containerNode),
+                label = '',
+                returnValue = this.getValue(),
+                matchedOption = null;
             
-            if (typeof(itemValue) != 'undefined') {
-                cont.find("select").val(itemValue);
-                label = cont.find('option:selected').text();
-                cont.find(".waf-select-label").get()[0].innerHTML = label;
+            // don't do anything if widget is disabled, or its value is undefined/invalid
+            if (!this.isDisabled() && typeof(itemValue) != 'undefined' && itemValue !== returnValue) {
+                // first check we have a valid itemValue
+                matchedOption = cont.find('select option[value=' + itemValue + ']');
+                if (matchedOption.length) {
+                    returnValue = itemValue;
+                    
+                    // set standard select object's value
+                    cont.find("select").val(itemValue);
+                    label = cont.find('option:selected').text();
+                    cont.find(".waf-select-label").get(0).innerHTML = label;
+
+                    // only trigger the change event if the value could be changed
+                    this.$domNode.trigger('change');                                
+                }
             }
 
-            return label;
+            return returnValue;
         },
         /**
         * onChange

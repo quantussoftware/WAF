@@ -785,6 +785,7 @@ WAF.addWidget({
         var 
         title,
         group,
+        action,
         classes,
         container,
         legendary;
@@ -845,10 +846,41 @@ WAF.addWidget({
                 widget.addClass(config['class']);
             }
             
-            for(var i = 0 , fit ; fit = allFits[i] ; i++ ){
+            for(var i = allFits.length - 1 , fit ; fit = allFits[i] ; i-- ){
+                if($.inArray(fit, config.fit) >= 0 && i > 1){
+                    action = new Designer.action['Add' + camelCaseFits[i] + 'Constraint']({
+                        tagId       : widget.id,
+                        tagHtmlId   : widget.getId(),
+                        oldVal      : 1
+                    });
+
+                    Designer.getHistory().add(action);
+                }
                 
+                else if($.inArray(fit, config.fit) < 0 && i <= 1){
+                    action = new Designer.action['Remove' + camelCaseFits[i] + 'Constraint']({
+                        tagId       : widget.id,
+                        tagHtmlId   : widget.getId(),
+                        oldVal      : 1
+                    });
+
+                    Designer.getHistory().add(action);
+                }
+            }
+            
+            for(i = 0 , fit ; fit = allFits[i] ; i++ ){
                 if($.inArray(fit, config.fit) >= 0){
                     widget.savePosition(fit, config[fit], false, false);
+                    
+                    action = new Designer.action.ModifyStyleInline({
+                        val         : config[fit],
+                        oldVal      : 0.001,    
+                        tagId       : widget.id,
+                        tagHtmlId   : widget.getId(),
+                        prop        : fit
+                    });
+
+                    Designer.getHistory().add(action);
                 }
                 
                 else{
@@ -962,9 +994,28 @@ WAF.addWidget({
                 type        : 'container',
                 subElem     : false
             });
+
+            action = new Designer.action.ModifyStyleInline({
+                val         : parseInt(param.y || param.pos.y),
+                oldVal      : 0,    
+                tagId       : container.id,
+                tagHtmlId   : container.getId(),
+                prop        : "top"
+            });
+
+            Designer.getHistory().add(action);
+
+            action = new Designer.action.ModifyStyleInline({
+                val         : parseInt(param.x || param.pos.x),
+                oldVal      : 0,    
+                tagId       : container.id,
+                tagHtmlId   : container.getId(),
+                prop        : "left"
+            });
+
+            Designer.getHistory().add(action);
             
-            
-            tag._addWidget({
+            title = tag._addWidget({
                 fit         : ['top' , 'left' , 'right'],
                 height      : 40,
                 top         : 10,
@@ -978,6 +1029,16 @@ WAF.addWidget({
                     'data-autoWidth': 'false'
                 }
             });
+
+            action = new Designer.action.ModifyStyleInline({
+                val         : container.getWidth(),
+                oldVal      : container.getWidth() - 1,    
+                tagId       : title.id,
+                tagHtmlId   : title.getId(),
+                prop        : "width"
+            });
+
+            Designer.getHistory().add(action);
             
             tag._addWidget({
                 height      : 155,
@@ -993,13 +1054,46 @@ WAF.addWidget({
             
             tag.setParent(container);
             
-            tag.setFitToRight(true);
-            tag.setFitToBottom(true);
+            tag.forceBottomConstraint();
+            tag.forceRightConstraint();
             
             tag.savePosition('bottom', 0 , false , false);
             tag.savePosition('right', 180 , false , false);
             tag.savePosition('top', 85 , false , false);
             tag.savePosition('left', 15 , false , false);
+            
+            $(container).bind('onFocusSizeChange' , function(){
+                tag.onDesign(true);
+                if(Designer.env.createMode){
+                    tag.onDesign(true);
+                    if(container.getHeight() > 90){
+                        tag.setHeight(container.getHeight() - 90 , true);
+                    }
+                    
+                    if(container.getWidth() > 190){
+                        tag.setWidth(container.getWidth() - 190 , true);
+                    }
+                }
+                else if(!tag._private.constraintFixed){
+                    if(tag.isFitToBottom()){
+                        tag.removeBottomConstraint();
+                        tag.forceBottomConstraint();
+                    }
+                    if(tag.isFitToRight()){
+                        tag.removeRightConstraint();
+                        tag.forceRightConstraint();
+                    }
+                    
+                    tag._private.constraintFixed = true;
+                }
+            });
+            
+            $(tag).bind('onFocusSizeChange' , function(){
+                if(Designer.env.createMode){
+                    container.setCurrent();
+                    tag.setXY(15,85 , true);
+                }
+            });
         }
         else {
             /*

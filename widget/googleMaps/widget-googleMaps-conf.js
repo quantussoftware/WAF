@@ -17,7 +17,6 @@ WAF.addWidget({
     
     /**
     *  Widget Descriptor
-    *
     */ 
     
     /* PROPERTIES */
@@ -54,16 +53,40 @@ WAF.addWidget({
     {
         name         : 'data-binding',
         description  : 'Source',
-        type         : 'string'
+        type         : 'string',
+        visibility  : 'hidden'
     },
     
     {
         name         : 'data-address',
         autocomplete : true,
         defaultValue : '',
-        description  : 'Address',
-        type         : 'string'
-    },    
+        description  : 'Source',
+        type         : 'string',
+        onchange     : function (e) {
+            var
+            value,
+            source;
+            
+            value = this.getValue();
+            if(value.indexOf(".") !== -1 ){
+                value       = value.split('.');
+                source      = value[0];
+                this.data.tag.getAttribute('data-binding').setValue(source);
+                this.data.tag.domUpdate();
+            }
+        }
+    }, 
+    {
+        name        : 'data-label',
+        description : 'Label',
+        defaultValue: 'Label'
+    },
+    {
+               name        : 'data-label-position',
+               description : 'Label position',
+               defaultValue: 'top'
+       },   
    
     {
         name        : 'data-infowindow',
@@ -99,7 +122,7 @@ WAF.addWidget({
     {
         name         : 'data-key',
         defaultValue : '',
-        description  : 'Google Key'
+        description  : 'Google key'
     },
 
     {
@@ -112,14 +135,7 @@ WAF.addWidget({
             max : 20
         },
         reloadTag   : true
-    }, 
-
-    {
-        name         : 'data-sensor',
-        defaultValue : 'true',
-        description  : 'Sensor',
-        type         : 'checkbox'
-    }, 
+    },
     {
         name         : 'data-language',
         description  : 'Language',
@@ -133,35 +149,41 @@ WAF.addWidget({
         description  : 'Auto display bubble',
         type         : 'checkbox'
     },
-
     {
-        name         : 'data-panControl',
-        defaultValue : 'true',
-        description  : 'Hide pan',
+        name         : 'data-streetView',
+        description  : 'Display street view',
         type         : 'checkbox',
-        category     : 'Controllers'
-    }, 
+        defaultValue : 'true',
+        category     : 'Controls'
+    },
     {
         name         : 'data-zoomControl',
-        description  : 'Hide zoom',
+        description  : 'Display zoom',
         type         : 'checkbox',
-        defaultValue : 'false',
-        category     : 'Controllers'
+        defaultValue : 'true',
+        category     : 'Controls'
     },
 
     {
         name         : 'data-scaleControl',
-        description  : 'Hide scale',
+        description  : 'Display scale',
         type         : 'checkbox',
-        defaultValue : 'false',
-        category     : 'Controllers'
+        defaultValue : 'true',
+        category     : 'Controls'
     },
 
     {
-        name         : 'data-binding-marker',
+        name         : 'data-binding-tooltip',
         description  : 'Tooltip',
         category     : 'Marker'
     },
+    {
+        name         : 'data-panControl',
+        defaultValue : 'false',
+        description  : 'Display pan',
+        type         : 'checkbox',
+        category     : 'Controls'
+    }, 
     
     {
         name         : 'data-marker-icon-selected',
@@ -173,7 +195,7 @@ WAF.addWidget({
     
     {
         name         : 'data-marker-icon',
-        description  : 'icon',
+        description  : 'Icon',
         type         : 'file',
         accept       : 'image/*',
         category     : 'Marker'
@@ -185,6 +207,12 @@ WAF.addWidget({
         defaultValue : '1',
         typeValue    : 'integer',
         category     : 'Marker'
+    },
+    
+    {
+        name: 'data-errorDiv',
+        description: 'Placeholder for error description',
+        category: 'Error Handling'
     }    
     ],
 
@@ -245,15 +273,11 @@ WAF.addWidget({
     // @property {Object} enable style settings in the Styles panel in the Properties area in the GUI Designer
     properties: {
         style: {                                                
-            theme       : false,                 // false to not display the "Theme" option in the "Theme & Class" section
-
-            //    theme : {
-            //    	roundy: false		//all the default themes are displayed by default. Pass an array with the
-            //   }				//themes to hide ('default', 'inherited', roundy, metal, light)
-        
+            theme       : false,
             fClass      : true,                 // true to display the "Class" option in the "Theme & Class" section
             text        : false,                 // true to display the "Text" section
             background  : false,                 // true to display widget "Background" section
+            dropShadow  : true,
             border      : true,                 // true to display widget "Border" section
             sizePosition: true,                 // true to display widget "Size and Position" section
             label       : true,                 // true to display widget "Label Text" and "Label Size and Position" sections
@@ -333,6 +357,16 @@ WAF.addWidget({
         }
 
         htmlObject.append(img);
-    }                                                               
+    },
+    
+    onCreate: function (tag, param) {
+        $('body').on('keyup','#string-data-address', {tag:tag}, function(e){
+                
+                if($(this).val() === '' ) {
+                    e.data.tag.getAttribute('data-binding').setValue("");
+                    e.data.tag.domUpdate();
+                }
+            });
+    }
     
 });                                                                                                                                  

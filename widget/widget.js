@@ -181,8 +181,8 @@ WAF.Widget.prototype.hide = function hide ( type ) {
 
             if (this.style.visibility == 'visible') {
                 that
-                    .css('visibility', 'hidden')
-                    .data('hasBeenHidden', true);
+                .css('visibility', 'hidden')
+                .data('hasBeenHidden', true);
             }
         });
     
@@ -546,14 +546,14 @@ WAF.Widget.prototype.getFormattedValue = function getFormattedValue (value, enco
         }
         result = value;
     } else if (typeof (value) == 'string') {
-		result = WAF.utils.formatString(value, this.format);
+        result = WAF.utils.formatString(value, this.format);
         if (this.kind === 'textField') {
-            //result = value;
+        //result = value;
         } else{
             if (encode != false) {
                 result = htmlEncode(result, true, 4);
             } 
-			/*else {
+        /*else {
                 result = value;
             }*/
         }
@@ -642,6 +642,7 @@ WAF.Widget.prototype.getValue = function () {
             break;
 
         case 'radioGroup':
+
             value = $('#' + this.id + ' .waf-state-selected input').val();
             break;
 
@@ -664,11 +665,9 @@ WAF.Widget.prototype.getValue = function () {
  * @return {String}
  **/ 
 WAF.Widget.prototype.setValue = function (value) {
-    var 
-    kind;
+    var kind = this.kind,
+    noChange = false;
 
-    kind = this.kind;     
-     
     if (!this.isDisabled()) {  
         switch (kind) {
             case 'combobox':
@@ -688,10 +687,24 @@ WAF.Widget.prototype.setValue = function (value) {
                 break;
 
             case 'radioGroup':
-                var radio = $('#' + this.id + ' [value="' + value + '"]')
-                radio.prop('checked', 'checked');            
-                this.$domNode.find('.waf-radio').removeClass('waf-state-selected');                
-                radio.parent().addClass('waf-state-selected');
+                var radio = $('#' + this.id + ' [value="' + value + '"]');
+
+                this.$domNode.find('input[type=radio]:checked').attr('checked', false);
+
+                // in case we try to check an unknown radio value we simply do nothing
+                if (radio.length) {
+                    radio.prop('checked', 'checked');            
+                    this.$domNode.find('.waf-radio').removeClass('waf-state-selected');
+                    // if $$('radioGroup').setValue() is called on documentLoad, the html isn't ready yet
+                    // so the <li> gets the class added instead of the parent <div> (which is added later in the widget creation
+                    // This later breaks setValue()
+                    if (radio.parent().is('div')) {
+                        radio.parent().addClass('waf-state-selected');
+                    }
+                    this._value = value;
+                } else {
+                    noChange = true;
+                }
                 break;
 
             case 'slider':
@@ -706,12 +719,17 @@ WAF.Widget.prototype.setValue = function (value) {
                 this.$domNode.val(value);
                 break;
         }
+    } else {
+        // prevent change event from being triggered if the widget is disabled
+        noChange = true;
     }
 
     /*
      * Trigger change event
      */
-    this.$domNode.trigger('change');
+    if (noChange === false) {
+        this.$domNode.trigger('change');
+    }
 }
     
     
@@ -962,8 +980,12 @@ WAF.Widget.prototype.resize = function (width, height) {
  * @method getWidth
  * @return {number} width value
  */  
-WAF.Widget.prototype.getWidth = function () {
-    return this.$domNode.outerWidth();
+WAF.Widget.prototype.getWidth = function (includeMargin) {
+    if (includeMargin === true) {
+        return this.$domNode.outerWidth(true);
+    } else {
+        return this.$domNode.outerWidth();
+    }
 }
 
 /**
@@ -983,11 +1005,29 @@ WAF.Widget.prototype.getHeight = function () {
  * @return {object} left, top, bottom, right
  */  
 WAF.Widget.prototype.getPosition = function () {
+    var left = this.$domNode.css('left'),
+    top = this.$domNode.css('top'),
+    bottom = this.$domNode.css('bottom'),
+    right = this.$domNode.css('right');
+
+    if (left === 'auto') {
+        left = this.$domNode.offset().left;
+    }
+    if (top === 'auto') {
+        top = this.$domNode.offset().top;
+    }
+    if (bottom === 'auto') {
+        bottom = $(window).height() - this.$domNode.offset().top - this.$domNode.outerHeight(false);
+    }
+    if (right === 'auto') {
+        right = $(window).width() - this.$domNode.offset().left - this.$domNode.outerWidth(false);
+    }
+        
     return {
-        left    : parseInt(this.$domNode.css('left')),
-        top     : parseInt(this.$domNode.css('top')),
-        bottom  : parseInt(this.$domNode.css('bottom')),
-        right   : parseInt(this.$domNode.css('right'))
+        left    : parseInt(left, 10),
+        top     : parseInt(top, 10),
+        bottom  : parseInt(bottom, 10),
+        right   : parseInt(right, 10)
     }
 }
 
@@ -1146,66 +1186,66 @@ WAF.Widget.prototype.getState = function getState () {
  * @param {string} value : state value
  */
 WAF.Widget.prototype.setState = function setState (value) {
-        var
-        label,
-        nState,
-        htmlObject;
+    var
+    label,
+    nState,
+    htmlObject;
 
-        label = this.getLabel();
+    label = this.getLabel();
         
-        value = value || 'default';
+    value = value || 'default';
 
-        if (!this._disabled) {
-            htmlObject = this.$domNode;
+    if (!this._disabled) {
+        htmlObject = this.$domNode;
 
-            htmlObject.addClass('waf-state-' + value);
+        htmlObject.addClass('waf-state-' + value);
 
-            if (value == 'hover') {
-                htmlObject.removeClass('waf-state-active');
-                htmlObject.removeClass('waf-state-default');
-            }
+        if (value == 'hover') {
+            htmlObject.removeClass('waf-state-active');
+            htmlObject.removeClass('waf-state-default');
+        }
 
-            if (value == 'active') {
-                htmlObject.removeClass('waf-state-hover');
-                htmlObject.removeClass('waf-state-default');
-            }
+        if (value == 'active') {
+            htmlObject.removeClass('waf-state-hover');
+            htmlObject.removeClass('waf-state-default');
+        }
 
-            if (value == 'focus') {
-                htmlObject.removeClass('waf-state-hover');
-                htmlObject.removeClass('waf-state-default');
-            }
+        if (value == 'focus') {
+            htmlObject.removeClass('waf-state-hover');
+            htmlObject.removeClass('waf-state-default');
+        }
 
-            if (value == 'default') {
-                htmlObject.removeClass('waf-state-hover');
-                htmlObject.removeClass('waf-state-active');
-                htmlObject.removeClass('waf-state-focus');
-                htmlObject.removeClass('waf-state-disabled');
+        if (value == 'default') {
+            htmlObject.removeClass('waf-state-hover');
+            htmlObject.removeClass('waf-state-active');
+            htmlObject.removeClass('waf-state-focus');
+            htmlObject.removeClass('waf-state-disabled');
 
-                this._tmpState = nState;
-            }            
+            this._tmpState = nState;
+        }            
                 
-            if (value == 'state2') {
-                htmlObject.removeClass('waf-state-state3');
-            }
-
-            if (value == 'state3') {
-                htmlObject.removeClass('waf-state-state2');
-            }
-
-            if (value == 'state1') {
-                htmlObject.removeClass('waf-state-state2');
-                htmlObject.removeClass('waf-state-state3');
-                htmlObject.removeClass('waf-state-state4');
-
-                this._tmpState = value;
-            }
+        if (value == 'state2') {
+            htmlObject.removeClass('waf-state-state3');
         }
 
-        if (label) {
-            this.getLabel().setState(value);
+        if (value == 'state3') {
+            htmlObject.removeClass('waf-state-state2');
         }
 
-        this._currentState = value;
+        if (value == 'state1') {
+            htmlObject.removeClass('waf-state-state2');
+            htmlObject.removeClass('waf-state-state3');
+            htmlObject.removeClass('waf-state-state4');
+
+            this._tmpState = value;
+        }
+    }
+
+    if (label) {
+        label.setState(value);
+    }
+
+    this._currentState = value;
 }; 
 
 /**
@@ -1278,8 +1318,8 @@ WAF.Widget.prototype.disable = function disable () {
      * Add disable class & disabled attribute
      */
     this.$domNode
-        .addClass('waf-state-disabled')
-        .prop('disabled', 'disabled');    
+    .addClass('waf-state-disabled')
+    .prop('disabled', 'disabled');    
 
     /*
      * Disable widget's events
@@ -1344,8 +1384,8 @@ WAF.Widget.prototype.enable = function enable () {
      * Remove disable class & disabled attribute
      */
     this.$domNode
-        .removeClass('waf-state-disabled')
-        .removeProp('disabled');    
+    .removeClass('waf-state-disabled')
+    .removeProp('disabled');    
 
     /*
      * Enable widget's events
@@ -1680,11 +1720,11 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
      * When the last widget is ready
      */
     if (WAF.Widget._lastWidget == this.id && !WAF.widgets._isReady) {
-        resizableWidgets = $('body').children('.waf-container[data-constraint-right],.waf-container[data-constraint-bottom],\n\
-                                                .waf-matrix[data-constraint-right],waf-matrix[data-constraint-bottom],\n\
-                                                .waf-splitView[data-constraint-right],waf-splitView[data-constraint-bottom],\n\
-                                                .waf-navigationView[data-constraint-right],waf-navigationView[data-constraint-bottom],\n\
-                                                .waf-component[data-constraint-right],.waf-component[data-constraint-bottom]');
+        resizableWidgets = $('body').children('.waf-container[data-constraint-right],.waf-container[data-constraint-bottom],' +
+            '.waf-matrix[data-constraint-right],waf-matrix[data-constraint-bottom],' +
+            '.waf-splitView[data-constraint-right],waf-splitView[data-constraint-bottom],' +
+            '.waf-navigationView[data-constraint-right],waf-navigationView[data-constraint-bottom],' +
+            '.waf-component[data-constraint-right],.waf-component[data-constraint-bottom]');
     
         if (resizableWidgets.length == 0) {
             var component;
@@ -1765,10 +1805,10 @@ WAF.Widget.prototype.init = function init (inClassName, inConfig) {
         } 
     }
 
-	// hide widget on load
-	if (this.config['data-hideonload'] === 'true') {
-		this.$domNode.hide();
-	}
+    // hide widget on load
+    if (this.config['data-hideonload'] === 'true') {
+        this.$domNode.hide();
+    }
 };
 
 

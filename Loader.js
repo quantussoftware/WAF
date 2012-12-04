@@ -33,7 +33,7 @@ if (typeof(WAF) === 'undefined') {
          * @property VERSION
          * @type String
          **/
-        'VERSION': 'Dev',
+        'VERSION': '3',
         /**
          * The version of the platform (OS, browser, device)
          *
@@ -110,11 +110,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/skin/metal/css/widget-skin-metal.css',
                 '+/widget/skin/light/css/widget-skin-light.css',
                 '+/widget/skin/cupertino/css/widget-skin-cupertino.css',
-                /* WAF accordion */
-                '+/widget/accordion/css/widget-accordion.css',
-                '+/widget/accordion/skin/default/css/widget-accordion-skin-default.css',
-                '+/widget/accordion/skin/metal/css/widget-accordion-skin-metal.css',
-                '+/widget/accordion/skin/light/css/widget-accordion-skin-light.css',
                 /* Datepicker */
                 '+/widget/datepicker/skin/default/css/widget-datepicker-skin-default.css',
                 '+/widget/datepicker/skin/metal/css/widget-datepicker-skin-metal.css',
@@ -132,12 +127,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/autoForm/skin/metal/css/widget-autoForm-skin-metal.css',
                 '+/widget/autoForm/skin/light/css/widget-autoForm-skin-light.css',
                 '+/widget/autoForm/skin/roundy/css/widget-autoForm-skin-roundy.css',
-                /* WAF QUERYFORM */
-                /*
-                '+/widget/queryForm/css/widget-queryForm.css',
-                '+/widget/queryForm/skin/metal/css/widget-queryForm-skin-metal.css',
-                '+/widget/queryForm/skin/roundy/css/widget-queryForm-skin-roundy.css',
-                */
                 /* WAF CONTAINER */
                 '+/widget/container/css/widget-container.css',
                 '+/widget/container/skin/default/css/widget-container-skin-default.css',
@@ -259,7 +248,7 @@ if (typeof(WAF) === 'undefined') {
                 /* WAF beautytips */
                 '+/lib/beautytips/beautytips.css'
                 
-                /* PUT LINKS TO CSS FOR YOUR CUSTOM WIDGETS HERE */
+                /* ADD LINKS TO THE CSS FILES FOR YOUR CUSTOM WIDGETS HERE */
                
                 ],
                 require: [
@@ -347,9 +336,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/textField/widget-textField.js',
                 '+/widget/textField/widget-textField-conf.js',				
                 '+/widget/googleMap/widget-googleMap.js',
-                '+/widget/googleMap/widget-googleMap-conf.js',                
-                '+/widget/googleChart/widget-googleChart.js',
-                '+/widget/googleChart/widget-googleChart-conf.js',								
+                '+/widget/googleMap/widget-googleMap-conf.js',                								
                 '+/widget/yahooWeather/widget-yahooWeather.js',
                 '+/widget/yahooWeather/widget-yahooWeather-conf.js',				
                 '+/widget/progressBar/widget-progressBar.js',
@@ -391,9 +378,9 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/calendar/widget-calendar-conf.js',
                 '+/widget/googleMaps/widget-googleMaps.js',
                 '+/widget/googleMaps/widget-googleMaps-conf.js',
-                '+/widget/accordion/widget-accordion.js',
-                '+/widget/accordion/widget-accordion-conf.js',
                 '+/widget/calendar/js/datepicker.js'
+                
+                /* ADD LINKS TO THE JS FILES FOR YOUR CUSTOM WIDGETS HERE */
 
                 ]
             },
@@ -420,11 +407,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/skin/metal/css/widget-skin-metal.css',
                 '+/widget/skin/light/css/widget-skin-light.css',
                 '+/widget/skin/cupertino/css/widget-skin-cupertino.css',
-                /* WAF accordion */
-                '+/widget/accordion/css/widget-accordion.css',
-                '+/widget/accordion/skin/default/css/widget-accordion-skin-default.css',
-                '+/widget/accordion/skin/metal/css/widget-accordion-skin-metal.css',
-                '+/widget/accordion/skin/light/css/widget-accordion-skin-light.css',
                 /* WAF login */
                 '+/widget/login/css/widget-login.css',
                 '+/widget/login/skin/default/css/widget-login-skin-default.css',
@@ -446,13 +428,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/autoForm/skin/metal/css/widget-autoForm-skin-metal.css',
                 '+/widget/autoForm/skin/light/css/widget-autoForm-skin-light.css',
                 '+/widget/autoForm/skin/roundy/css/widget-autoForm-skin-roundy.css',
-                /* WAF QUERYFORM */
-                /*
-                '+/widget/queryForm/css/widget-queryForm.css',
-                '+/widget/queryForm/skin/metal/css/widget-queryForm-skin-metal.css',
-                '+/widget/queryForm/skin/light/css/widget-queryForm-skin-light.css',
-                '+/widget/queryForm/skin/roundy/css/widget-queryForm-skin-roundy.css',
-                */
                 /* WAF CONTAINER */
                 '+/widget/container/css/widget-container.css',
                 '+/widget/container/skin/default/css/widget-container-skin-default.css',
@@ -587,7 +562,10 @@ if (typeof(WAF) === 'undefined') {
                 /* WAF beautytips */
                 '+/lib/beautytips/beautytips.css',
                 /* WAF mobiscroll */
-                '+/lib/mobile/mobiscroll/css/mobiscroll-1.5.3.min.css'                   
+                '+/lib/mobile/mobiscroll/css/mobiscroll-1.5.3.min.css' 
+                
+                /* ADD LINKS TO THE CSS FILES FOR YOUR CUSTOM WIDGETS HERE */
+                
                 ],
                 require: [
                 /* WAF */
@@ -671,9 +649,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/textField/widget-textField.js',
                 '+/widget/textField/widget-textField-conf.js',				
                 '+/widget/googleMap/widget-googleMap.js',
-                '+/widget/googleMap/widget-googleMap-conf.js',                
-                '+/widget/googleChart/widget-googleChart.js',
-                '+/widget/googleChart/widget-googleChart-conf.js',								
+                '+/widget/googleMap/widget-googleMap-conf.js',                								
                 '+/widget/yahooWeather/widget-yahooWeather.js',
                 '+/widget/yahooWeather/widget-yahooWeather-conf.js',				
                 '+/widget/progressBar/widget-progressBar.js',
@@ -720,99 +696,15 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/calendar/js/datepicker.js',
                 '+/widget/googleMaps/widget-googleMaps.js',
                 '+/widget/googleMaps/widget-googleMaps-conf.js',
-                '+/widget/accordion/widget-accordion.js',
-                '+/widget/accordion/widget-accordion-conf.js',
                 
                 /* mobile */ 
                 '+/lib/mobile/iscroll/iscroll-lite.js',
                 '+/lib/mobile/jquery.ui.ipad.altfix.js',
                 '+/lib/mobile/mobiscroll/js/mobiscroll-1.5.3.min.js'
                 
+                /* ADD LINKS TO THE JS FILES FOR YOUR CUSTOM WIDGETS HERE */
+                
                 ]
-            },          
-            'reporting' : {
-                css : [
-                /* WAF */
-                '+/lib/jquery-ui/themes/base/jquery.ui.core.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.resizable.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.selectable.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.accordion.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.autocomplete.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.button.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.dialog.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.slider.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.tabs.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.datepicker.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.progressbar.css',
-                '+/lib/jquery-ui/themes/base/jquery.ui.theme.css',				   
-                '+/lib/selectbox/jquery-selectbox.css',
-                /* WAF WIDGET */
-                '+/widget/css/widget.css',
-                '+/widget/skin/default/css/widget-skin-default.css',
-                '+/widget/skin/metal/css/widget-skin-metal.css',
-                '+/widget/skin/light/css/widget-skin-light.css',
-                '+/widget/skin/cupertino/css/widget-skin-cupertino.css',
-                
-                /* WAF RICHTEXT */
-                '+/report/richText/css/widget-richText.css'
-                ],
-                require : [
-                /* WAF */
-                '+/Core/Native/Rest.js',
-                '+/Core/Utils/Timers.js',
-                '+/Core/Utils/DebugTools.js',
-                '+/Core/Utils/Environment.js',
-                '+/Core/Utils/Strings.js',
-                '+/Core/Utils/Dates.js',
-                '+/DataProvider/Data-Provider.js',
-                '+/DataSource/Data-Source.js',
-                '+/DataSource/Selection.js',
-                '+/DataSource/ErrorHandling.js',
-                '+/rpc/Rpc.js',
-                '+/Tags/taglib.js',
-                '+/Tags/tags.js',
-
-                /* jQuery */
-                '+/lib/jquery/jquery.min.js',
-                
-                /* jQuery svg*/
-                '+/lib/jquery.svg/jquery.svg.min.js',
-                
-                /* External Librairy */
-                '+/lib/raphael/raphael-min.js',
-                '+/lib/graphael/g.raphael-min.js',
-                '+/lib/graphael/g.line-min.js',
-                '+/lib/graphael/g.bar-min.js',
-                '+/lib/graphael/g.pie-min.js',
-                '+/lib/jquery-ui/jquery-ui.min.js',
-                '+/lib/jquery-ui/jquery-ui-i18n.js',
-                '+/lib/selectbox/jquery-selectbox.js',
-                '+/lib/combobox/jquery-combobox.js',
-                '+/lib/beautytips/beautytips.js',
-                
-                /* Tag Library Descritors */
-                '+/Tags/list/tags-list.js',
-                '+/Tags/list/descriptor/tags-list-descriptor.js',
-                '+/Tags/list/propertydescriptor/tags-list-propertydescriptor.js',
-                '+/Tags/list/column/tags-list-column.js',
-                '+/Tags/descriptor/tags-descriptor.js',
-                '+/Tags/descriptor/attribute/tags-descriptor-attribute.js',
-                '+/Tags/descriptor/event/tags-descriptor-event.js',
-                '+/Tags/descriptor/structure/tags-descriptor-structure.js',
-                '+/Tags/descriptor/style/tags-descriptor-style.js',
-                '+/Tags/descriptor/property/tags-descriptor-property-style.js',
-                '+/Tags/descriptor/column/tags-descriptor-column.js',
-                '+/Tags/descriptor/column/attribute/tags-descriptor-attributecolumn.js',
-
-                /* Notify */
-                '+/lib/notify/jquery.notify.js',
-                
-                /* widgets */
-                '+/widget/widget.js',
-                '+/report/richText/widget-richText.js',
-                '+/report/richText/widget-richText-conf.js'
-                ]
-                
             }
         },
 
@@ -1205,12 +1097,15 @@ if (typeof(WAF) === 'undefined') {
                                 break;  
                             case 'chart' :
                             case 'fileUpload':
-                            case 'frame':
                             case 'wysiwyg':
                             case 'calendar' :
                                 obj.events = obj.events || {};
                                 obj.events[event] = callback;
-                                break;      
+                                break;
+                                
+                            case 'frame':
+                                $(obj).bind(event , callback);
+                                break
 
                             case 'login':
                                 obj['on'+event] = callback;

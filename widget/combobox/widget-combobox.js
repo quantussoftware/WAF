@@ -835,6 +835,11 @@ WAF.Widget.provide(
             event,
             events,
             eventsL;
+
+            if (this.isDisabled()) {
+                return this.getValue();
+            }
+
             if (typeof value == 'undefined' || value === '') {
                 this._input.val('');
             } else {

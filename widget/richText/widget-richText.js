@@ -43,7 +43,8 @@ WAF.Widget.provide(
 
         config      = config || {};
         htmlObject  = $(this.containerNode);
-        plainText   = data.plainText == 'false' || data.plainText === false ? false : true;
+        plainText   = this.plainText = data.plainText == 'false' || data.plainText === false ? false : true;
+
         
         /*
          * For binded richtext
@@ -125,7 +126,11 @@ WAF.Widget.provide(
         this.setValue(this.$domNode.html().replace(/&amp;/g, '&'));
     },{
         setValue : function(value) {
-            this.$domNode.html(value);
+			if (this.plainText) {
+				this.$domNode.text(value);
+			} else {
+				this.$domNode.html(value);
+			}
         }
     }
 );

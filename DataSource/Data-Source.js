@@ -1980,7 +1980,7 @@ WAF.DataSourceEm.addNewElement = function(options){
 		priv.currentElemPos = priv.entityCollection.length - 1;
 		priv._updateValues();
 		this.dispatch('onCollectionChange', options);
-		this.dispatch('onCurrentElementChange', options);
+		//this.dispatch('onCurrentElementChange', options);
 	}
 };
 
@@ -2053,7 +2053,7 @@ WAF.DataSourceEm.addEntity = function(entity, options){
 		this.length = priv.entityCollection.length;
 		priv.currentElemPos = priv.entityCollection.length - 1;
 		this.dispatch('onCollectionChange', options);
-		this.dispatch('onCurrentElementChange', options);
+		//this.dispatch('onCurrentElementChange', options);
 		priv._updateValues();
 	}
 };
@@ -3173,7 +3173,7 @@ WAF.DataSourceVar.addNewElement = function(options){
 		this._private.currentElemPos = arr.length - 1;
 		this._private._updateValues();
 		this.dispatch('onCollectionChange', options);
-		this.dispatch('onCurrentElementChange', options);
+		//this.dispatch('onCurrentElementChange', options);
 	}
 };
 
@@ -3512,7 +3512,7 @@ WAF.DataSourceVar.sync = function(options){
 			}
 			this._private._updateValues();
 			this.dispatch('onCollectionChange', options);
-			this.dispatch('onCurrentElementChange', options);
+			//this.dispatch('onCurrentElementChange', options);
 			
 		}
 	}

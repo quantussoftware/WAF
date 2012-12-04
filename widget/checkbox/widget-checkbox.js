@@ -57,7 +57,11 @@ WAF.Widget.provide(
         htmlObject  = this.$domNode;
         classes     = htmlObject.prop('class');
         themes      = [];
-        
+
+		// since we cannot rely on checkbox.is:checked nor checkbox.attr('checked'), we store the state of the checkbox there
+		// for some odd reasons, chrome's is:checked status isn't updated in some cases
+		this._checked = false;		
+
         /*
          * Get widget theme
          */
@@ -133,10 +137,12 @@ WAF.Widget.provide(
         /*
          * Check the box if checked is true
          */
-        if(data.checked === 'true' || data.checked === true) {
+        if (data.checked === 'true' || data.checked === true) {
+			this._checked = true;
             checkboxHtml.prop('checked', 'checked');        
             htmlObject.addClass('waf-state-selected');
         } else {
+			this._checked = false;
             checkboxHtml.removeProp('checked');
         }
         
@@ -163,13 +169,21 @@ WAF.Widget.provide(
         });
 
         checkboxHtml.bind('change', function() {
-            if ($(this).is(':checked')) {
+			widget._checked = !widget._checked;
+			var value;
+
+            if (widget._checked) {
+				value = true;
                 widget.setState('selected');
             } else {
+				widget.removeState('selected');
                 widget.setState('default');
+				value = false;
             }
-        })
 
+			if (widget.sourceAtt != null)
+				widget._changeDsValue(value);
+		});
 
         htmlObject.focusin(function() {
             widget.setState('focus'); 
@@ -183,7 +197,7 @@ WAF.Widget.provide(
          * Active click on checkbox label to check/uncheck
          */
         $('label[for=' + widget.id + ']').bind('click', {widget: widget}, function(e) {
-            e.data.widget.toggleCheckbox();
+            widget.toggleCheckbox();
         });
         
         /*
@@ -194,15 +208,16 @@ WAF.Widget.provide(
          * Data sources binded
          */
         if (this.sourceAtt) {    
-            checkboxHtml.unbind('click');
+            //checkboxHtml.unbind('click');
             
             readOnly    = this.att.readOnly;
 
+			/*
             checkboxHtml.bind('click', {widget : this}, function(e) {
                 var
                 value;
 
-                if($(this).is(':checked')) {
+                if (widget._checked) {
                     value = true;
                 } else {
                     value = false;
@@ -210,6 +225,7 @@ WAF.Widget.provide(
 
                 e.data.widget._changeDsValue(value);
             })
+			*/
 
 
             if (readOnly) {
@@ -239,12 +255,14 @@ WAF.Widget.provide(
                     value = widget.sourceAtt.getValue();      
 
                     if (!value || value === 'false') {
+						widget._checked = false;
                         checkboxHtml[0].checked = false;
                         checkboxHtml.attr('checked', false);    
                         widget.removeState('selected');    
                         widget.setState('default');
                     } else {
                         checkboxHtml[0].checked = true;
+						widget._checked = true;
                         checkboxHtml.attr('checked', 'checked');      
                         widget.setState('selected');
                     }
@@ -263,7 +281,7 @@ WAF.Widget.provide(
           * @function _changeDsValue
           * @param {boolean} value
           */ 
-        _changeDsValue : function(value) {                
+        _changeDsValue : function(value) {
             var 
             widget,
             sourceAtt;
@@ -289,17 +307,23 @@ WAF.Widget.provide(
             var
             htmlObject,
             checkboxHtml;
-            
-            htmlObject      = this.$domNode
-            checkboxHtml    = htmlObject.find('input');
-            
-            htmlObject.removeClass("waf-state-active");
-            
-            htmlObject.addClass('waf-state-selected');
-            
-            checkboxHtml.attr('checked', 'checked');
 
-            this._changeDsValue(true);
+            if (this._checked !== true) {
+                this._checked = true;
+
+                htmlObject      = this.$domNode
+                checkboxHtml    = htmlObject.find('input');
+                
+                htmlObject.removeClass("waf-state-active");
+                
+                htmlObject.addClass('waf-state-selected');
+                
+                checkboxHtml.attr('checked', 'checked');
+
+                this.$domNode.trigger('change');
+
+                this._changeDsValue(true);
+            }            
         },
         
         /**
@@ -311,18 +335,24 @@ WAF.Widget.provide(
             var
             htmlObject,
             checkboxHtml;
-            
-            htmlObject      = this.$domNode
-            checkboxHtml    = htmlObject.find('input');
-            
-            htmlObject.removeClass("waf-state-active");
-        
-            htmlObject.removeClass('waf-state-selected');            
-            
-            checkboxHtml.attr('checked', false);
 
-            if (updateDs !== false) {
-                this._changeDsValue(false);
+            if (this._checked !== false) {
+    			this._checked = false;			
+
+                htmlObject      = this.$domNode
+                checkboxHtml    = htmlObject.find('input');
+                
+                htmlObject.removeClass("waf-state-active");
+            
+                htmlObject.removeClass('waf-state-selected');            
+                
+                checkboxHtml.attr('checked', false);
+
+                this.$domNode.trigger('change');
+
+                if (updateDs !== false) {
+                    this._changeDsValue(false);
+                }
             }
         },
         
@@ -338,7 +368,7 @@ WAF.Widget.provide(
             htmlObject      = this.$domNode
             checkboxHtml    = htmlObject.find('input');
             
-            if (checkboxHtml.is(':checked')) {
+            if (this._checked) {
                 this.uncheck();
             } else {
                 this.check();
@@ -347,7 +377,7 @@ WAF.Widget.provide(
             /*
              * Trigger on change event
              */
-            this.$domNode.trigger('change');
+            // this.$domNode.trigger('change');
         },
         
         /**
@@ -356,9 +386,19 @@ WAF.Widget.provide(
          * @return {boolean}
          */
         getValue : function checkbox_get_value() {
-            return this.$domNode.find('input').is(':checked');
+			return this._checked;
         },
-        
+
+		disable: function() {
+			this.$domNode.find('input').attr('disabled', 'disabled');
+			WAF.Widget.prototype.disable.call(this);
+		},
+
+		enable: function() {
+			this.$domNode.find('input').attr('disabled', false);
+			WAF.Widget.prototype.enable.call(this);
+		},
+
         /**
          * Custom setValue function
          * @method getValue
@@ -375,7 +415,7 @@ WAF.Widget.provide(
             /*
              * Trigger on change event
              */
-            this.$domNode.trigger('change');
+            //this.$domNode.trigger('change');
         },
 
         /**

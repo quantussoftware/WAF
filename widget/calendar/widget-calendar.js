@@ -36,8 +36,8 @@ WAF.Widget.provide(
         
         htmlObject.DatePicker({
             flat        : true,
-            format      : config['data-format'],
-            date        : new Date(),
+            format      : config['data-format']?config['data-format']:"dd/mm/yy",
+            date        : config['data-mode'] == "single"?"":[],
             calendars   : config['data-calendars'],
             mode        : config['data-mode'],
             starts      : config['data-start'],
@@ -136,6 +136,16 @@ WAF.Widget.provide(
             htmlObj.height($(dpContainer.find('tr').get(0)).height() + datepicker.find('.datepickerBorderT').height() + datepicker.find('.datepickerBorderB').height());
             htmlObj.width($(dpContainer.find('tr').get(0)).width() + datepicker.find('.datepickerBorderL').width() + datepicker.find('.datepickerBorderR').width());
         },
+        _getCalOptions : function(){
+            var
+            cal,
+            htmlObj;
+            
+            htmlObj = this._getDatePicker();
+            cal     = $('#' + htmlObj.data('datepickerId'));
+            
+            return cal.data('datepicker');
+        },
         setValue : function(date , shiftTo){
             var
             data,
@@ -201,7 +211,18 @@ WAF.Widget.provide(
             htmlObj = this._getDatePicker();
             
             if(htmlObj){
-                htmlObj.DatePickerClear();
+                var
+                opts;
+            
+                opts    = this._getCalOptions();
+                
+                if(opts.mode != 'single'){
+                    htmlObj.DatePickerClear();
+                }
+                else{
+                    opts.date = null;
+                    htmlObj.find('.datepickerSelected').removeClass('datepickerSelected');
+                }
             }
         },
         getSelectionMode : function(){

@@ -309,7 +309,6 @@ WAF.Widget.provide(
             }
             
             tinyMCE.init(wysiwygConf);
-
         },
         getWysiwygInstance : function(){
             return tinyMCE.getInstanceById(this.id);

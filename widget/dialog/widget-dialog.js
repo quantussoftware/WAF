@@ -404,15 +404,17 @@ WAF.Widget.provide(
                     modal = $('<div id="waf-dialog-fade"></div>');
                 }
                 
-                modal.click(function(){
-                    $('.waf-dialog-ismodal').each(function(){
-                        var widget = $(this).data('widget');
-                        
-                        if(widget){
-                            widget.closeDialog();
-                        }
+                if(config['data-hideOnOutsideClick'] == 'true'){
+                    modal.click(function(){
+                        $('.waf-dialog-ismodal').each(function(){
+                            var widget = $(this).data('widget');
+
+                            if(widget){
+                                widget.closeDialog();
+                            }
+                        });
                     });
-                });
+                }
                 
                 htmlObj.css('z-index', '100001');
                 htmlObj.addClass('waf-dialog-ismodal');
@@ -454,23 +456,23 @@ WAF.Widget.provide(
             content     = subWidgets.content.tag;
             that        = this;
             
-            if(utils.isDraggable()){
+            if (utils.isDraggable()){
                 utils.makeDraggable();
             }
             
-            if(utils.isResizable()){
+            if (utils.isResizable()){
                 utils.makeResizable();
             }
             
-            if(utils.isModal() && config['data-autoopen'] !== 'true'){
+            if (utils.isModal() && config['data-hideonload'] !== 'true' && typeof Designer === 'undefined'){
                 utils.makeModal();
             }
             
-            if(utils.toFront()){
+            if (utils.toFront()){
                 utils.bringToFront();
             }
             
-            if(config['data-load'] && config['data-load'] != '' && content){
+            if (config['data-load'] && config['data-load'] != '' && content){
                 var
                 frame,
                 bodyHTMLobj;
@@ -489,7 +491,7 @@ WAF.Widget.provide(
             }
             
             // Auto open :
-            if(config['data-autoopen'] === 'true'){
+            if (config['data-hideonload'] === 'true'){
                 this.closeDialog();
             }
             
@@ -502,15 +504,15 @@ WAF.Widget.provide(
                 }
             });
             
-            if(subWidgets.titlebar.subwidgets.maximize){
+            if (subWidgets.titlebar.subwidgets.maximize){
                 WAF.addListener(subWidgets.titlebar.subwidgets.maximize.id, "click", this.maximizeDialog , "WAF");
             }
             
-            if(subWidgets.titlebar.subwidgets.minimize){
+            if (subWidgets.titlebar.subwidgets.minimize){
                 WAF.addListener(subWidgets.titlebar.subwidgets.minimize.id, "click", this.minimizeDialog , "WAF");
             }
             
-            if(subWidgets.titlebar.subwidgets.close){
+            if (subWidgets.titlebar.subwidgets.close){
                 WAF.addListener(subWidgets.titlebar.subwidgets.close.id, "click", this.closeDialog , "WAF");
             }
         },

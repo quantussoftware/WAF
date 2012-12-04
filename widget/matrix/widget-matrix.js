@@ -509,8 +509,12 @@ WAF.Widget.provide(
                                     } else if (e.data.that.isVisible()){
                                         e.data.that.goTo(pos);
                                     }
+                                    
+                                    userData = e.userData || null;
+                                    e.dataSource.dispatch('onCurrentElementChange', {
+                                        subID : subIDValue
+                                    }, userData);
                                 }
-                            
                                 break;
 
                             case 'onCollectionChange' :

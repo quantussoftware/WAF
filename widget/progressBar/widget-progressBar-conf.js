@@ -43,9 +43,8 @@ WAF.addWidget({
     },
     {
         name        : 'data-label',
-        description : 'label',
-        defaultValue: 'Progress Bar on []',
-        visibility  : 'hidden'
+        description : 'Label',
+        defaultValue: 'Progress on {curValue} out of {maxValue}'
     },
     {
         name        : 'data-label-position',
@@ -97,13 +96,13 @@ WAF.addWidget({
         return progress;
     },
     onDesign: function (config, designer, tag, catalog, isResize) {    
-        var
-        height;
+        var height = tag.getHeight(),
+        label = tag.getLabel();     
         
-        height      = tag.getHeight();     
-
-        tag.getLabel().getAttribute('data-text').setValue('Progress Bar on [' + tag.getAttribute('data-progressinfo').getValue() + ']');
-        tag.getLabel().onDesign();
+        if (label) {
+            label.getAttribute('data-text').setValue(tag.getAttribute('data-label').getValue());
+            label.onDesign();
+        }        
         
         if (!isResize){
             /*

@@ -427,9 +427,11 @@ WAF.addWidget({
         label    = tag.getLabel();
         tinyMCEScript = Designer.env.document.getElementsByAttribute('script', 'src', '/waLib/WAF/lib/tiny_mce/tiny_mce.js');
         
-        label.getAttribute('data-valign').setValue('top');
-        label.onDesign(true);
-        label.domUpdate();
+        if(!param._isLoaded){
+            label.getAttribute('data-valign')&& label.getAttribute('data-valign').setValue('top');
+            label.onDesign(true);
+            label.domUpdate();
+        }
         
         if(tinyMCEScript.length === 0){
             var script = Designer.env.document.createElement('script');

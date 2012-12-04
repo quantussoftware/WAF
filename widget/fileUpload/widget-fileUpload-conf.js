@@ -298,18 +298,23 @@ WAF.addWidget({
         // Fill the table container
         
         
-        if(isResize){
+        if(isResize || tag._firstCreation){
             if(linkedTags.filesList && tag.refreshFileList){
                 var
                 fileList    = linkedTags.filesList;
-                
-                tag.refreshFileList();
 
                 fileList.setWidth(tag.getWidth())
                 fileList.setY(tag.getHeight(), true, false);
+                
+                tag._firstCreation--;
             }
         }
         
+        tag.refreshFileList();
+        
+        if(tag._firstCreation == 0){
+            delete tag._firstCreation;
+        }
     },
     
     onCreate : function(tag,param){
@@ -547,6 +552,8 @@ WAF.addWidget({
             group.add(filesList);
 
             Designer.ui.group.save();
+            
+            tag._firstCreation = 2;
         }
         
         else {   

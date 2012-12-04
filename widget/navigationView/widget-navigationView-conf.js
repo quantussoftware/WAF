@@ -69,7 +69,7 @@ WAF.addWidget({
     },
     {
         name         : 'data-title',
-        defaultValue : 'Views for iPhone',
+        defaultValue : '',
         description  : 'Title'
     },
     {
@@ -625,7 +625,7 @@ WAF.addWidget({
                 //back button
                 backButton = new Designer.tag.Tag(buttonDef);
                 backButton.create({
-                id      : D.tag.getNewId("back-buttom"),    
+                id      : D.tag.getNewId("back-button"),    
                 width   : "50px",
                 height  : "29px",
                 silentMode : true

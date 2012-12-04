@@ -76,9 +76,15 @@ WAF.Widget.provide(
         slideObject = htmlObject.find(".waf-switchbox-container");
         offObject   = htmlObject.find(".waf-switchbox-off");
         onObject    = htmlObject.find(".waf-switchbox-on");
-        contSize    = Math.round(htmlObject.get()[0].offsetWidth/1.6);
+		// console.log(htmlObject, htmlObject[0], htmlObject[0].offsetWidth, htmlObject[0].offsetWidth/1.6);
+        // contSize    = Math.round(htmlObject[0].offsetWidth/1.6);
+        contSize    = Math.round(htmlObject.outerWidth()/1.6);
+		// console.log(htmlObject[0].offsetWidth, htmlObject[0].offsetWidth/1.6, Math.round(htmlObject[0].offsetWidth/1.6));
+	    // console.log(htmlObject.outerWidth(), htmlObject.outerWidth()/1.6, Math.round(htmlObject.outerWidth()/1.6));
 
-        slideObject.css("width", slideObject.get()[0].offsetWidth+"px");
+        // slideObject.css("width", slideObject.get()[0].offsetWidth+"px");
+        slideObject.css("width", slideObject.width() + "px");
+		// console.log(slideObject.get()[0].offsetWidth+"px", slideObject.outerWidth() + "px");
 
         this.slide = function slide(goToState, noSlideEffect) { 
                 var 
@@ -275,14 +281,12 @@ WAF.Widget.provide(
         * @/method setValue
         **/
         setValue: function setValue(param) {
-
-            var 
-            margin = parseInt($("#"+this.id).find(".waf-switchbox-container").css("margin-left")),
-            value = true;
+            var value = this.getValue();
             
-            if (typeof(param) != 'undefined') {
+            if (!this.isDisabled() && typeof(param) != 'undefined') {
                 if (param === true) {
                     this.slide(true);
+                    value = true;
                 } 
                 if (param === false) {
                     this.slide(false);
@@ -308,10 +312,8 @@ WAF.Widget.provide(
         * @/method getValue
         **/
         getValue: function getValue() {
-
-            var 
-            margin = parseInt($("#"+this.id).find(".waf-switchbox-container").css("margin-left")),
-            value = false;
+            var margin = parseInt($("#" + this.id).find(".waf-switchbox-container").css("margin-left")),
+                value = false;
                         
             if (margin === 0) {
                 value = true;

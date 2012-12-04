@@ -13,11 +13,6 @@
 * Consequently, no title, copyright or other proprietary rights
 * other than those specified in the applicable license is granted.
 */
-//// "use strict";
-
-/*global WAF,window*/
-
-/*jslint white: true, browser: true, onevar: true, undef: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, strict: true */
 
 WAF.Widget.provide(
 
@@ -95,8 +90,9 @@ WAF.Widget.provide(
         
         // result = this.publicSharedMethod();
         
-        var eventHandlerFunction = function(event)
-        {
+        /* Example of use of a new listener to a specific datasource event */
+        
+        var eventHandlerFunction = function(event) {
             var widget = event.data.widget;
             var source = event.dataSource;
             
@@ -104,26 +100,11 @@ WAF.Widget.provide(
         }
 
         if ('source' in this) {
-            this.source.addListener("onAttributeChange", eventHandlerFunction, {
+            this.source.addListener('onAttributeChange', eventHandlerFunction, {
                 attributeName: this.att.name
-                }, {
+            }, {
                 widget:this
             });
-        /*
-            this.source.subscribe(
-                {
-                    widget: this,
-                    id: this.id,
-                    eventKind: 'onAttributeChange', // event to listen
-                    attributeName: this.att.name,
-                    notify: function notify(inNotifyEvent) {
-                    
-                            // PUT THE CODE TO EXECUTE WHEN THE EVENT HAPPENS HERE
-                            
-                    }
-                }
-            );
-	*/
         }
 
     },

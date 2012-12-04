@@ -185,7 +185,7 @@ WAF.addWidget({
      * @param {Designer.tag.Tag} container of the widget in the GUI Designer
      */ 
     onCreate: function ( tag , param) { 
-             
+
         $(tag).bind("onReady", function(){
             this.fix(); 
 
@@ -198,25 +198,26 @@ WAF.addWidget({
         });
 
 
-
          if (!param._isLoaded) {
+
+            $(tag).bind("onWidgetDrop", function(){
+                this.setXY( 0, 0, true, true );
+            });
             
-             $(tag).bind("onWidgetDrop", function(){
-                 this.setXY( 0, 0, true, true );
-                 this.setPositionRight( "0px", false, false ); 
-                 this.setPositionBottom( "0px", false, false );
-                 this.forceTopConstraint();
-                 this.forceLeftConstraint();
-                 this.forceBottomConstraint();
-                 this.forceRightConstraint();
-                 this.updateZindex (0);   
-             });
+            tag.setPositionRight( "0px", false, false ); 
+            tag.setPositionBottom( "0px", false, false );
+            tag.forceTopConstraint();
+            tag.forceLeftConstraint();
+            tag.forceBottomConstraint();
+            tag.forceRightConstraint();
+            tag.setXY( 0, 0, true, true );
+            tag.updateZindex (0);     
              
-             window.setTimeout(function(){
+            window.setTimeout(function(){
                  
-                 createStructure();
+                createStructure();
                  
-             }, 0);
+            }, 0);
              
          }
         

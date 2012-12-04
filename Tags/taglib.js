@@ -116,11 +116,13 @@ WAF.addWidget({
         defaultValue: '1px'
     }],
     events: [
+	/*
     {
         name       : 'onAttributeChange',
         description: 'On Change',
         category   : 'Datasource Events'
     },
+	*/
     {
         name       : 'onBeforeCurrentElementChange',
         description: 'On Before Current Element Change',
@@ -485,7 +487,7 @@ WAF.addWidget({
             this.select(device ? device : 'custom');
 
             //just remove scrollbar if needed
-            if (device === "Apple iPad" || device === "Apple iPhone") {
+            if (D.isMobile) {
                 $("#waf-body").css("overflow", "hidden");
             }
             
@@ -526,7 +528,7 @@ WAF.addWidget({
             }
 
             //manage scrollbar
-            if (value === "Apple iPad" || value === "Apple iPhone") {
+            if (D.isMobile) {
                 $("#waf-body").css("overflow", "hidden");
             } else {
                 $("#waf-body").css("overflow", "auto");
@@ -596,8 +598,10 @@ WAF.addWidget({
             
             $('#textInput-data-workspace-width').val(info.width);
             $('#textInput-data-workspace-height').val(info.height);
-            
-            if (Designer.isNewPage()) {
+
+
+
+           /* if (Designer.isNewPage()) {
                 if (info.orientation == 'landscape') {
                     // set background image     
                     $("#yui-gen7 .yui-layout-bd").css('background-image', 'url("/Resources/Web Components/GUIDesigner/images/' + Designer.env.workspace.backgroundImageLandscape + '") !important');                                        
@@ -606,15 +610,16 @@ WAF.addWidget({
                     $("#yui-gen7 .yui-layout-bd").css('background-position', 'center center !important'); 
      
                 } else {
-                    // set background image     
+                    // set background image  
                     $("#yui-gen7 .yui-layout-bd").css('background-image', 'url("/Resources/Web Components/GUIDesigner/images/' + Designer.env.workspace.backgroundImagePortrait  + '") !important');                                        
                     $("#yui-gen7 .yui-layout-bd").css('background-repeat', 'no-repeat !important');                                        
                     $("#yui-gen7 .yui-layout-bd").css('background-color', '#EEEEEE !important'); 
-                    $("#yui-gen7 .yui-layout-bd").css('background-position', 'center center !important'); 
+                    //$("#yui-gen7 .yui-layout-bd").css('background-position', 'center center !important'); 
      
                 }
-            }
+            }*/
                 
+
             tag.domUpdate();
         }
     },
@@ -785,7 +790,9 @@ WAF.addWidget({
         marginLeft,
         widthValue,
         orientation,
-        heightValue;
+        heightValue,
+        bgElementLayout,
+        workspace = Designer.env.workspace;
                 
         body        = $('#waf-body');
         bgElement   = $('#yui-gen7');
@@ -863,7 +870,8 @@ WAF.addWidget({
             'height'        : height,
             'width'         : width,
             'margin-top'    : marginTop,
-            'margin-left'   : marginLeft
+            'margin-left'   : marginLeft,
+			'z-index'		: 0
         });  
             
         if (width != tag._tmpWidth || height != tag._tmpHeight) {
@@ -873,45 +881,46 @@ WAF.addWidget({
         tag._tmpWidth   = width;
         tag._tmpHeight  = height;     
             
+        bgElementLayout = bgElement.children('.yui-layout-bd');
+                
         /*
-             * Add background device
-             */
-
+         * Add background device
+         */
         switch (device.toLowerCase()) {
             case 'ipad':
-                bgElement.addClass('studio-workspace-ipad');
-                bgElement.removeClass('studio-workspace-iphone');
-                    
+            case 'tablet':
+
                 if (info.orientation == 'landscape') {
-                    bgElement.children('.yui-layout-bd').css('background-position', (marginLeft-301) + 'px ' + (marginTop-260) + 'px');
+                    bgElementLayout.css('background-position', (marginLeft-301) + 'px ' + (marginTop-260) + 'px');
                 } else {
-                    bgElement.children('.yui-layout-bd').css('background-position', (marginLeft-180) + 'px ' + (marginTop-240) + 'px');
+                    bgElementLayout.css('background-position', (marginLeft-180) + 'px ' + (marginTop-240) + 'px');
                 }
                 break;
                     
-            case 'iphone':           
-                bgElement.addClass('studio-workspace-iphone');
-                bgElement.removeClass('studio-workspace-ipad');
-                    
+            case 'iphone': 
+            case 'smartphone':  
+
                 if (info.orientation == 'landscape') {
-                    bgElement.children('.yui-layout-bd').css('background-position', (marginLeft-209) + 'px ' + (marginTop-108) + 'px');
+                    bgElementLayout.css('background-position', (marginLeft-209) + 'px ' + (marginTop-108) + 'px');
                 } else { 
-                    bgElement.children('.yui-layout-bd').css('background-position', (marginLeft-108) + 'px ' + (marginTop-208) + 'px');
+                    bgElementLayout.css('background-position', (marginLeft-108) + 'px ' + (marginTop-208) + 'px');
                 }
                 break;
                     
             default:
-                bgElement.removeClass('studio-workspace-ipad');
-                bgElement.removeClass('studio-workspace-iphone');
+                /*bgElement.removeClass('studio-workspace-ipad');
+                bgElement.removeClass('studio-workspace-iphone');*/
                 break;
         }
             
         if (info.orientation == 'landscape') {
-            bgElement.addClass('studio-workspace-landscape');
-            bgElement.removeClass('studio-workspace-portrait');
+            /*bgElement.addClass('studio-workspace-landscape');
+            bgElement.removeClass('studio-workspace-portrait');*/
+            bgElementLayout.css('background-image', 'url("/Resources/Web Components/GUIDesigner/images/' + workspace.backgroundImageLandscape + '")');
         } else {
-            bgElement.addClass('studio-workspace-portrait');
-            bgElement.removeClass('studio-workspace-landscape');
+            /*bgElement.addClass('studio-workspace-portrait');
+            bgElement.removeClass('studio-workspace-landscape');*/
+             bgElementLayout.css('background-image', 'url("/Resources/Web Components/GUIDesigner/images/' + workspace.backgroundImagePortrait + '")');
         }              
     },
     onCreate : function (tag, param) {

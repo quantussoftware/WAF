@@ -248,11 +248,9 @@ WAF.Widget.provide(
              * To force radio state change even if click on label
              */
             radioInput.bind('change', {}, function (e) {
-                that._checkRadio($(this))
+                that._checkRadio($(this));
             });
-            
-                //console.log(this._value, radioInput.val())
-            
+                 
             if (this._value && this._value == radioInput.val()) {
                 radioInput[0].setAttribute('checked', 'checked')
                 //this._value = null;
@@ -314,7 +312,7 @@ WAF.Widget.provide(
 
                 htmlObject.find('.waf-radio').removeClass("waf-state-selected");
                 radio.parent().addClass("waf-state-selected");
-                
+                this._value = radio.val();
             } 
 
         }
@@ -553,9 +551,8 @@ WAF.Widget.provide(
             
             radio = htmlObject.find('[value="' + value + '"]');
             
-            this._value = value;
-            
             if (radio.length > 0) {
+                this._value = value;                
                 this._checkRadio(radio);
             }
         },

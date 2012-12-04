@@ -505,6 +505,13 @@ WAF.addWidget({
         }
         
         htmlObject.bind('dblclick', { tag : tag }, tag.dblClickFn);    
+
+        // calls onDesign once styles are inserted so that autoResize function may work properly
+        // otherwise calculations could be wrong since CSS styles (like font-size) may not have been inserted yet
+        // this fixes #WAK0078446
+        $('#waf-body').bind('onWidgetCSSLoaded', function() {
+            tag.onDesign(true);
+        });
         
         /*
          * Remove temporary objects

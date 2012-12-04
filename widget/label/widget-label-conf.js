@@ -308,8 +308,8 @@ WAF.addWidget({
                         
                         this.style['left'] = '';
                     } else {
-                        // already a left constraint
-                        // do nothing
+                    // already a left constraint
+                    // do nothing
                     }
                 }
                 
@@ -348,8 +348,8 @@ WAF.addWidget({
                         
                         this.style['top'] = '';                                                            
                     } else {
-                        // already a top constraint
-                        // do nothing
+                    // already a top constraint
+                    // do nothing
                     }
                 }                
             }            
@@ -390,7 +390,7 @@ WAF.addWidget({
             tag.lock();
             tag.setFocus(true, false);
             
-                    //linked.currentSelector = 'waf-label';
+            //linked.currentSelector = 'waf-label';
             linked.setFocus(false, false);
             
             htmlObject          = tag.getHtmlObject();            
@@ -559,7 +559,7 @@ WAF.addWidget({
         /*
          * Automatically add a class depending on linked tag type
          */
-         if (linked) {
+        if (linked) {
             tag.addClass('waf-label-' + linked.getType());
         }
 
@@ -583,6 +583,14 @@ WAF.addWidget({
              */
             $(this).trigger('onPositionChange');
         }
+
+        // calls onDesign once styles are inserted so that autoResize function may work properly
+        // otherwise calculations could be wrong since CSS styles (like font-size) may not have been inserted yet
+        $('#waf-body').bind('onWidgetCSSLoaded', function() {
+            Designer.env.enableModificationNotification = false;
+            tag.onDesign(false);
+            Designer.env.enableModificationNotification = true;
+        });       
     },
 
     onCreate : function label_on_create (tag, param) {

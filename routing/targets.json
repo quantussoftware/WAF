@@ -1,26 +1,5 @@
 [
-    {
-            "name"                  : "iPad",
-            "suffix"                : "ipad",
-            "touch"                 : "true",
-            "resolution"            : "1024x768",
-            "background-landscape"  : "background-ipad-landscape.png",
-            "background-portrait"   : "background-ipad-portrait.png",
-            "rules"                 : [ 
-                                        { "include" : "iPad"}
-                                    ]
-    },
-    {
-            "name"                  : "iPhone",
-            "suffix"                : "iphone",
-            "touch"                 : "true",
-            "resolution"            : "320x480",
-            "background-landscape"  : "background-iphone-landscape.png",
-            "background-portrait"   : "background-iphone-portrait.png",
-             "rules"                : [ 
-                                        { "include": "iPhone"}
-                                    ]
-    },
+   
     {
            "name"                   : "Tablet", 
            "suffix"                 : "tablet",

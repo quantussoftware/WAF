@@ -13,14 +13,10 @@
 * Consequently, no title, copyright or other proprietary rights
 * other than those specified in the applicable license is granted.
 */
-WAF.addWidget({
+
+WAF.addWidget({        
     
-    /**
-    *  Widget Descriptor
-    *
-    */ 
-    
-    /* PROPERTIES */
+    /* WIDGET PROPERTIES */
 
     // {String} internal name of the widget
     type        : 'template',  
@@ -29,7 +25,7 @@ WAF.addWidget({
     lib         : 'WAF',
 
     // {String} display name of the widget in the GUI Designer 
-    description : 'Template',
+    description : 'Template widget',
 
     // {String} category in which the widget is displayed in the GUI Designer
     category    : '',
@@ -51,15 +47,23 @@ WAF.addWidget({
     // @property {String} name, name of the attribute (mandatory)     
     // @property {String} description, description of the attribute (optional)
     // @property {String} defaultValue, default value of the attribute (optional)
-    // @property {'string'|'radio'|'checkbox'|'textarea'|'dropdown'|'integer'} type, type of the field to show in the GUI Designer (optional)
+    // @property {'string'|'radio'|'checkbox'|'textarea'|'dropdown'|'integer'|'combobox'} type, type of the field to show in the GUI Designer (optional)
     // @property {Array} options, list of values to choose for the field shown in the GUI Designer (optional)
     attributes  : [                                                       
     {
-        name        : '',                                                 
-        description : '',                                                 
-        defaultValue: '',                                                 
-        type        : '',                                                 
-        options     : []                                                  
+        name         : '',                                                 
+        description  : '',                                                 
+        defaultValue : '', // {String|Function}
+        type         : ''
+     //,typeValue    : '',      // {'integer'|'bool'|'datasource'} check the type of the value (optional)
+     // visibility  : 'hidden', // {'String'} hide the atribute on the GUI Designer (optional)
+     // tab         : 'style',  // {'property'|'style'} select the panel where to show the attribute ('property' by default, optional)
+     // tabCategory : 'Icon',   // {String} select the (optional)
+     // options      : [],      // {Array} values for combo or dropdown (optional)        
+     // autocomplete : false,   // {Boolean} true if you want to have autocomplete on datasources (optional)
+     // platform    : 'desktop' // {'desktop'|'mobile'} specify if you wants to show the attribute on dektop or non desktop page (optional)
+     // beforechange : function () {},    // to add some code before change of the widget (only for text or textarea, optional))
+     // onchange     : function (data) {} // to add some code on the change of the widget (only for text or textarea, optional))
     }    
     ],
 
@@ -104,7 +108,7 @@ WAF.addWidget({
         category   : 'Mouse Events'
     },
     {
-        name        : 'mouseover',
+        name       : 'mouseover',
         description: 'On Mouse Over',
         category   : 'Mouse Events'
     },
@@ -121,7 +125,7 @@ WAF.addWidget({
         style: {                                                
             theme       : false,                 // false to not display the "Theme" option in the "Theme & Class" section
 
-            //    theme : {
+            //  theme : {
             //    	roundy: false		//all the default themes are displayed by default. Pass an array with the
             //   }				//themes to hide ('default', 'inherited', roundy, metal, light)
         
@@ -132,7 +136,7 @@ WAF.addWidget({
             sizePosition: true,                 // true to display widget "Size and Position" section
             label       : true,                 // true to display widget "Label Text" and "Label Size and Position" sections
             // For these two sections, you must also define the "data-label" in the Attributes array
-            disabled     : ['border-radius']     // list of styles settings to disable for this widget
+            disabled    : ['border-radius']     // list of styles settings to disable for this widget
         }
     },
 
@@ -150,9 +154,18 @@ WAF.addWidget({
             gradient    : true,
             border      : true
         }
+    /*
+        ,state : [{
+            label   : 'hover', // define the states that appear for the “container” element:
+            cssClass: 'waf-state-hover'
+        },{
+            label   : 'active',
+            cssClass: 'waf-state-active'
+        }]
+        */
     }],
 
-    /* METHODS */
+    /* WIDGET METHODS */
 
     /*
     * function to call when the widget is loaded by WAF during runtime
@@ -169,13 +182,23 @@ WAF.addWidget({
     * function to call when the widget is displayed in the GUI Designer
     * 
     * @param {Object} config contains all the attributes for the widget
-    * @param {Designer.api} set of functions used to be managed by the GUI Designer
-    * @param {Designer.tag.Tag} container of the widget in the GUI Designer
-    * @param {Object} catalog of dataClasses defined for the widget
+    * @param {Designer.api} designer set of functions used to be managed by the GUI Designer
+    * @param {Designer.tag.Tag} tag container of the widget in the GUI Designer
+    * @param {Object} catalog catalog of dataClasses defined for the widget
     * @param {Boolean} isResize is a resize call for the widget (not currently available for custom widgets)
     */
     onDesign: function (config, designer, tag, catalog, isResize) {
         var widget = new WAF.widget.Template(config);               
-    }                                                               
+    },
+    
+    /**
+    * function to call when the widget is created in the GUI Designer (call only once, optional)
+    * 
+    * @param {Designer.tag.Tag} tag container of the widget in the GUI Designer
+    * @param {Object} param parameters w-send for the wifget creation
+    */
+    onCreate: function (tag, param) {
+        
+    }
     
 });                                                                                                                                  

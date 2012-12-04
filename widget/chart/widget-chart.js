@@ -130,7 +130,7 @@ WAF.Widget.provide(
             
             return res;
         },
-        getchartType: function(){
+        getChartType: function(){
             return this.config['data-chartType'];
         },
         setFormat   : function(format){
@@ -157,13 +157,34 @@ WAF.Widget.provide(
             r               = that._private.r;
             linkedWidgets   = that._private.linkedWidgets;
             
+            if(!labels && !values && that._private && that._private.labels && that._private.values){
+                labels = that._private.labels;
+                values = [];
+                
+                var valuesClone = that.$domNode.data('values');
+                
+                for(var _i = 0 ; _i<valuesClone.length ; _i++){
+                    if(valuesClone[_i].length){
+                        values[_i] = [];
+                    }
+                    
+                    for(var _j = 0 ; _j<valuesClone[_i].length ; _j++){
+                        values[_i][_j] = valuesClone[_i][_j];
+                    }
+                }
+            }
+            
+            if(!labels || !values){
+                return false;
+            }
+            
             r.setSize($("#" + inConfig.id).width(),$("#" + inConfig.id).height());
             
             r.clear();
             
             switch(inConfig['data-chartType']){
                 case 'Pie Chart':
-                    var radius  = Math.min($("#" + inConfig.id).width(),$("#" + inConfig.id).height())/2 - 55,
+                    var radius  = Math.min($("#" + inConfig.id).width(),$("#" + inConfig.id).height())/2 - 60,
                     opts    = {
                         colors      : that.colors,
                         stroke      : null,
@@ -175,7 +196,6 @@ WAF.Widget.provide(
                         legendothers: null,
                         legendpos   : null
                     };
-                    
                     that.chart     = r.g.piechart(r.width/2, r.height/2, radius, values[0] , opts);
                     that.chart.selected = -1;
                                                 
@@ -240,6 +260,8 @@ WAF.Widget.provide(
                                 fill : that.colors[this.sector.index%that.colors.length], 
                                 stroke : "#000"
                             });
+                            
+                            this.tag[0].scale(1.25 , 1.25);
                         }, function () {
                             this.tag.animate({
                                 opacity: 0
@@ -670,6 +692,14 @@ WAF.Widget.provide(
                                         angle       : -labelAngle
                                     }
                                     break;
+                                default :
+                                    point = {
+                                        x : options.m.x + options.width/2,
+                                        y : r.height - textMax/2,
+                                        textAnchor  : inConfig['data-labelAlign'],
+                                        angle       : -labelAngle
+                                    };
+                                    break;
                             }
                             textTemp = r.text(point.x, point.y , labels[i-1]).attr({
                                 'text-anchor' : point.textAnchor
@@ -704,6 +734,11 @@ WAF.Widget.provide(
                     case 'dblclick':
                         this.chart.dblclick(function(e){
                             that.events.dblclick.call( that , e);
+                        });
+                        break;
+                    case 'click':
+                        this.chart.click(function(e){
+                            that.events.click.call( that , e);
                         });
                         break;
                     case 'dblclickColumn':
@@ -775,6 +810,7 @@ WAF.Widget.provide(
             var 
             labels          = [],
             values          = [],
+            valuesClone     = [],
             source          = this.source,
             shared          = {
                 classes     : {
@@ -846,13 +882,15 @@ WAF.Widget.provide(
                     switch(e.eventKind){
                         case "onElementSaved" :
                         case "onCollectionChange" :
-                            labels   = [];
-                            values   = [];
+                            labels          = [];
+                            values          = [];
+                            valuesClone     = [];
                         
                         
                         
                             for(var j = 0 ; j<columns.length ; j++){
-                                values[j] = [];
+                                values[j]       = [];
+                                valuesClone[j]  = [];
                             }
                         
                             minLength = Math.min(parseInt(inConfig['data-limitlength']), source.length);
@@ -866,12 +904,18 @@ WAF.Widget.provide(
                                     
                                         for(j = 0 ; j < columns.length ; j++){
                                             values[j].push(isNaN(parseFloat(item[columns[j].sourceAttID]))?0:parseInt(item[columns[j].sourceAttID]));
+                                            valuesClone[j].push(isNaN(parseFloat(item[columns[j].sourceAttID]))?0:parseInt(item[columns[j].sourceAttID]));
                                         }
                                     
                                         if(event.userData.onLastEntity){
                                         
                                             that._private.labels    = labels;
                                             that._private.values    = values;
+                                            
+                                            that.$domNode.data({
+                                                labels: labels,
+                                                values: valuesClone
+                                            });
                                         
                                             that.recreateChart(labels,values);
                                         }

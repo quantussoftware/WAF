@@ -241,7 +241,7 @@ WAF.addWidget({
                 }
                 return result;
             }
-        }.call(),
+        }.call()
     },
     {
         name        : 'height',

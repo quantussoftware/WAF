@@ -101,7 +101,8 @@ WAF.tools.optionMatchers = [
 		"forceReload",
 		"doNotAlterElemPos",
 		"overrideStamp",
-		"queryParams"
+		"queryParams",
+		"createEmptyCollection"
 	];
 
 WAF.tools.isOptionParam = function(param)
@@ -2205,15 +2206,24 @@ WAF.EntityCollection.removeEntity = function(posInSet, options, userData)
 		var subpos = posInSet - priv.loadedElemsLength;
 		var entity = priv.addedElems[subpos];
 		var resev = { entityCollection: entityCollection, result:entityCollection};
-		entity.remove({
-			onSuccess: function(ev){
-				priv.addedElems.splice(subpos,1);
-				WAF.callHandler(false, null, resev, options, userData);
-			},
-			onError: function(ev){
-				WAF.callHandler(true, ev.error, resev, options, userData);
-			}
-		});
+		if (entity == null || entity.getKey() == null) {
+			priv.addedElems.splice(subpos, 1);
+			entityCollection.length--;
+			WAF.callHandler(false, null, resev, options, userData);			
+		}
+		else {
+			entity.remove({
+				onSuccess: function(ev){
+					priv.addedElems.splice(subpos, 1);
+					entityCollection.length--;
+					WAF.callHandler(false, null, resev, options, userData);
+				},
+				onError: function(ev){
+					WAF.callHandler(true, ev.error, resev, options, userData);
+				}
+				
+			});
+		}
 	}
 	else {
 		options.pageSize = options.pageSize || priv.pageSize;
@@ -3047,7 +3057,9 @@ WAF.Entity.save = function(options, userData)
 						for (var e in attsByName)
 						{
 							var att = attsByName[e];
-							var val =  rawResultRec[e] || null;
+							var val =  rawResultRec[e];
+							if (val === undefined)
+								val = null;
 							var valAtt = entity[e];
 							if (valAtt == null)
 							{

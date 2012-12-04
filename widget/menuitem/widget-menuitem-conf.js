@@ -220,9 +220,14 @@ WAF.addWidget({
     },
     {
         name        : 'height',
-        defaultValue: function(config) {
-            return (config.parent.getLevel() == 0) ? '50px' : '22px';
-        }
+        name        : 'height',
+        defaultValue: function (config) {
+            var devaultValue = '22px';            
+            if (config && config.parent && config.parent.getLevel() == 0) {
+                devaultValue = '50px';
+            }
+            return devaultValue;
+        }.call()
     }],
     properties: {
         style: {

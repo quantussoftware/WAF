@@ -61,7 +61,13 @@ WAF.tags.descriptor.Column = function(config) {
                 ]
             }
         };
-    }        
+    }
+    
+    if(config.attributes){
+        for(var _i = 0 , attr; attr = config.attributes[_i] ; _i++){
+            this.configColumn.columns.attributes.push(attr);
+        }
+    }
     
     length = this.configColumn.columns.attributes.length;
     for (i = 0; i < length; i++) {

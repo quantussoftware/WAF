@@ -27,7 +27,7 @@ WAF.addWidget({
     },
     {
         name         : 'data-path',        
-        description  : 'Path',
+        description  : 'Web component path',
         autocomplete : 'components'
     },
     {
@@ -112,29 +112,140 @@ WAF.addWidget({
     },
 
     onInit: function (config) {   
-        var component = new WAF.widget.Component(config);  
+        
+        if (typeof Designer !== 'undefined') {
+                                         
+            /**
+            * Display the html content of the component
+            * @method displayHtml;
+            */
+            function displayHtml () {
+                var
+                css,
+                dom,
+                html,
+                name,
+                path,
+                tagId,
+                stream,
+                tabName,
+                widgetName,
+                pathValue;            
+           
+                tagId       = config['id']
+                name        = '';
+                tabName     = [];
+                path        = '';
+                css         = '';
+                stream      = null;
+                dom         = '';
+                html        = '';            
+                pathValue   = config['data-path']
+                name        = pathValue;
+            
+                if (pathValue) {
+                    tabName = name.split('/');
+                    name = tabName[tabName.length - 1].replace('.waComponent', '');
+                
+                    if (typeof studio !== 'undefined') {
+                       
+                        // style
+                        if (!Designer.env.isMac) {
+                            path = Designer.env.pathProject + '\\' + pathValue + '\\' + name + '.css';
+                            path = path.replace('/','');
+                        } else {
+                            path = Designer.env.pathProject + '' + pathValue + '/' + name + '.css';
+                            path = path.replace('/','');
+                            path = path.replace('\\','');
+                        }
+                        try {                
+                            stream = studio.TextStream(path, 'read');      
+                              
+                            css = stream.read();
+                        } catch (e) {
+                            console.log(e);
+                        }
+
+                        css = css.replace(/{id}/g, tagId + '_');
+                        css = css.replace('#' + tagId + '_ ',  '#' + tagId);
+                        // change path of image 
+                        css = css.replace(/url\(\'\/images/g , "url('" + Designer.env.pathProject + "/images/");
+                        css = '<style>'  + css + '</style>';
+
+                        // dom
+                        if (!Designer.env.isMac) {
+                            path = Designer.env.pathProject + '\\' + pathValue + '\\' + name + '.html';
+                            path = path.replace('/','');
+                        } else {
+                            path = Designer.env.pathProject + '' + pathValue + '/' + name + '.html';
+                            path = path.replace('/','');
+                            path = path.replace('\\','');
+                        }
+
+                        try {  
+                            stream = studio.TextStream(path, 'read');                
+                            dom = stream.read();
+                        } catch (e) {
+                            console.log(e);
+                        }
+
+                        dom = dom.replace(/{id}/g, tagId + '_');
+                        dom = dom.replace('<!DOCTYPE html >', '');
+                        dom = dom.replace('<meta name="generator" content="Wakanda GUIDesigner"/>', '');
+
+                        // html
+                        html = css + dom;                                                                       
+                        
+                        // change path of image 
+                        html = html.replace(/data-src="\//g , 'data-src="' + Designer.env.pathProject + '/');
+                        
+                        document.getElementById(tagId).innerHTML = html;  
+
+                        // generate
+                        WAF.tags.generate(tagId, false);
+                
+                        // lauch ready function
+                        for (widgetName in WAF.widgets) {                    
+                            if (widgetName && widgetName.indexOf(tagId) == 0 && WAF.widgets[widgetName].ready) {
+                                WAF.widgets[widgetName].ready();
+                            }
+                        }               
+                    }            
+                }
+            }
+        
+            /*
+            * Call component html display function
+            */                
+            displayHtml();
+            
+        } else {
+                                             
+            var component = new WAF.widget.Component(config);  
        
-        component.resizable(false);       
+            component.resizable(false);       
         
-        // hide by default
-        if (typeof Designer === 'undefined') {
-            $('#' + config.id).css('visibility', 'hidden');
-        }
+            // hide by default
+            if (typeof Designer === 'undefined') {
+                $('#' + config.id).css('visibility', 'hidden');
+            }
         
-        $('#' + config.id)
-        .prop({
-            'class': config['class']
-        });
+            $('#' + config.id)
+            .prop({
+                'class': config['class']
+            });
 
-        // Setting the theme
-        if (typeof config['theme'] == 'string' && config['theme'] !== '') {
-            $('#' + config.id).addClass(config['theme']);
-        }
+            // Setting the theme
+            if (typeof config['theme'] == 'string' && config['theme'] !== '') {
+                $('#' + config.id).addClass(config['theme']);
+            }
 
-        if (!config['data-path']) {
-        // nothing
-        } else if (!config['data-start-load'] || config['data-start-load'] == 'true'){        
-            component.loadComponent();     
+            if (!config['data-path']) {
+            // nothing
+            } else if (!config['data-start-load'] || config['data-start-load'] == 'true'){
+           
+                component.loadComponent();     
+            }
         }
                
     },
@@ -193,7 +304,7 @@ WAF.addWidget({
                             path = path.replace('/','');
                             path = path.replace('\\','');
                         }
-
+                       
                         try {                
                             stream = studio.TextStream(path, 'read');                
                             css = stream.read();
@@ -201,8 +312,9 @@ WAF.addWidget({
                             console.log(e);
                         }
 
-
                         css = css.replace(/{id}/g, tagId + '_');
+                        css = css.replace('#' + tagId + '_ ',  '#' + tagId);
+                        css = css.replace(/url\(\'\/images/g , "url('" + Designer.env.pathProject  + "/images");
                         css = '<style>'  + css + '</style>';
 
                         // dom
@@ -225,10 +337,17 @@ WAF.addWidget({
                         dom = dom.replace(/{id}/g, tagId + '_');
                         dom = dom.replace('<!DOCTYPE html >', '');
                         dom = dom.replace('<meta name="generator" content="Wakanda GUIDesigner"/>', '');
+                            
+                        if(Designer.env.document.getElementsByAttribute('script', 'src', '/waLib/WAF/lib/tiny_mce/tiny_mce.js').length > 0){
+                            dom = dom.replace('<script type="text/javascript" src="/waLib/WAF/lib/tiny_mce/tiny_mce.js"></script>', '');
+                        }
 
                         // html
                         html = css + dom;
-
+                        
+                        // change path of image 
+                        html = html.replace(/data-src="\//g , 'data-src="' + Designer.env.pathProject + '/');
+                        
                         tag.setComponentRessource(pathValue, html);
                     } else {
                         html = tag.getComponentRessource(pathValue);
@@ -255,6 +374,8 @@ WAF.addWidget({
 
                     requestCss.done(function (result) {
                         css = result.replace(/{id}/g, tagId + '_');
+                        css = css.replace('#' + tagId + '_ ',  '#' + tagId);
+                        css = css.replace(/url\(\'\/images/g , "url('" + Designer.env.pathProject  + "/images");
                         css = '<style>'  + css + '</style>';
                     
                         // HTML
@@ -266,6 +387,11 @@ WAF.addWidget({
                             dom = result.replace(/{id}/g, tagId + '_');
                             dom = dom.replace('<!DOCTYPE html >', '');
                             dom = dom.replace('<meta name="generator" content="Wakanda GUIDesigner"/>', '');
+                            
+                            if(Designer.env.document.getElementsByAttribute('script', 'src', '/waLib/WAF/lib/tiny_mce/tiny_mce.js').length > 0){
+                                dom = dom.replace('<script type="text/javascript" src="/waLib/WAF/lib/tiny_mce/tiny_mce.js"></script>', '');
+                            }
+                            
                             document.getElementById(tagId).innerHTML = css + dom;  
                         
                             // generate

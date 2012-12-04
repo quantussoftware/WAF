@@ -181,11 +181,11 @@ WAF.Widget.provide(
 		
 		refresh : function login_refresh () {
         	var  htmlObject  = $(this.containerNode);
-            var html = "";
 			var loginManager = this;
 			
 			function displayLoggedUser(user)
 			{
+				var html = "";
 				if (user == null)
 				{
 					html += '<div class="waf-login-user">' + loginManager.labels.noUserDisplay + '</div>'

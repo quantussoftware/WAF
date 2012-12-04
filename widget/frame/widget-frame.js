@@ -52,11 +52,14 @@ WAF.Widget.provide(
                 left        : 0
             });
             
-            if(that.events && that.events.onLoad){
-                that.getFrame().load(that.events.onLoad);
-            }
-            
             htmlObj.append(frame);
+            
+            frame.load(function(e){
+                var
+                myEvent = $.extend(true, e, $.Event("onLoad"));
+                
+                $(that).trigger(myEvent);
+            });
             
             if (sourceAtt) {
                 sourceAtt.addListener(function(e) {
@@ -78,11 +81,6 @@ WAF.Widget.provide(
         }
     },
     {
-        ready : function(){
-            if(this.events && this.events.onLoad){
-                this.getFrame().load(this.events.onLoad);
-            }
-        },
         getFrame : function(){
             return $('#' + this.id + '-frame');
         },

@@ -128,7 +128,7 @@
 	overflow: hidden;
 	cursor: default;
 	display: table-cell;
-	vertical-align:middle;
+	/*vertical-align:middle;*/
 }
 
 .waf-dataGrid-cell :not(input){
