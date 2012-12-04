@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type       : 'slider',
@@ -96,6 +92,26 @@ WAF.addWidget({
         defaultValue: 'left'
     }],
     events: [
+     {
+        name       : 'touchstart',
+        description: 'On Touch Start',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchend',
+        description: 'On Touch End',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchmove',
+        description: 'On Touch Move',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchcancel',
+        description: 'On Touch Cancel',
+        category   : 'Touch Events'
+    },
     {
         name       : 'slidecreate',
         description: 'On Create',
@@ -125,11 +141,21 @@ WAF.addWidget({
     style: [
     {
         name        : 'width',
-        defaultValue: '200px'
+        defaultValue: '162px'
     },
     {
         name        : 'height',
-        defaultValue: '15px'
+        defaultValue        : function() { 
+            var result;
+            if (typeof D != "undefined") {
+                if (D.isMobile) {
+                    result = "11px";
+                } else {
+                    result = "6px";
+                }
+                return result;
+            }
+        }.call()
     }],
     properties: {
         style: {
@@ -144,7 +170,11 @@ WAF.addWidget({
             label        : true,
             shadow       : false,
             disabled     : ['border-radius']
-        }
+        },
+        state : [{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled'
+        }]
     },
     structure: [{
         description : 'range',
@@ -174,19 +204,21 @@ WAF.addWidget({
     },
     onDesign: function (config, designer, tag, catalog, isResize) {  
         var slider,
-        tmpValue = '';
+            tmpValue = '',
+            orientation;
 
-        slider = document.getElementById(tag.getAttribute('id').getValue());
+        slider      = tag.getHtmlObject();
+        orientation = tag.getAttribute('data-orientation').getValue();
         
         if (!isResize) {
             // change style size if orientation has changed
-            if ( tag.tmpOrientation && tag.tmpOrientation != tag.getAttribute('data-orientation').getValue() ){
+            if ( tag.tmpOrientation && tag.tmpOrientation != orientation ){
                 tmpValue = tag.style.width;
                 tag.style.width = tag.style.height;
                 tag.style.height = tmpValue;
 
 
-                tag.tmpOrientation = tag.getAttribute('data-orientation').getValue();
+                tag.tmpOrientation = orientation;
 
                 $("#" + tag.overlay.id).css({
                     width: tag.style.width,
@@ -197,16 +229,52 @@ WAF.addWidget({
             }
 
             $(slider)
+            .slider('destroy')
             .slider({
                 disabled: true,
                 range: tag.getAttribute('data-range').getValue(),
                 //step: 5,
-                orientation: tag.getAttribute('data-orientation').getValue(),
-                value: 30
+                'orientation': orientation,
+                value: 36
             })
             .addClass('waf-widget waf-slider ' + tag.getTheme());
 
-            tag.tmpOrientation = tag.getAttribute('data-orientation').getValue();
+            tag.tmpOrientation = orientation;
         }
+        
+        if (tag._redrawHandle) {
+            tag._redrawHandle();
+        }
+    },
+    onCreate : function (tag, param) {
+        $(tag).on('onResize', function() {
+            this._redrawHandle();
+        });
+
+        /**
+         * Redraw the handle of the slider
+         * @function _redrawHandle
+         */
+        tag._redrawHandle = function slider_redraw_handle () {
+            var
+            width,
+            height,
+            orientation;
+
+            slider      = this.getHtmlObject();
+            orientation = this.getAttribute('data-orientation').getValue();
+            
+            if (orientation === 'horizontal') {
+                height  = slider.innerHeight() + 12;
+
+                $(slider).find('.ui-slider-handle').css({
+                    height      : height + 'px',
+                    lineHeight  : parseInt(this.style.height, 10) + 10 + 'px'
+                });
+            } else {
+                width  = slider.innerWidth() + 12;
+                $(slider).find('.ui-slider-handle').width(width);
+            }
+        };
     }
 });

@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
@@ -55,7 +51,7 @@ WAF.Widget.provide(
         sourceAtt   = this.sourceAtt;
         
         if (xsrc == null || xsrc == "") {
-            xsrc = "waLib/WAF/widget/css/images/emptyImage.png";
+            xsrc = this._empty;
         }
         
         txtHmlImg = '<img src="' + xsrc + '" />';
@@ -85,7 +81,7 @@ WAF.Widget.provide(
                 url = e.data.widget.getFormattedValue();
                 
                 if (url == null || url == "") {
-                    url = "waLib/WAF/widget/css/images/emptyImage.png";
+                    url = "/walib/WAF/widget/css/images/emptyImage.png";
                 }
                 
                 htmlImg.attr('src', url);
@@ -103,9 +99,17 @@ WAF.Widget.provide(
             if (this.source.getPosition() != -1) {
                 this.source.getElement(this.source.getPosition(), {
                     onSuccess:function(e) {
-                        //console.log(e.element[sourceAtt])
-                        if (sourceAtt.getValue()) {
-                            htmlImg.attr('src', sourceAtt.getValue().__deferred.uri)
+                        var
+                        value;
+                        
+                        value = sourceAtt.getValue();
+                        
+                        if (value) {
+                            if (value.__deferred) {
+                                htmlImg.attr('src', value.__deferred.uri);
+                            } else {
+                                htmlImg.attr('src', value);
+                            }
                         }
                     }
                 })
@@ -114,6 +118,38 @@ WAF.Widget.provide(
         
         that.refresh();
     },{
+        _empty : '/walib/WAF/widget/css/images/emptyImage.png',
+
+        /**
+         * Custom getValue function
+         * @method getValue
+         * @return {string} value
+         */
+         getValue : function image_get_value () {
+            return this.$domNode.children()[0].src;
+         },
+
+        /**
+         * Custom setValue function
+         * @method setValue
+         * @param {string} value
+         */
+         setValue : function image_set_value (value) {
+            this.$domNode.children()[0].src = value;
+         },
+
+        /**
+         * Custom clear function
+         * @method 
+         */
+         clear : function image_clear (argument) {
+            this.$domNode.find('img').attr('src', this._empty);
+         },
+
+        /**
+         * Refresh the image widget
+         * @method refresh
+         */
         refresh : function image_refresh () {
             var
             imgWidth,
@@ -153,7 +189,7 @@ WAF.Widget.provide(
                         'max-height'    : thisHeight + 'px'
                     });
                     
-                    htmlObject.attr('align', 'center');
+                    htmlObject.prop('align', 'center');
                     
                     htmlObject.css({
                         'line-height' : htmlObject.css('height')

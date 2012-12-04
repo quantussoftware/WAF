@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 //// "use strict";
 
@@ -45,9 +41,15 @@ WAF.Widget.provide(
          * @type Object
         */
         defaultState: {
+            normalMobile: {
+                scale: '0.7 0.7',
+                fill: '#fff',
+                //opacity: 0.7,
+                stroke: 'none'
+            },
             normal: {
                 scale: '0.7 0.7',
-                fill: '#5e5e5e',
+                fill: '#5e5e5e',//5e5e5e
                 //opacity: 0.7,
                 stroke: 'none'
             },
@@ -80,6 +82,7 @@ WAF.Widget.provide(
         path: {
             'questionMark': 'M 8,0.21875 C 4.2713275,0.14197786 0.80494426,3.1229021 0.30854347,6.8163019 -0.30845812,10.371109 1.9238817,14.126388 5.3268245,15.30845 8.6393979,16.589366 12.693361,15.213442 14.55397,12.191507 16.565547,9.1809685 16.036009,4.8146305 13.3664,2.3694547 11.940025,0.99842746 9.9794657,0.20890504 8,0.21875 z m 0.1875,3.75 C 9.6214659,3.8617741 11.105506,5.1590605 10.699913,6.6594261 10.540219,7.993643 8.7071455,8.3623657 8.71875,9.7296909 8.8687245,10.307797 8.1087289,9.9759333 7.7671638,10.0625 7.1007837,10.277321 7.2324258,9.6515364 7.27211,9.1964456 7.3192005,7.7776594 9.8529406,7.2897556 9.0234873,5.7630303 8.3674501,4.6439043 7.1130327,6.10801 6.5972927,5.5807189 6.2235365,5.1499766 5.6259204,4.6394495 6.5532153,4.390625 7.0502207,4.113654 7.6184865,3.9673256 8.1875,3.96875 z m -0.9375,7.125 c 0.4895833,0 0.9791667,0 1.46875,0 0,0.458333 0,0.916667 0,1.375 -0.4895833,0 -0.9791667,0 -1.46875,0 0,-0.458333 0,-0.916667 0,-1.375 z',
             'plus': 'M 12.95363,0.00218262 H 3.04597 C 1.36359,0.00218262 0,1.3364826 0,2.9826826 V 13.021683 c 0,1.6459 1.36398,2.9805 3.04597,2.9805 h 9.90807 c 1.68238,0 3.04596,-1.335 3.04596,-2.9805 V 2.9830826 c 0,-1.6466 -1.36398,-2.98089998 -3.04637,-2.98089998 z M 12.19861,9.4123826 h -2.7606 l 0,2.6954004 c -4e-4,0.7784 -0.64517,1.4094 -1.4404,1.4101 -0.79562,0 -1.4396,-0.632 -1.4396,-1.4101 l 7.7e-4,-2.6954004 -2.7594,-8e-4 c -0.79482,0 -1.4388,-0.6297 -1.4388,-1.4074 7.7e-4,-0.7781 0.64477,-1.4083 1.4388,-1.4078 h 2.7602 l -4e-4,-2.7009 c 0.001,-0.7785 0.64557,-1.4086 1.4408,-1.409 0.79562,0 1.44,0.6314 1.4392,1.409 l -3.9e-4,2.7009 2.7598,3e-4 c 0.79522,7e-4 1.43959,0.6317 1.44039,1.4098 -10e-4,0.7777 -0.64517,1.4067 -1.44039,1.4059 z',
+            'plusMobile': 'M25.979,12.896 19.312,12.896 19.312,6.229 12.647,6.229 12.647,12.896 5.979,12.896 5.979,19.562 12.647,19.562 12.647,26.229 19.312,26.229 19.312,19.562 25.979,19.562z',
             'minus': 'M 12.954026,0.002183 H 3.0459693 C 1.3635807,0.002183 0,1.3364239 0,2.9826132 V 13.021753 c 0,1.645797 1.3639796,2.98043 3.0459693,2.98043 H 12.954026 C 14.636818,16.002183 16,14.667168 16,13.021753 V 2.9830057 C 16,1.3364239 14.636419,0.002183 12.954026,0.002183 z M 12.199001,9.4123666 3.7998001,9.4119741 C 3.004974,9.4115925 2.3609945,8.7818519 2.3609945,8.0041289 2.3617667,7.2260134 3.0057707,6.5958913 3.7998001,6.5966763 h 8.3992009 c 0.794432,7.523e-4 1.438811,0.6316812 1.439606,1.4097858 -5.94e-4,0.777723 -0.645174,1.4066895 -1.439606,1.4059045 z',
             'arrowFullLeft': 'M 6.42825,15.374508 0.6214,9.5205079 C 0.20777,9.1013079 0,8.5475079 0,8.0006079 l 0,0 c 0,-0.5461 0.20777,-1.0976 0.6214,-1.5188 l 0,0 0.001,0 5.80609,-5.85399995 c 0.41478,-0.4184 0.96472,-0.6293 1.50695,-0.627800004869 l 0,0 c 0.54221,0 1.09139,0.209400004869 1.50307,0.625500004869 l 0,0 C 9.85483,1.0392079 10.06802,1.5927079 10.06802,2.1439079 l 0,0 c 0,0.5468 -0.20972,1.1015 -0.62565,1.5191 l 0,0 -2.17274,2.1875 h 6.60088 c 1.17906,0 2.12756,0.9633 2.12949,2.1481 l 0,0 c -0.002,1.1841 -0.94927,2.1474001 -2.12949,2.1474001 l 0,0 H 7.27156 l 2.16888,2.1871 c 0.41439,0.4165 0.62758,0.9699 0.62758,1.5215 l 0,0 c 0,0.5461 -0.20972,1.0995 -0.62758,1.518 l 0,0 c -0.41554,0.4161 -0.96009,0.6274 -1.505,0.6274 l 0,0 c -0.54262,0 -1.09256,-0.211 -1.50734,-0.6274 l 0,0 z',
             'arrowFullRight': 'M 9.57175,15.374508 15.3786,9.5205079 c 0.41363,-0.4192 0.6214,-0.973 0.6214,-1.5199 l 0,0 c 0,-0.5461 -0.20777,-1.0976 -0.6214,-1.5188 l 0,0 -0.001,0 -5.80609,-5.85399995 c -0.41478,-0.4184 -0.96472,-0.6293 -1.50695,-0.627800004869 l 0,0 C 7.52235,7.945131e-6 6.97317,0.20940795 6.56149,0.62550795 l 0,0 C 6.14517,1.0392079 5.93198,1.5927079 5.93198,2.1439079 l 0,0 c 0,0.5468 0.20972,1.1015 0.62565,1.5191 l 0,0 2.17274,2.1875 H 2.12949 c -1.17906,0 -2.12756,0.9633 -2.12949,2.1481 l 0,0 c 0.002,1.1841 0.94927,2.1474001 2.12949,2.1474001 l 0,0 h 6.59895 l -2.16888,2.1871 c -0.41439,0.4165 -0.62758,0.9699 -0.62758,1.5215 l 0,0 c 0,0.5461 0.20972,1.0995 0.62758,1.518 l 0,0 c 0.41554,0.4161 0.96009,0.6274 1.505,0.6274 l 0,0 c 0.54262,0 1.09256,-0.211 1.50734,-0.6274 l 0,0 z',
@@ -109,89 +112,291 @@ WAF.Widget.provide(
      * @default TODO: set to the name to this class (ex: WAF.widget.DataGrid)
      **/
     function WAFWidget(config, data, shared) {
-        /**
-         * The Dom node containing the 4-states
-         *
-         * @private
-         * @property node
-         * @type DOMElement
-         */
-        // var node;
+        var  
+        widget,
+        cssProp,
         
-        /**
+        /*
          * The Raphael viewport
-         *
-         * @private
-         * @property paper
-         * @type Raphael
          */
-        var paper;
-        
-        /**
+        paper,
+        /*
          * The initial icon, normal state
-         *
-         * @private
-         * @property icon
-         * @type object
          */
-        var icon;
+        icon;
         
+        /*
+         * Set icon widget type
+         */
+        this._type          = data['icon-type'] ? data['icon-type'] : null;
+        
+        this._spriteInfo    = data['sprite-info'] || "";
+        
+        widget      = this;
+        
+        switch(this._type) {
+            /*
+             * Images icon behaviour
+             */
+            case 'images' :
+                /*
+                 * Show default image
+                 */
+                this.setState('state1');
+                
+                /*
+                 * Bind states events
+                 */
+                this.$domNode.bind({
+                        mouseenter: function() {
+                            widget.setState('state2');
+                        },
+                        mousedown: function() {
+                            widget.setState('state3');
+                        },
+                        'mouseleave': function() {
+                            widget.setState('state1');
+                        },
+                        'mouseup': function() {
+                            widget.setState('state2');
+                        }
+                });
+                
+                /*
+                 * Resize icon depending on data-fit value
+                 */
+                this.$domNode.find('img').width('100%').height('100%');
+                
+                break;
+                
+                
+            /*
+             * Sprite icon behaviour
+             */
+            case 'sprite' :                
+                /*
+                 * Set image as background-image css property
+                 */
+                cssProp = {
+                    'background-image' : 'url("' + data['image-state1'] + '")'
+                }
+                
+                this.$domNode.css(cssProp);
+                
+                /*
+                 * Show default image
+                 */
+                this.setState('state1');
+                
+                /*
+                 * Bind states events
+                 */
+                this.$domNode.bind({
+                        mouseenter: function() {
+                            widget.setState('state2');
+                        },
+                        mousedown: function() {
+                            widget.setState('state3');
+                        },
+                        'mouseleave': function() {
+                            widget.setState('state1');
+                        },
+                        'mouseup': function() {
+                            widget.setState('state2');
+                        }
+                });
+                
+                break;
+                
+                
+            /*
+             * Default icon behaviour
+             */
+            default : 
+                /**
+                 * The states of this icon instance, default to shared.defaultState
+                 *
+                 * @private
+                 * @property defaultState
+                 * @type object
+                 */
+                this.state = $.extend(true, {}, shared.defaultState, config.state);
+
+                if (shared.path[config.type] == undefined) {
+                    config.type = 'questionMark';
+                }
+
+                if (config.size == undefined || ("16, 24, 32".indexOf(config.size) === -1)) {
+                    config.size = 16;
+                }
+
+                $(this.containerNode).prop(
+                {
+                    id: config.id,
+                    'class': 'waf-icon waf-icon-' + config.size + ' ' + [].concat(config.className).join(' ')
+                }
+                )
+                .data(
+                {
+                    'icon-size': config.size,
+                    'icon-type': config.type
+                }
+                ).bind({
+                        mouseenter: function() {
+                                $(this).addClass('waf-state-hover');
+                        },
+                        mousedown: function() {
+                                $(this).addClass('waf-state-active');
+                        },
+                        'mouseleave mouseup': function() {
+                                $(this).removeClass('waf-state-hover waf-state-active');
+                        }
+                });
+
+                paper = Raphael(this.containerNode, config.size, config.size * 4);
+
+                if (WAF.PLATFORM.modulesString === "mobile" || WAF.PLATFORM.modulesString === "touch") {
+                    icon = paper.path(shared.path[config.type]).attr(this.state.normalMobile); 
+                } else {
+                    icon = paper.path(shared.path[config.type]).attr(this.state.normal);
+                }
+                icon.clone().translate(0, config.size).attr(this.state.hover);
+                icon.clone().translate(0, config.size * 2).attr(this.state.active);
+                icon.clone().translate(0, config.size * 3).attr(this.state.disabled);
+
+                /* append a transparent foregroung to handle events */
+                paper.rect(0, 0, config.size, config.size * 4).attr({
+                    fill: '#000', 
+                    stroke: 'none', 
+                    opacity: 0
+                });
+                
+                $(this.containerNode).append($(paper.node));
+                
+                break;
+        }
+        
+    },
+    {
+        _type : null,
+        
+        _tmpState : 'default',
+        
+        setState : function icon_set_state (state) {
+            var
+            label,
+            htmlObject;
+            
+            label = this.getLabel();
+            
+            /*
+             * Equivalences
+             */
+            if (state == 'default') {
+                state = 'state1';
+            }
+            if (state == 'hover') {
+                state = 'state2';
+                this.addClass('waf-state-hover');
+            }
+            if (state == 'active') {
+                state = 'state3';
+            }
+            if (state == 'disabled') {
+                state = 'state4';
+            }
+            
+            if (!this._disabled) {
+                htmlObject = this.$domNode;
+
+                htmlObject.addClass('waf-state-' + state);
+                this._showImage(state);
+                
+                if (state == 'state2') {
+                    htmlObject.removeClass('waf-state-state3');
+                }
+
+                if (state == 'state3') {
+                    htmlObject.removeClass('waf-state-state2');
+                }
+                
+                if (state == 'state1') {
+                    htmlObject.removeClass('waf-state-state2');
+                    htmlObject.removeClass('waf-state-state3');
+                    htmlObject.removeClass('waf-state-state4');
+                    
+                    this._tmpState = state;
+                }
+            
+                if (label) {
+                    label.setState(state);
+                }
+            }
+        },
+        
+        /*
+         * Display the correct image depending on icon state
+         * @method _showImage
+         * @param {string} state
+         */
+        _showImage : function icon_show_image(state) {
+            var
+            spriteInfo;
+            
+            switch (this._type){
+                case 'images' :
+                    this.$domNode.find('img.waf-icon-' + state).show();
+                    this.$domNode.find('img').not('.waf-icon-' + state).hide();
+                    
+                    break;
+                    
+                case 'sprite' :            
+                    /*
+                     * Get sprite info
+                     */
+                    /*spriteInfo  = this._spriteInfo;
+                    spriteInfo  = JSON.parse(spriteInfo.replace(/\'/g, '"'))[0];*/
+                    
+                    /*
+                     * Change background-position
+                     */
+                    /*if (spriteInfo[state]) {
+                        this.$domNode.css({
+                            'background-position' : spriteInfo[state]
+                        });
+                    }
+                    */
+                    break;
+            }
+            
+            
+        },        
         
         /**
-         * The states of this icon instance, default to shared.defaultState
-         *
-         * @private
-         * @property defaultState
-         * @type object
+         * Custom disable function (enable sub widgets)
+         * @method enable
          */
-        this.state = $.extend(true, {}, shared.defaultState, config.state);
+        disable : function icon_disable() {   
+            this.setState('disabled');     
+
+            /*
+             * Call super class disable function
+             */
+            WAF.Widget.prototype.disable.call(this);
+        },        
         
-        if (shared.path[config.type] == undefined) {
-            config.type = 'questionMark';
+        /**
+         * Custom enable function (enable sub widgets)
+         * @method enable
+         */
+        enable : function icon_enable() {  
+            this.setState('default');          
+            
+            /*
+             * Call super class enable function
+             */
+            WAF.Widget.prototype.enable.call(this);
         }
-        
-        if (config.size == undefined || ("16, 24, 32".indexOf(config.size) === -1)) {
-            config.size = 16;
-        }
-        
-        $(this.containerNode).attr(
-        {
-            id: config.id,
-            'class': 'waf-icon waf-icon-' + config.size + ' ' + [].concat(config.className).join(' '),
-            'data-icon-size': config.size,
-            'data-icon-type': config.type
-        }
-        ).bind({
-        	mouseenter: function() {
-        		$(this).addClass('waf-state-hover');
-        	},
-        	mousedown: function() {
-        		$(this).addClass('waf-state-active');
-        	},
-        	'mouseleave mouseup': function() {
-        		$(this).removeClass('waf-state-hover waf-state-active');
-        	}
-        });
-        
-        paper = Raphael(this.containerNode, config.size, config.size * 4);
-        
-        //console.log(this.state.normal);
-        icon = paper.path(shared.path[config.type]).attr(this.state.normal);
-        icon.clone().translate(0, config.size).attr(this.state.hover);
-        icon.clone().translate(0, config.size * 2).attr(this.state.active);
-        icon.clone().translate(0, config.size * 3).attr(this.state.disabled);
-        
-        /* append a transparent foregroung to handle events */
-        paper.rect(0, 0, config.size, config.size * 4).attr({
-            fill: '#fff', 
-            stroke: 'none', 
-            opacity: 0
-        });
-        
-        $(this.containerNode).append($(paper.node));
-    },
-    
-    {
     }
 
     );

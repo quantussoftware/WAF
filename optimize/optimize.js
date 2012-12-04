@@ -1,32 +1,45 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
+function writeToMyLog(message)
+{
+	var mutex = Mutex("syncOptimize");
+	mutex.lock();
+	var file = new File("f:/logOptimize.txt");
+	var outStream = TextStream(file, "write");
+	outStream.write(message);
+	outStream.close();
+	mutex.unlock();
+	
+}
+
 function optimize( request, response)
 {
+	
 	var url = request.url;
 	var queryValues = getURLQuery(url);
 	var fileNames = queryValues.files;
 	var output = "";
 	var contentType = null;
 	
+	//writeToMyLog("url : "+ url+"\n");
+	
+	var typeSend = "JS";
+	
 	//console.log(JSON.stringify(queryValues));
-	var referer = queryValues.referer; //request.headers.REFERER;
+	var referer = /*queryValues.referer; */ request.headers.Referer;
 	referer = referer.split('\\').join('/');
 	//console.log("referer: "+referer)
 	var mustskipfirst = false;
@@ -54,7 +67,7 @@ function optimize( request, response)
 	
 	var wafPath = getWalibFolder().path+"WAF";
 	var serverPath = getWalibFolder().parent.path;
-	var webFolderPath = webAppService.getDocumentRootFolder().path;
+	var webFolderPath = application.getItemsWithRole( 'webFolder').path;	// sc 16/05/2012, webAppService property was removed
 	var refererPath = webFolderPath;
 	if (path.length > 0)
 	{
@@ -113,7 +126,10 @@ function optimize( request, response)
 				{
 					var ext = file.extension.toUpperCase();
 					if (ext == 'CSS')
+					{
 						contentType = 'text/css; charset=UTF-8';
+						typeSend = "CSS";
+					}
 					if (ext == 'JS')
 					{
 						contentType = 'application/javascript';
@@ -145,18 +161,28 @@ function optimize( request, response)
 				needSend = false;
 			}
 		}
-		var sReq = "maxModifDate : "+maxModifDate.toUTCString()+"  ,  modifSinceDate : "+modifSinceDate.toUTCString()+"  ,  needSend : "+needSend;
+		//var sReq = "maxModifDate : "+maxModifDate.toUTCString()+"  ,  modifSinceDate : "+modifSinceDate.toUTCString()+"  ,  needSend : "+needSend;
 		//trace(contentType + " --> "+sReq+"\n")
 
 	}
 	
 	if (needSend)
 	{
-                if (queryValues.componentid) {
-                    response.body = output.replace(/{id}/g, queryValues.componentid);
-                } else {
-                    response.body = output;
-                }            		
+		/*
+		var folder = Folder("f:/sendFiles");
+		if (!folder.exists)
+			folder.create();
+		var uuid = generateUUID();
+		var file = new File(folder, uuid+".txt");
+		saveText(output, file);
+		writeToMyLog(typeSend+" : full send, in file: "+uuid+".txt , modifSince = "+modifSince+" , maxModifDate = "+maxModifDate+"\n\n");
+		*/
+		
+        if (queryValues.componentid) {
+            response.body = output.replace(/{id}/g, queryValues.componentid);
+        } else {
+            response.body = output;
+        }            		
 		if (contentType != null)
 		{
 			response.headers["Content-Type"] = contentType;
@@ -171,6 +197,7 @@ function optimize( request, response)
 	}
 	else
 	{
+		//writeToMyLog(typeSend+" : no send\n\n");
 		if (contentType != null)
 		{
 			response.headers["Content-Type"] = contentType;

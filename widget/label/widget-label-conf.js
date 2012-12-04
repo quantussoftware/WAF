@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type        : 'label',
@@ -36,6 +32,10 @@ WAF.addWidget({
     {
         name: 'data-valign',
         defaultValue: 'middle'
+    },
+    {
+        name: 'data-margin',
+        defaultValue: '5'
     }],
     style       : [
     {
@@ -61,9 +61,13 @@ WAF.addWidget({
         minWidth,
         maxWidth,
         linked,
+        margin,
+        marginAttr,
         labelTextAlign,
         text;
         
+        marginAttr      = tag.getAttribute('data-margin');
+        margin          = marginAttr ? parseInt(marginAttr.getValue()) : 5;
         htmlObject      = tag.getHtmlObject();
         width           = tag.getWidth();
         height          = tag.getHeight();
@@ -74,7 +78,7 @@ WAF.addWidget({
             
         labelTextAlign  = tag.getComputedStyle('text-align'); 
               
-        htmlObject.attr('for', tag.getAttribute('for').getValue())
+        htmlObject.prop('for', tag.getAttribute('for').getValue())
               
         /*
          * get/create the temporary html object
@@ -148,11 +152,11 @@ WAF.addWidget({
             position = linked.getAttribute('data-label-position').getValue();
             switch( position ){
                 case 'left' :
-                    left -= width + 5;
+                    left -= width + margin;
                     break;
 
                 case 'top' :
-                    top -= height + 5;
+                    top -= height + margin;
                     break;
 
                 case 'right' :
@@ -378,7 +382,7 @@ WAF.addWidget({
             Designer.api.setListenerMode(false);
             tag.resize.lock(true);
             YAHOO.util.Event.stopEvent(e);
-            $(this).attr('disabled', 'disabled');
+            $(this).prop('disabled', 'disabled');
             
             /*
              * Lock d&d
@@ -386,10 +390,15 @@ WAF.addWidget({
             tag.lock();
             tag.setFocus(true, false);
             
+                    //linked.currentSelector = 'waf-label';
             linked.setFocus(false, false);
             
             htmlObject          = tag.getHtmlObject();            
-            text                = tag.getAttribute("data-text").getValue();            
+            text                = tag.getAttribute("data-text").getValue();   
+            
+            if (htmlObject[0].tagName == 'LABEL') {
+                tag._tmpHtmlObj    = htmlObject[0].outerHTML;
+            }
                
             tmpHtmlObject       = tag._getTmpHtmlObject(text);  
             parentHtmlObject    = htmlObject.parent();
@@ -400,6 +409,8 @@ WAF.addWidget({
              * Create edit box with the same css as the tag
              */
             editBox = $('<textarea>');
+            
+            editBox.prop('id', tag.getId())
             editBox.css({
                 /*
                  * Keep the same css as the tag
@@ -430,6 +441,7 @@ WAF.addWidget({
              * Select the all text on focus
              */
             editBox.select();
+            
             
             /*
              * Add key events
@@ -473,8 +485,8 @@ WAF.addWidget({
                     case 13:
                         this.blur();
                         
-                        linked.setFocus(true, true);
-                        linked.updateProperty();
+                        //linked.setFocus(true, true);
+                        //linked.updateProperty();
                         break;
                         
                     /*
@@ -499,18 +511,23 @@ WAF.addWidget({
                 var 
                 tag,
                 linked,
-                newValue;
+                parent,
+                newValue,
+                htmlObject;
 
                 tag         = e.data.tag;
                 newValue    = $(this).val();
                 linked      = tag.getLinkedTag();
+                htmlObject  = tag.getHtmlObject();
+                parent      = htmlObject.parent();
                                 
                 tag.getAttribute('data-text').setValue(newValue);
                 linked.getAttribute('data-label').setValue(newValue);
                 
                 tag.update();
-                tag.domUpdate();
+                tag.domUpdate();                
                 
+                parent.html(tag._tmpHtmlObj);
                 tag.getHtmlObject().html(newValue.replace(/\n/g, '<br />'))
                 
                 /*
@@ -522,11 +539,6 @@ WAF.addWidget({
                 tag.resize.unlock(true);      
                 
                 /*
-                 * Remove focus
-                 */
-                tag.setFocus(false);
-                
-                /*
                  * Reload label
                  */
                 
@@ -534,8 +546,8 @@ WAF.addWidget({
                     Designer.tag.deleteWidgets(tag);
                 } else {
                     tag.onDesign();
+                    tag.setFocus(true);
                 }
-                
             })
             
         }
@@ -543,5 +555,36 @@ WAF.addWidget({
         htmlObject.bind('dblclick', {
             tag : tag
         }, tag.dblClickFn); 
+
+        /*
+         * Automatically add a class depending on linked tag type
+         */
+         if (linked) {
+            tag.addClass('waf-label-' + linked.getType());
+        }
+
+        /**
+         * Change the position of the label
+         * @function changePosition
+         * @param {string} pos new position
+         */
+        tag.changePosition = function label_change_position (pos) {
+            var
+            linked;
+
+            linked = this.getLinkedTag();
+
+            linked.getAttribute('data-label-position').setValue(pos);
+            linked.domUpdate();
+            linked.onDesign(true);
+
+            /*
+             * Trigger custom evet
+             */
+            $(this).trigger('onPositionChange');
+        }
+    },
+
+    onCreate : function label_on_create (tag, param) {
     }
 });

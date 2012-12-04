@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type       : 'button',
@@ -26,16 +22,19 @@ WAF.addWidget({
     tag        : 'button',
     attributes : [
     {
-        name       : 'data-binding',
-        description: 'Source'
+        name        : 'data-binding',
+        description : 'Source',
+        onchange    : function(){
+            if (!this.getValue()) {
+                $('#dropdown-data-action').parent().parent().hide();
+            } else {
+                $('#dropdown-data-action').parent().parent().show();
+            }
+        }
     },
     {
         name       : 'class',
         description: 'Css class'
-    },
-    {
-        name       : 'data-text',
-        description: 'Text'
     },
     {
         name       : 'data-state-1',
@@ -79,18 +78,74 @@ WAF.addWidget({
         },{
             key     : 'first',
             value   : 'First'
-        }]
+        },{
+            key     : 'remove',
+            value   : 'Remove'
+        }],
+        ready     : function(){
+            var
+            i,
+            tag,
+            selection,
+            selectionL;
+            
+            
+            selection   = Designer.env.tag.selection;
+            selectionL  = selection.count();
+
+            if (selectionL <= 0) {   
+                if (!this.data.tag.getSource()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }
+            } else {
+                if (!D.ui.selection.getAttribute('data-binding').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }
+            }
+        }
+    },
+    {
+        name       : 'data-text',
+        description: 'Text'
     },
     {
         name        : 'data-link',
-        description : 'Link'
+        description : 'Link',
+        onchange    : function(){
+            if (!this.getValue()) {
+                $('#dropdown-data-target').parent().parent().hide();
+            } else {
+                $('#dropdown-data-target').parent().parent().show();
+            }
+        }
     },
     {
         name        : 'data-target',
         description : 'Target',
         type        : 'dropdown',
         options     : ['_blank', '_self'],
-        defaultValue: '_blank'
+        defaultValue: '_blank',
+        ready     : function(){            
+            var
+            i,
+            tag,
+            selection,
+            selectionL;
+            
+            
+            selection   = Designer.env.tag.selection;
+            selectionL  = selection.count();
+
+            if (selectionL <= 0) {   
+                if (!this.data.tag.getAttribute('data-link').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }                
+            } else {
+                if (!D.ui.selection.getAttribute('data-link').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }  
+            }
+        }
     },
     {
         name        : 'tabindex',
@@ -127,15 +182,41 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
+    },
+    {
+        name       : 'touchstart',
+        description: 'On Touch Start',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchend',
+        description: 'On Touch End',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchcancel',
+        description: 'On Touch Cancel',
+        category   : 'Touch Events'
     }],
     style: [,
     {
         name        : 'width',
-        defaultValue: '82px'
+        defaultValue: '92px'
     },
     {
         name        : 'height',
-        defaultValue: '28px'
+        defaultValue        : function() { 
+            var result;
+            if (typeof D != "undefined") {
+                if (D.isMobile) {
+                    result = "29px";
+                } else {
+                    result = "22px";
+                }
+            }
+
+        return result;
+    }.call()
     }],
     properties: {
         style: {
@@ -155,15 +236,23 @@ WAF.addWidget({
         state : [{
                 label   : 'hover',
                 cssClass: 'waf-state-hover',
-                find    : ''
+                find    : '',
+                mobile  : false
         },{
                 label   : 'active',
                 cssClass: 'waf-state-active',
-                find    : ''
+                find    : '',
+                mobile  : true
         },{
                 label   : 'focus',
                 cssClass: 'waf-state-focus',
-                find    : ''
+                find    : '',
+                mobile  : true
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '',
+                mobile  : true
         }]
     },
     onInit: function (config) {
@@ -200,7 +289,7 @@ WAF.addWidget({
             if (text.length == 0 && tag.getAttribute('data-action').getValue() == "simple") {
                 text = '[' + tagId + ']';
             } else if (text.length == 0 && tag.getAttribute('data-action').getValue() != "simple") {
-                text = tag.getAttribute('data-action').getValue();
+                text = WAF.utils.ucFirst(tag.getAttribute('data-action').getValue());
             }
 
             if (tag.getAttribute('data-state-1').getValue() && !tag.getAttribute('data-text').getValue() ) {
@@ -260,7 +349,7 @@ WAF.addWidget({
                 if (text.length == 0 && tag.getAttribute('data-action').getValue() == "simple") {
                     text = '[' + tagId + ']';
                 } else if (text.length == 0 && tag.getAttribute('data-action').getValue() != "simple") {
-                    text = tag.getAttribute('data-action').getValue();
+                    text = WAF.utils.ucFirst(tag.getAttribute('data-action').getValue());
                 }
                 
                 
@@ -269,7 +358,7 @@ WAF.addWidget({
                 Designer.api.setListenerMode(false);
                 tag.resize.lock(true);
                 YAHOO.util.Event.stopEvent(e);
-                $(this).attr('disabled', 'disabled'); 
+                $(this).prop('disabled', 'disabled'); 
                 // lock d&d
                 tag.lock();
                 
@@ -340,7 +429,7 @@ WAF.addWidget({
                     // escape text
                     $('#' + tagId + ' span').text(newValue);  
 
-                    htmlObject.removeAttr('disabled');
+                    htmlObject.removeProp('disabled');
                     
                     D.tag.refreshPanels();
                     
@@ -349,5 +438,5 @@ WAF.addWidget({
 
             });
         }
-    }    
+    }
 });

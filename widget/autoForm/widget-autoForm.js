@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
     'AutoForm',    
@@ -66,7 +62,8 @@ WAF.Widget.provide(
             options.allowResizeInput = true;
         }
         
-        if (source != null) {
+        if (source != null || typeof Designer !== 'undefined') {
+            
             /*
              * Getting the names list
              */
@@ -126,14 +123,14 @@ WAF.Widget.provide(
                 if (widget.config['data-withoutTable'] == 'false') {
                     htmlObject.toggleClass('expanded waf-state-active');
 
-                    attNo = parseInt(htmlObject.attr("data-att-id"));
+                    attNo = parseInt(htmlObject.data("att-id"));
                     that.toggleAttribute2(widget.id, attNo, e.shiftKey);
                     
                 /*
                  * Collapse for autoform without table
                  */
                 } else {
-                    attNo   = htmlObject.attr('data-att-id');
+                    attNo   = htmlObject.data('att-id');
                     formID  = widget.id;
 
                     if (attNo != null && formID != null) {
@@ -145,6 +142,14 @@ WAF.Widget.provide(
                     }
                 }
             });     
+			htmlObject.find('.waf-form-att-label-rel.waf-expandable,.attribute-rel').each(function(index) {
+				$(this).prev().bind("click", function(event) {
+					//Simulate click on expandable icon
+					$(this).next().click();
+					event.stopPropagation();
+					event.preventDefault();
+				});
+			});
             
                         
         /*
@@ -331,7 +336,7 @@ WAF.Widget.provide(
                         htmlobj = document.getElementById(this.id + "_" + idName(attList[i]));
 
                         if (htmlobj.isInFocus) {
-                            htmlobj.value = sourceAtt.getValue(false); //form.source[att.name];
+                            htmlobj.value = sourceAtt.getValueForInput(); //form.source[att.name];
                         } else  {
                             htmlobj.value = htmlobj.getFormattedValue();
                         }
@@ -360,12 +365,12 @@ WAF.Widget.provide(
             title;
 
             htmlObject = this.$domNode;
-            already = htmlObject.attr("data-inPanel");
+            already = htmlObject.data("inPanel");
 
             if (already == "1") {
                 htmlObject.dialog("open");
             } else {	
-                htmlObject.attr("data-inPanel", "1");
+                htmlObject.data("inPanel", "1");
 
                 off = htmlObject.offset();
                 h   = htmlObject.height();
@@ -378,7 +383,7 @@ WAF.Widget.provide(
                 title = htmlObject.find(".autoForm-title").html();
 
                 htmlObject.dialog({ 
-                    dialogClass : 'waf-widget-panel autoForm-panel ' + htmlObject.attr('class'),
+                    dialogClass : 'waf-widget-panel autoForm-panel ' + htmlObject.prop('class'),
                     title       : title,
                     position    : [off.left, off.top],
                     width       : w,
@@ -481,17 +486,21 @@ WAF.Widget.provide(
                     
                     objdiv = $('<div />');
 
-                    objdiv.attr({
+                    objdiv.prop({
                         id              : subID,
-                        'class'         : dataTheme+" waf-autoForm",
-                        'data-theme'    : dataTheme
+                        'class'         : dataTheme+" waf-autoForm"
                     })
+                    .data('theme', dataTheme)
                     .css({
                         'background-color'  : $('#' + divID).css('background-color'),
                         'border'            : $('#' + divID).css('border')
                     });
 
                     objdiv.appendTo('#' + parentDivID);
+                    
+                    if(this.config['data-resize-optimal-each-widget'] === 'true') {
+						objdiv.width($('#' + divID).width() - objdiv.position().left - 5);
+					}
 
                     form.relForms[attribute.name]   = subWidget;
                     form.relSources[sourceID]       = subsource;
@@ -503,6 +512,7 @@ WAF.Widget.provide(
                         'id'            : subID,
                         'class'         : widget.config['class'],
                         'data-binding'  : subsource._private.id,
+						'data-resize-optimal-each-widget' : this.config['data-resize-optimal-each-widget'],
                         'options'       : {
                             toolBarForRelatedEntity : form.level == 1,
                             noToolBar               : form.level > 1,
@@ -536,7 +546,7 @@ WAF.Widget.provide(
                             }
 
                             w       = objdiv.outerWidth() + 30;
-                            maxw    = form.bodyDom.innerWidth() - objdiv.position().left - 30;
+                            maxw    = form.bodyDom.innerWidth() - objdiv.position().left - 5;
 
                             if (maxw > 150 && maxw < w){
                                 objdiv.width(maxw);
@@ -570,6 +580,10 @@ WAF.Widget.provide(
                             if (needrecalc) {
                                 subWidget.onResize();
                             }
+                            
+							if (this.config['data-resize-optimal-each-widget'] === 'true') {
+								this.resizeParentWidget(objdiv);
+							}
                         }
                     }
                     
@@ -585,11 +599,14 @@ WAF.Widget.provide(
 
                     objdiv = $('<div />');
 
-                    objdiv.attr({
+                    objdiv.prop({
                         id              : subID,
-                        'data-type'     : 'dataGrid',
-                        'class'         : 'waf-widget waf-dataGrid AF_autoGridGen ' + dataTheme,
-                        'data-theme'    : dataTheme
+                        'class'         : 'waf-widget waf-dataGrid AF_autoGridGen ' + dataTheme
+                    })
+                    .data({
+                        'type'     : 'dataGrid',
+                        'theme'    : dataTheme
+                        
                     })
                     .css({
                         'background-color'  : $('#' + divID).css('background-color'),
@@ -607,7 +624,7 @@ WAF.Widget.provide(
                         }
 
                         w       = objdiv.outerWidth()+30;
-                        maxw    = form.bodyDom.innerWidth() - objdiv.position().left - 30;
+                        maxw    = form.bodyDom.innerWidth() - objdiv.position().left - 5;
 
                         if (maxw > 200) {
                             objdiv.width(maxw);
@@ -699,6 +716,10 @@ WAF.Widget.provide(
                         grid    : subWidget
                     };
 
+					if (this.config['data-resize-optimal-each-widget'] === 'true') {
+						this.resizeParentWidget(objdiv);
+					}
+					
                     subsource.resolveSource();
                 } else if (attribute.type == 'image') { 
                     parentWidth = $('#' + parentDivID).width();
@@ -709,11 +730,13 @@ WAF.Widget.provide(
 
                     imgDiv = $('<div />');
                     
-                    imgDiv.attr({
+                    imgDiv.prop({
                         id              : subID,
-                        'data-type'     : 'image',
-                        'class'         : 'AF_autoImage waf-widget waf-image ' + dataTheme,
-                        'data-theme'    : dataTheme
+                        'class'         : 'AF_autoImage waf-widget waf-image ' + dataTheme
+                    })
+                    .data({
+                    	'type'     : 'image',
+                        'theme'    : dataTheme
                     })
                     .css({
                         'background-color'  : $('#' + divID).css('background-color'),
@@ -737,6 +760,10 @@ WAF.Widget.provide(
                             }
                         });
                     }
+                    
+					if (this.config['data-resize-optimal-each-widget'] === 'true') {
+						this.resizeParentWidget(imgDiv);
+					}
                 }
                 
                 widget._subWidgets[subID] = subWidget;                
@@ -825,11 +852,11 @@ WAF.Widget.provide(
                      * Create html object
                      */
                     $('<div>')
-                    .attr({
+                    .prop({
                         id              : subID,
-                        'class'         : dataTheme + " waf-autoForm waf-widget",
-                        'data-theme'    : dataTheme
+                        'class'         : dataTheme + " waf-autoForm waf-widget"
                     })
+                    .data('data-theme', dataTheme)
                     .css({
                         'background-color'  : $('#' + divID).css('background-color'),
                         'border'            : $('#' + divID).css('border')
@@ -885,11 +912,13 @@ WAF.Widget.provide(
                     parentDivID = divID + '_' + attribute.name;
 
                     $('<div />')
-                    .attr({
+                    .prop({
                         id              : subID,
-                        'data-type'     : 'dataGrid',
-                        'class'         : 'waf-widget waf-dataGrid AF_autoGridGen ' + dataTheme,
-                        'data-theme'    : dataTheme
+                        'class'         : 'waf-widget waf-dataGrid AF_autoGridGen ' + dataTheme
+                    })
+                    .data({
+                    	'type'     : 'dataGrid',
+                        'theme'    : dataTheme
                     })
                     .css({
                         'background-color'  : $('#' + divID).css('background-color'),
@@ -973,11 +1002,13 @@ WAF.Widget.provide(
                     }
 
                     $('<div />')
-                    .attr({
+                    .prop({
                         id              : subID,
-                        'data-type'     : 'image',
-                        'class'         : 'AF_autoImage waf-widget waf-image ' + dataTheme,
-                        'data-theme'    : dataTheme
+                        'class'         : 'AF_autoImage waf-widget waf-image ' + dataTheme
+                    })
+                    .data({
+                    	'type'     : 'image',
+                        'theme'    : dataTheme
                     })
                     .css({
                         'background-color'  : $('#' + divID).css('background-color'),
@@ -1348,6 +1379,19 @@ WAF.Widget.provide(
                     $(this).width(parent.width());
                 });
             }
+			
+			/*
+			$(".waf-form-att-value-input", htmlObject).each(function(index) {
+	            var parent = $(this).parent();
+				if (parent.hasClass("ui-wrapper")) {
+					parent.css("display", "table-cell");
+				}
+				else {
+					$(this).css("display", "table-cell");
+				}
+        	});
+        	*/
+			
         },
         
         /*
@@ -1392,7 +1436,54 @@ WAF.Widget.provide(
                     $('#' + messDivName).html("");
                 }
             }
-        }
+        },
+        
+		/*
+		 * Resize parent widget to have only one scrollbar
+		 * @method resizeParentWidget
+		 */
+		resizeParentWidget : function resize_parent_auto_form_widget(currentWidget) {
+			
+			var i,
+				widget,
+				parentsLength,
+				widgetsParent,
+				$parentWidget,
+				currentHeight,
+				$parentWidgetBody,
+				needToResizeParent;
+			
+			widget = this;
+			widgetsParent = $(currentWidget).parents(".waf-autoForm");
+			parentsLength = widgetsParent.length;
+			needToResizeParent = true;
+			i = 0;
+			
+			while (needToResizeParent && i < parentsLength) {
+				$parentWidget = $(widgetsParent[i]);
+				$parentWidgetBody = $parentWidget.children(".waf-autoForm-body")
+				
+				//resize only sub-widget
+				if (widget._subWidgets.hasOwnProperty($parentWidget[0].id)) {
+					
+					currentHeight = $parentWidgetBody.height();
+					
+					if (currentHeight < $parentWidgetBody[0].scrollHeight) {
+						
+						$parentWidgetBody.height($parentWidgetBody.outerHeight() + ($parentWidgetBody[0].scrollHeight - currentHeight));
+						
+						if ($parentWidgetBody.width() < $parentWidgetBody[0].scrollWidth) {
+							//add scroll bar height
+							$parentWidgetBody.height($parentWidgetBody.outerHeight() + 16);
+						}
+						
+					} else {
+						needToResizeParent = false;
+					}
+				}
+				i++;
+			}
+		}
     }
 );    
 
@@ -1490,7 +1581,7 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
     mustDisplayError        = options.mustDisplayError;
     errorDiv                = options.errorDiv;
     dataTheme               = "";
-    existingClasses         = htmlObject.attr('class').split(" ");
+    existingClasses         = htmlObject.prop('class').split(" ");
     mustResizeInputs        = htmlObject.hasClass("roundy");
     checkIdentifying        = false;
     level                   = 1;
@@ -1821,9 +1912,9 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
             html += '</div>';
         }
 
-        htmlObject.attr({
-            'data-type'     : isQueryForm ? 'queryForm' : 'autoForm',
-            'data-level'    : level
+        htmlObject.data({
+            'type'     : isQueryForm ? 'queryForm' : 'autoForm',
+            'level'    : level
         })
         .addClass('waf-widget')
         .html(html);
@@ -1834,20 +1925,32 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
         for (i = 0, nbComponent = tabDom.length; i < nbComponent; i++)  {
             domobj          = tabDom[i];
             
-            if ($(domobj).attr('data-type') != 'image') {
+            if ($(domobj).data('type') != 'image') {
                 subWidgets[i]   = WAF.tags.createComponent(domobj, false);
             }
         }
+        var labelHtmlObj = $(".waf-form-att-label", htmlObject);
 
-        $(".waf-form-att-label", htmlObject).each(function(index) {
+        labelHtmlObj.each(function(index) {
             w = $(this).outerWidth();
 
             if (maxwidth < w) {
                 maxwidth = w;
             }
         });
+        
+        /*
+         * Set label with to allow to set the text-align property
+         */
+        var sizeReduce = 35;
 
-        $(".waf-form-att-label", htmlObject).width(maxwidth);
+        if (labelHtmlObj.children('.waf-expandable').length == 0) {
+            sizeReduce = 21;
+        }
+
+        labelHtmlObj.children('.waf-form-att-label-text').width(maxwidth - sizeReduce);
+
+        labelHtmlObj.width(maxwidth);
 
         toolBarForRelatedEntity = false;
 
@@ -2152,9 +2255,9 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
 
         html += '</table>';
 
-        htmlObject.attr({
-            'data-type'     : isQueryForm ? 'queryForm' : 'autoForm',
-            'data-level'    : level
+        htmlObject.data({
+            'type'     : isQueryForm ? 'queryForm' : 'autoForm',
+            'level'    : level
         })
         .addClass('waf-widget waf-autoForm')
         .html(html);
@@ -2214,7 +2317,7 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
                         this.isInFocus   = true;
 
                         if (this.format != null && this.format.format != null) {
-                            this.value = this.sourceAtt.getValue();
+                            this.value = this.sourceAtt.getValueForInput();
                         }
                     });
 
@@ -2299,7 +2402,10 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
                 } else {
                     if (att.type == 'date') {
                         $(htmlobj)
-                        .datepicker()
+                        .datepicker({
+							buttonImageOnly: false,
+							showOn: "focus"
+						})
                         .datepicker('widget')
                         .addClass(dataTheme);
                     }
@@ -2403,7 +2509,7 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
                         sourceAtt = e.attribute;
                         if (sourceAtt.simple) {
                             if (domobj.isInFocus) {
-                                domobj.value = sourceAtt.getValue(); //form.source[notifyEvent.attName];
+                                domobj.value = sourceAtt.getValueForInput(); //form.source[notifyEvent.attName];
                             } else {
                                 domobj.value = domobj.getFormattedValue();
                             }

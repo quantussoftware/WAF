@@ -1,31 +1,27 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
     /**
-     *      
+     *
      * @class TODO: give a name to this class (ex: WAF.widget.DataGrid)
      * @extends WAF.Widget
      */
-    'Matrix',   
-    {        
+    'Matrix',
+    {
     },
     /**
      * @constructor
@@ -39,7 +35,7 @@ WAF.Widget.provide(
      * @property constructor
      * @type Function
      **/
-    function WAFWidget(config, data, shared) {   
+    function WAFWidget(config, data, shared) {
         var
         that,
         htmlObject,
@@ -49,7 +45,7 @@ WAF.Widget.provide(
         split;
 
         that                = this;
-        htmlObject          = $(this.containerNode);   
+        htmlObject          = $(this.containerNode);
         
         /*
          * To prevent bug on preview into webcomponent
@@ -106,7 +102,7 @@ WAF.Widget.provide(
          * @param {string} val value to find
          */
         Array.prototype.in_array = function(val) {
-            var 
+            var
             i,
             l;
         
@@ -116,10 +112,10 @@ WAF.Widget.provide(
                 }
             }
             return false;
-        }
+        };
 
         /*
-         * Get at least one source of the matrix children to create matrix after all datasources has been loaded
+         * Get at least one source of the matrix children to associate it to matrix
          */
         tmpBinding = $($('#' + config.id + ' [data-binding]')[0]).attr('data-binding');
         if (tmpBinding && tmpBinding.length > 0) {
@@ -128,28 +124,49 @@ WAF.Widget.provide(
             if (split.length > 1) {
                 tmpBinding = split[0];
             }
-               
-            sources[tmpBinding].addListener("onCollectionChange", function(e) {
-                that.create();
-            });
+            
+            this.source = sources[tmpBinding];
         }
     
         that.tmpElt = 0;
         that.tmp = 0;
         that.scrollDirection = null;
-    },{        
+    },{
+        ready : function () {
+            $(WAF).bind('onWAFReady', {widget: this}, function(e) {
+                e.data.widget.create();
+            });
+        },
+        onComponentLoad : function(){
+            var that = this;
+            this.create();
+
+            setTimeout(function(){
+                that._rebuild();
+            }, 0);
+        },
+        
+        _rebuild : function () {
+            /*
+             * Force matrix rebuild => loadComponent
+             */
+            if (this.source.ID) {
+                this.source.dispatch('onCollectionChange');
+            }
+        },
+        
         /*
          * Resize method called on stop resize
          * @method onResize
          */
-        onResize : function matrix_on_resize() { 
+        onResize : function matrix_on_resize() {
             if (this.eventData) {
-                this.display(this.eventData)
+                this.display(this.eventData);
             }
         },
         
         getPosByRow : function matrix_get_pos_by_row (row) {
-            var 
+            var
             that,
             result;
 
@@ -160,7 +177,7 @@ WAF.Widget.provide(
         },
 
         getRowByPos : function matrix_get_row_by_pos (pos) {
-            var 
+            var
             that,
             result,
             totalRow;
@@ -177,13 +194,19 @@ WAF.Widget.provide(
         },
 
         getDisplayedRow : function matrix_get_displayed_row () {
-            var 
+            var
             that,
             result,
             scrollPosition;
 
             that            = this;
-            scrollPosition  = that.scrolling === 'vertical' ? $('#' + that.config.id).scrollTop() : $('#' + that.config.id).scrollLeft();
+
+            if( WAF.PLATFORM.isTouch ) {
+                scrollPosition  = that.scrolling === 'vertical' ? -($("#mainContainer-"+that.config.id).position().top) : -($("#mainContainer-"+that.config.id).position().left);
+            } else {
+                scrollPosition  = that.scrolling === 'vertical' ? $('#' + that.config.id).scrollTop() : $('#' + that.config.id).scrollLeft();
+            }
+             
             // determine what is the row displayed depending on the scroll bar
             result = Math.floor(scrollPosition / (that.elt[that.typeSize] + (that.margin[that.typePos])));
 
@@ -203,7 +226,7 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method create
          */
-        create  : function matrix_create() {     
+        create  : function matrix_create() {
             var
             htmlObject,
             currentSource,
@@ -215,6 +238,7 @@ WAF.Widget.provide(
             result,
             elt,
             i,
+            tmpID,
             child,
             that,
             config,
@@ -229,7 +253,7 @@ WAF.Widget.provide(
             label,
             margin,
             otherSourcesLength,
-            containerConfig;        
+            containerConfig;
         
             widget          = {};
             thisSource      = [];
@@ -239,20 +263,32 @@ WAF.Widget.provide(
             elt             = {};
             i               = 0;
             that            = this;
-            
             config          = this.config;
             params          = config;
-            htmlObject      = $(this.containerNode); 
-            matrixChildren  = htmlObject.children();        
+            htmlObject      = this.$domNode;
+            matrixChildren  = htmlObject.children();
         
             that.tmpSubID   = 0;
+            
+            that.ChildrenEvent = function() {};
         
+            /*
+             * Get ondraw event
+             */
+            var evt;
             if (WAF.events[config.id] && WAF.events[config.id][0] && WAF.events[config.id][0].fn) {
-                that.ChildrenEvent = WAF.events[config.id][0].fn;
-            } else {
-                that.ChildrenEvent = function() {}
+                for (i in WAF.events) {
+                    for (j = 0; j < WAF.events[i].length; j += 1) {
+                        evt = WAF.events[i][j];
+                        if (evt.name == "ChildrenDraw") {
+                            that.ChildrenEvent =evt.fn;
+                        }
+                    }
+                }
             }
 
+            tmpID = 'waf-tmp-container-' + that.id;
+            
             // Get the matrix children to find a datasource
             matrixChildren.each(function(e) {
                 var
@@ -264,13 +300,14 @@ WAF.Widget.provide(
                     elt = {
                         id      : child.attr('id'),
                         widget  : WAF.widgets[child.attr('id')],
-                        width   : parseInt(child.css('width')),
-                        height  : parseInt(child.css('height')),
-                        left    : parseInt(child.css('left')),
-                        top     : parseInt(child.css('top')),
+                        width   : parseInt(child.css('width'), 10),
+                        height  : parseInt(child.css('height'), 10),
+                        left    : parseInt(child.css('left'), 10),
+                        top     : parseInt(child.css('top'), 10),
                         htmlObj : $('#' + child.attr('id')),
                         children: []
-                    }
+                    };
+
                     //children = $('#' + child.attr('id') + ' [data-binding]');
                     children = $('#' + child.attr('id') + ' .waf-widget');
                     
@@ -290,13 +327,13 @@ WAF.Widget.provide(
                             thisSource.push(widget.source);
                         }
                         
-                        elt.children.push(widget)
+                        elt.children.push(widget);
                     });
                     
                 } else {
                     if (child.attr('data-binding')) {
                         containerConfig = {
-                            id: 'waf-tmp-container',
+                            id          : tmpID,
                             'data-type' : 'container',
                             'data-lib'  : 'WAF'
 
@@ -306,10 +343,10 @@ WAF.Widget.provide(
                         width           = child[0].offsetWidth;
                         height          = child[0].offsetHeight;
                         label           = $("[for='" + thisId+ "']");
-                        margin          = params['data-margin'] ? parseInt(params['data-margin']) : 10;
+                        margin          = params['data-margin'] ? parseInt(params['data-margin'], 10) : 10;
                         
                         $('<div />').attr({
-                            'id'        : 'waf-tmp-container',
+                            'id'        : tmpID,
                             'data-type' : 'container'
                         }).css('position', 'absolute').appendTo('#' + config.id).append(child);
 
@@ -326,35 +363,35 @@ WAF.Widget.provide(
                             top     : margin,
                             htmlObj : $('#' + containerConfig.id),
                             children: []
-                        }
+                        };
 
-                        elt.children.push(widget)
+                        elt.children.push(widget);
 
                         if (label.length > 0) {
-                            $('#waf-tmp-container').append(label);
+                            $('#' + tmpID).append(label);
                             widgetLabel = WAF.widgets[label.attr('id')];
-                            elt.children.push(widgetLabel)
+                            elt.children.push(widgetLabel);
 
                             switch (child.attr('data-label-position')) {
                                 case 'top':
                                 case 'bottom':
-                                    height += parseInt(document.getElementById(label.attr('id')).offsetHeight);
+                                    height += parseInt(document.getElementById(label.attr('id')).offsetHeight, 10);
                                     break;
 
                                 case 'left':
                                 case 'right':
-                                    width += parseInt(document.getElementById(label.attr('id')).offsetWidth);
+                                    width += parseInt(document.getElementById(label.attr('id')).offsetWidth, 10);
                                     break;
                             }
                         }
 
-                        $('#waf-tmp-container').children().each(function(e) {
+                        $('#' + tmpID).children().each(function(e) {
                             subChild = $(this);
-                            subChild.css('left', parseInt(subChild.css('left')) - margin + 'px');
-                            subChild.css('top', parseInt(subChild.css('top')) - margin + 'px');
-                        })
+                            subChild.css('left', parseInt(subChild.css('left'), 10) - margin + 'px');
+                            subChild.css('top', parseInt(subChild.css('top'), 10) - margin + 'px');
+                        });
 
-                        $('#waf-tmp-container').addClass('waf-widget');
+                        $('#' + tmpID).addClass('waf-widget');
 
                         elt.width = width;
                         elt.height = height;
@@ -368,6 +405,7 @@ WAF.Widget.provide(
             // Get the data source name
             if (nbSources > 0) {
                 aSource = thisSource[0];
+
                 if (nbSources > 1) {
                     for (i = 0; i < nbSources; i += 1) {
                         currentSource = thisSource[i];
@@ -376,7 +414,7 @@ WAF.Widget.provide(
                         }
                     
                         if (currentSource._private.sourceType === "scalar") {
-                            otherSources.push(currentSource)
+                            otherSources.push(currentSource);
                         }
                     }
                 }
@@ -387,31 +425,50 @@ WAF.Widget.provide(
                 for (i = 0; i < otherSourcesLength; i += 1){
                     otherSources[i].addListener("onCurrentElementChange", function(e) {
                         e.dataSource.dispatch('onCurrentElementChange', {
-                            subID : that.tmpSubID, 
+                            subID : that.tmpSubID,
                             attributeName : e.attributeName
                             }, {});
                     });
                 }
 
+                if (!that._tmpListeners) {
+                    that._tmpListeners = {};
+                }
+
+                if (aSource.ID) {
+                    that._tmpListeners[aSource.ID] = true;
+                }
+
+                if (that._tmpListeners[aSource.ID] && !that.$domNode.parents('waf-component')) {
+                    return;
+                }
+
                 aSource.addListener("all", function(e) {
-                
-                    if (!e.dispatcherID) { // e.dispatcherID !== config.id && 
-                        if ($('#' + config.id))
-                            var 
-                            pos,
-                            element,
-                            displayedRow,
-                            calcul,
-                            row,
-                            firstPos,
-                            subIDValue,
-                            userData;                    
+                    /*
+                     * Do not execute listener function if matrix is disabled
+                     */
+                    if (e.data.that.isDisabled()) {
+                        return;
+                    }
+
+                    /*
+                     * Do not interact with hidden matrix
+                     */
+                    if (!e.dispatcherID) {
+                        var
+                        pos,
+                        element,
+                        displayedRow,
+                        calcul,
+                        row,
+                        firstPos,
+                        subIDValue,
+                        userData;
                     
                         pos             = e.dataSource.getPosition();
                         element         = $('#' + config.id + ' [data-dspos="' + pos + '"]');
-
                         subIDValue      = that.subIDPrefix + $('#' + element.attr('id')).attr('data-area');
-                                
+
                         switch (e.eventKind) {
                             case 'onBeforeCurrentElementChange' :
                                 // Do not automatically save if it's a slider
@@ -427,19 +484,19 @@ WAF.Widget.provide(
                             case 'onAttributeChange' :
                                 userData = e.userData || null;
                                 e.dataSource.dispatch('onAttributeChange', {
-                                    subID : subIDValue, 
+                                    subID : subIDValue,
                                     attributeName : e.attributeName
                                     }, userData);
-                                break;  
+                                break;
 
                             case 'onCurrentElementChange' :
                                 if (!e.data.that.elt) {
                                 } else {
-                                    displayedRow    = e.data.that.getDisplayedRow();
-                                    calcul          = (displayedRow + e.data.that.limit1) - 1;
-                                    row             = e.data.that.getRowByPos(pos);
-                                    e.data.that.selectedDS     = pos;
+                                    displayedRow            = e.data.that.getDisplayedRow();
+                                    calcul                  = (displayedRow + e.data.that.limit1) - 1;
+                                    row                     = e.data.that.getRowByPos(pos);
 
+                                    e.data.that.selectedDS     = pos;
                                     e.data.that.currentPos     = pos;
 
                                     // add selected class
@@ -449,7 +506,7 @@ WAF.Widget.provide(
                                     // Scroll ony if the element is not already displayed
                                     if ( element.length > 0 && row >= displayedRow && row <= calcul) {
                                     // DO NOTHING
-                                    } else {
+                                    } else if (e.data.that.isVisible()){
                                         e.data.that.goTo(pos);
                                     }
                                 }
@@ -457,6 +514,18 @@ WAF.Widget.provide(
                                 break;
 
                             case 'onCollectionChange' :
+                                if (e.dataSource.length === 0) {
+                                    /*
+                                     * Clear the matrix
+                                     */
+                                    e.data.that.clear();
+
+                                    /*
+                                     * Prevent code execution
+                                     */
+                                    return;
+                                }
+                                
                                 firstPos = e.dataSource.getPosition();
                                 e.data.that.selectedDS = firstPos;
                                 
@@ -467,13 +536,20 @@ WAF.Widget.provide(
                                 // force select on the first element
                                 e.dataSource.select(firstPos, {
                                     dispatcherID : config.id
-                                });  
-                                
+                                });
+
+                                /*
+                                 * Unbind scroll events
+                                 */
+                                htmlObject
+                                    .unbind('scroll')
+                                    .unbind('scrollstop');
+
                                 /*
                                  * ADD SCROLL EVENTS
                                  */
                                 htmlObject.bind('scroll', function matrix_scroll(e){
-                                    var 
+                                    var
                                     displayedRow,
                                     i,
                                     j,
@@ -523,10 +599,10 @@ WAF.Widget.provide(
                                      * Fix resize handle moving on scroll
                                      */
                                     if (thatHtml.attr('data-resizable')) {
-                                        if (that.scrolling == 'vertical') {                                  
-                                            thatHtml.find('.ui-resizable-s,.ui-resizable-se').css('bottom', - thatHtml.scrollTop() + 'px')
-                                        } else {                                   
-                                            thatHtml.find('.ui-resizable-e,.ui-resizable-se').css('right', - thatHtml.scrollLeft() + 'px')
+                                        if (that.scrolling == 'vertical') {
+                                            thatHtml.find('.ui-resizable-s,.ui-resizable-se').css('bottom', - thatHtml.scrollTop() + 'px');
+                                        } else {
+                                            thatHtml.find('.ui-resizable-e,.ui-resizable-se').css('right', - thatHtml.scrollLeft() + 'px');
                                         }
                                     }
                 
@@ -535,7 +611,7 @@ WAF.Widget.provide(
                                      */
                                     if (totalRealRow <= totalRows) {
                                         return false;
-                                    }     
+                                    }
 
                                     /*
                                      * determine what is the row displayed depending on the scroll bar
@@ -549,20 +625,20 @@ WAF.Widget.provide(
                                         if (that.nbTmp === 1){
                                             that.nbTmp = 0;
 
-                                            firstEltPos = that.getPosByRow(displayedRow); 
+                                            firstEltPos = that.getPosByRow(displayedRow);
 
                                             /*
                                              * To improve live scrolling
                                              */
-                                            sourceRef.setDisplayLimits(that.divID, displayedRow*limit2, (displayedRow*limit2 + (totalRows*limit2)) );                   
+                                            sourceRef.setDisplayLimits(that.divID, displayedRow*limit2, (displayedRow*limit2 + (totalRows*limit2)) );
 
                                             /*
                                              * Get the first element that must be displayed depending on the scroll
-                                             */ 
+                                             */
                                             for (i = 0; i < totalRows; i += 1,firstEltIndex +=1) {
                                                 currentRow = $('#' + config.id + " [data-pos=" + i + "][data-type!=label]");
 
-                                                if ( parseInt(currentRow.css(typePos)) === firstEltPos) {
+                                                if ( parseInt(currentRow.css(typePos), 10) === firstEltPos) {
                                                     firstEltDisplayed = currentRow;
                                                     break;
                                                 }
@@ -572,7 +648,7 @@ WAF.Widget.provide(
                                             }
 
                                             order = [];
-                                            /* 
+                                            /*
                                              * Get next element to order them
                                              */
                                             for (i = firstEltIndex + 1; i < totalRows; i += 1) {
@@ -580,7 +656,7 @@ WAF.Widget.provide(
                                                 order.push($('#' + config.id + " [data-pos=" + i + "][data-type!=label]"));
                                             }
 
-                                            /* 
+                                            /*
                                              * Get previous element to order them
                                              */
                                             for (i = 0; i < firstEltIndex; i += 1) {
@@ -620,7 +696,7 @@ WAF.Widget.provide(
                                                         currentContainer.onDraw = that.ChildrenEvent;
                                                         subIDValue = that.subIDPrefix + currentContainer.attr("data-area");
                                                         
-                                                        var 
+                                                        var
                                                         widget;
                                                         
                                                         widget = WAF.widgets[currentContainer.attr('id')];
@@ -639,7 +715,9 @@ WAF.Widget.provide(
                                                             refHtml         = $('#' + thatHtml.attr('data-ref'));
                                                             
                                                             if (currentWidget && currentWidget.kind != 'container') {
-                                                                currentWidget.clear();
+                                                                if (currentWidget.source) {
+                                                                    currentWidget.clear(false);
+                                                                }
                                                             }
                                                             
                                                             if (currentWidget && currentWidget.setSplitPosition) {
@@ -662,7 +740,7 @@ WAF.Widget.provide(
                                                             sourceRef.dispatch('onCurrentElementChange', {
                                                                 subID : subIDValue
                                                             });
-                                                        }                                
+                                                        }
 
                                                         that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
                                                     }
@@ -687,7 +765,7 @@ WAF.Widget.provide(
                                                 /*
                                                  * Move only those wrongly positioned
                                                  */
-                                                if (parseInt(order[i].css(typePos)) != eltPos){
+                                                if (parseInt(order[i].css(typePos), 10) != eltPos){
 
                                                     for (j = 0; j <= thisRowLength; j += 1){
                                                         currentContainer = $(order[i][j]);
@@ -708,7 +786,7 @@ WAF.Widget.provide(
                                                                 currentContainer.onDraw = that.ChildrenEvent;
                                                                 subIDValue = that.subIDPrefix +  currentContainer.attr("data-area");
 
-                                                                var 
+                                                                var
                                                                 widget;
 
                                                                 widget = WAF.widgets[currentContainer.attr('id')];
@@ -727,7 +805,9 @@ WAF.Widget.provide(
                                                                     refHtml         = $('#' + thatHtml.attr('data-ref'));
                                                                     
                                                                     if (currentWidget && currentWidget.kind != 'container') {
-                                                                        currentWidget.clear();
+                                                                        if (currentWidget.source) {
+                                                                            currentWidget.clear(false);
+                                                                        }
                                                                     }
                                                                     
                                                                     if (currentWidget && currentWidget.setSplitPosition) {
@@ -749,7 +829,7 @@ WAF.Widget.provide(
                                                                     sourceRef.dispatch('onCurrentElementChange', {
                                                                         subID : subIDValue
                                                                     });
-                                                                } else {       
+                                                                } else {
                                                                     
                                                                     that.sourceSelect(sourceRef, pos, subIDValue, currentContainer);
                                                                 }
@@ -780,7 +860,7 @@ WAF.Widget.provide(
                                         }
                                         
                                         that.tmp = displayedRow;
-                                    }            
+                                    }
                                 });
 
                                 /*
@@ -793,7 +873,7 @@ WAF.Widget.provide(
                                     sourceRef = that.sourceRef;
 
                                     $.each($(this).find('.waf-matrix-element'), function(i){
-                                        var 
+                                        var
                                         currentContainer,
                                         pos,
                                         subIDValue;
@@ -810,15 +890,75 @@ WAF.Widget.provide(
 
                                     });  
                                     
-                                    //console.log("======>", that.getDisplayedRow())
                                 });
+                                
+                                /*
+                                 * TOUCH EVENTS
+                                 */
+                                if( WAF.PLATFORM.isTouch ) {                                    
+                                    htmlObject                                        
+                                        /*
+                                         * unbind touchmove events
+                                         */
+                                        .unbind('touchmove')
+                                        .unbind('touchend')
+                                        /*
+                                         * touchmove event
+                                         */
+                                        .bind('touchmove', function(){ 
+                                            $('#' + that.config.id).trigger('scroll'); 
+                                        })                                    
+                                        /*
+                                         * touchend event
+                                         */
+                                        .bind('touchend', function() { 
+
+                                            var 
+                                            cont        = $("#mainContainer-"+that.config.id),
+                                            direction   = that.scrolling,
+                                            topStart,
+                                            count       = true,
+                                            topVal,
+                                            timer;
+
+                                            if (direction === "vertical") {
+                                                topStart    = cont.position().top;
+                                            } else {
+                                                topStart    = cont.position().left;    
+                                            }
+                                                
+                                            timer = setInterval( function() { //add interval in order to handle inertie scrolling
+
+                                                
+                                                if (direction === "vertical") {
+                                                    topVal = cont.position().top;
+                                                } else {
+                                                    topVal = cont.position().left;    
+                                                }
+
+                                                if( topVal != topStart || count ) {
+                                                    if( !count ) { 
+                                                        $('#' + that.config.id).trigger('scroll');
+                                                    }
+                                                    count = false;
+                                                    topStart = topVal;
+                                                } else { 
+                                                    clearInterval(timer);
+                                                    $('#' + that.config.id).trigger('scrollstop');
+                                                }
+                                            }, 200);        
+                                        } );
+                                }
                                 
                                 break;
                         }
                     }
             
                     that.eventData = e;
-
+                    
+                    if (that.config['data-draggable'] == 'true') {
+                        that.$domNode.draggable('option', 'handle', '.matrix-container');
+                    }
                 }, {
                 }, {
                     widget  : result,
@@ -834,13 +974,23 @@ WAF.Widget.provide(
          * @namespace WAF.widget.Matrix
          * @method goTo
          */
-        goTo : function matrix_goto(pos) {
+        goTo : function matrix_goto(pos) {             
             var 
             that,
             htmlObject,
             row,
             scrollPosition,
             scrollConfig;
+
+            /*
+             * To prevent scrolling on matrix init
+             * + Do not move into the matrix if widget is disabled
+             */
+            if ((this._currentPos && this._currentPos == pos) || pos == -1 || this.isDisabled()) {
+                return;
+            }
+
+            this._currentPos = pos;
             
             that            = this;
             htmlObject      = $(this.containerNode);
@@ -850,7 +1000,20 @@ WAF.Widget.provide(
 
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
-            htmlObject.animate(scrollConfig, that.scrollSpeed);     
+            //trigger touch end because no native scoll event is fired  
+            if( WAF.PLATFORM.isTouch ) {  
+                
+                if (that.scrolling === 'vertical') {
+                    $("#mainContainer-"+that.config.id).get()[0].style.webkitTransform = "translate3d(0px, -"+scrollPosition+"px, 0px) scale(1)";
+                } else {
+                    $("#mainContainer-"+that.config.id).get()[0].style.webkitTransform = "translate3d(-"+scrollPosition+"px, 0px, 0px) scale(1)";
+                }
+
+                window.setTimeout(function(){$('#' + that.config.id).trigger('touchmove');},0);
+                
+            } else {
+                htmlObject.animate(scrollConfig, that.scrollSpeed);     
+            }
         },
 
         /**
@@ -902,7 +1065,18 @@ WAF.Widget.provide(
 
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
-            htmlObject.animate(scrollConfig, that.scrollSpeed); 
+            //trigger touch end because no native scoll event is fired  
+            if( WAF.PLATFORM.isTouch ) {  
+                if (that.scrolling === 'vertical') {
+                    $("#mainContainer-"+that.config.id).get()[0].style.webkitTransform = "translate3d(0px, -"+scrollPosition+"px, 0px) scale(1)";
+                } else {
+                    $("#mainContainer-"+that.config.id).get()[0].style.webkitTransform = "translate3d(-"+scrollPosition+"px, 0px, 0px) scale(1)";
+                }
+
+                window.setTimeout(function(){$('#' + that.config.id).trigger('touchmove');},0);
+            } else {
+                htmlObject.animate(scrollConfig, that.scrollSpeed);     
+            }
         },
 
         /**
@@ -928,7 +1102,18 @@ WAF.Widget.provide(
 
             scrollConfig    = that.scrolling === 'vertical' ? {scrollTop : scrollPosition} : {scrollLeft : scrollPosition};
 
-            htmlObject.animate(scrollConfig, that.scrollSpeed); 
+            //trigger touch end because no native scoll event is fired  
+            if( WAF.PLATFORM.isTouch ) {  
+                if (that.scrolling === 'vertical') {
+                    $("#mainContainer-"+that.config.id).get()[0].style.webkitTransform = "translate3d(0px, -"+scrollPosition+"px, 0px) scale(1)";
+                } else {
+                    $("#mainContainer-"+that.config.id).get()[0].style.webkitTransform = "translate3d(-"+scrollPosition+"px, 0px, 0px) scale(1)";
+                }
+
+                window.setTimeout(function(){$('#' + that.config.id).trigger('touchmove');},0);
+            } else {
+                htmlObject.animate(scrollConfig, that.scrollSpeed);     
+            }
         },
 
         /**
@@ -985,7 +1170,18 @@ WAF.Widget.provide(
 
             if (events) {
                 for (k = 0; k < events.length; k += 1) {
-                    element.bind(events[k].name, {}, events[k].fn);
+                    element.bind(events[k].name, {k : k}, function (e) {
+                        var
+                        widget;
+
+                        widget              = $$(this.id);  
+
+                        if (widget) {                      
+                            widget._tmpEventsFn = events[e.data.k].fn;
+
+                            widget._tmpEventsFn(e);
+                        }
+                    });
                 }
             }
         },
@@ -1015,6 +1211,7 @@ WAF.Widget.provide(
             j,
             c,
             n,
+            tmpID,
             moreToShow,
             params,
             scrolling,
@@ -1043,9 +1240,9 @@ WAF.Widget.provide(
             currentRow,
             childrenLength,
             eltChildrenLength;
-        
+
             that            = this;
-            htmlObject      = $(this.containerNode);
+            htmlObject      = $('#' + this.id);
             config          = this.config;
             thisConfig      = {};
             cloneConfig     = {};
@@ -1091,8 +1288,7 @@ WAF.Widget.provide(
             // Get the widget config
             for (n in thisConfig) {
                 cloneConfig[n] = thisConfig[n];
-            }
-            
+            }            
             
             pos2 = margin.top;
             pos1 = margin.left;
@@ -1100,9 +1296,9 @@ WAF.Widget.provide(
             // First : remove all created clones
             $('#' + thisConfig.id).show();
 
-            that.original = $('#' + matrix.id + " #" + thisConfig.id);
+            that.original = $('#' + matrix.id + " #" + thisConfig.id).addClass('waf-widget-matrix-original');
 
-            $('#' + matrix.id + " #" + thisConfig.id).appendTo('body');
+            //$('#' + matrix.id + " #" + thisConfig.id).appendTo('body');
 
             if (scrolling === 'vertical') {
                 limit1 = rows;
@@ -1111,7 +1307,7 @@ WAF.Widget.provide(
                 limit1 = columns;
                 limit2 = rows;
             }   
-            
+
             /*
              * Set variables as attribute of the matrix widget
              */
@@ -1126,7 +1322,7 @@ WAF.Widget.provide(
             that.limit1         = limit1;
             that.moreToShow     = moreToShow;
             that.sourceRef      = sourceRef;  
-                         
+
             /*
              * FOR MATRIX RESIZE
              */
@@ -1162,25 +1358,42 @@ WAF.Widget.provide(
                 })
 
                 $.each(sourceRef._private.listeners, function() {
+
                     if (this.id && new RegExp(this.id).test(idList.join(','))) {
-                        sourceRef.removeListener(this)
+                        //sourceRef.removeListener(this)
                     }
                 });
             } else if (!e.changeDs){
                 eltHtml.hide();
-            
+
                 return;
             }
             
             that.tmpRows = rows;
-            that.tmpColumns = columns;                  
-            
-            htmlObject.children('.waf-widget, .matrix-container, .waf-splitter').remove();     
+            that.tmpColumns = columns;             
+              
+            htmlObject.children(':not(.waf-widget-matrix-original,.ui-resizable-handle)').remove();               
+
+            tmpID = 'waf-temp-container-' + that.id;
+
+            var tmpContainer = $('<div/>').prop('id', tmpID).css({
+                'height' : '100%',
+                'width' : '100%'
+            }).appendTo(htmlObject);
 
             // Container is used to define the scroll size
-            container = $('<div/>').addClass('matrix-container').appendTo(htmlObject);
+            container = $('<div/>').addClass('matrix-container').appendTo(tmpContainer);
+            
+            if( WAF.PLATFORM.isTouch ) {                
+                container.get()[0].id = "mainContainer-"+matrix.id;  
+                that.tempContainerId = "waf-temp-container-"+matrix.id; 
+                setTimeout(function () {
+                    scrollObj = new iScroll(tmpID);
+                }, 100);
+            }   
+
             that.totalSize = ((elt[typeSize] + margin[typePos]) * Math.ceil(sourceRef.length/limit2));
-        
+            
             container.css(typeSize, that.totalSize + margin[typePos2] + 'px');
             container.css(typeSize2, matrix[typeSize2] - 30 + 'px');
             
@@ -1196,7 +1409,7 @@ WAF.Widget.provide(
                     if (elt.widget.kind === 'container' && elt.children && elt.children.length > 0 ) {
                         if (dsPos < sourceRef.length) {
                             /// Clone html element
-                            eltHtml.clone(true, true).attr('id', cloneConfig.id).appendTo(container);
+                            eltHtml.clone().attr('id', cloneConfig.id).appendTo(container);
                             
                             containerClone = $('#' + cloneConfig.id);
                             containerClone.children('.waf-splitter').remove();
@@ -1223,9 +1436,8 @@ WAF.Widget.provide(
                                 'data-ref'  : thisConfig.id
                             })
                             // Add class
-                            .addClass('waf-matrix-element waf-matrix-clone waf-clone-' + elt.id);
-                            
-                            
+                            .addClass('waf-matrix-element waf-matrix-clone waf-clone-' + elt.id);   
+
                             // Clone widget
                             new WAF.widget[that.ucfirst(elt.widget.kind)](cloneConfig);
 
@@ -1233,14 +1445,18 @@ WAF.Widget.provide(
                             
                             childrenLength = children.length;
                             
+                            var
+                            width,
+                            height;
+
                             for (c = 0; c < childrenLength; c += 1) {
-                                childrenHtml = $(children[c]);
+                                childrenHtml    = $(children[c]);
                             
-                                oldID = childrenHtml.attr('id');
-                                oldChild = $('#' + oldID);
+                                oldID           = childrenHtml.attr('id');
+                                oldChild        = $('#' + oldID);
                                 
-                                var width = oldChild[0].offsetWidth + 'px';
-                                var height = oldChild[0].offsetHeight + 'px';
+                                width           = oldChild.outerWidth() + 'px';
+                                height          = oldChild.outerHeight() + 'px';
                                 
                                 if (oldChild.attr('data-constraint-right') == 'true' && oldChild.attr('data-constraint-left') == 'true') {
                                     width = 'auto';
@@ -1249,7 +1465,6 @@ WAF.Widget.provide(
                                 if (oldChild.attr('data-constraint-top') == 'true' && oldChild.attr('data-constraint-bottom') == 'true') {
                                     height = 'auto';
                                 }           
-
                                 // fix clones position
                                 childrenHtml.css({
                                     'top'       : oldChild.css('top'),
@@ -1262,7 +1477,7 @@ WAF.Widget.provide(
                                 });
                                 
                                 // add class
-                                childrenHtml.addClass('waf-clone-' + oldID);
+                                childrenHtml.addClass('waf-clone-' + oldID);               
 
                                 // change id
                                 childrenHtml.attr({
@@ -1286,20 +1501,13 @@ WAF.Widget.provide(
                                     childConfig[n] = childrenConfig.config[n];
                                 }
 
+                                // Clone children element only if there is a DS
                                 if (childrenConfig.config && childrenConfig.source && (dsPos <  childrenConfig.source.length)) {
-                                    // Clone children element only if there is a DS
-                                    childConfig.id = 'clone-' + childrenConfig.config.id + '-' + i + '-' + j;
                                     childConfig.subID = subIDValue;
+                                }
 
-                                    new WAF.widget[that.ucfirst(childrenConfig.kind)](childConfig);
-                                } 
-                                
-                                if (childrenConfig.config['data-type'] == 'container') {
-                                    childConfig.id = 'clone-' + childrenConfig.config.id + '-' + i + '-' + j;
-                                    new WAF.widget[that.ucfirst(childrenConfig.kind)](childConfig);
-                                }                                
-                                
-                                
+                                childConfig.id = 'clone-' + childrenConfig.config.id + '-' + i + '-' + j;
+                                new WAF.widget[that.ucfirst(childrenConfig.kind)](childConfig);
                             
                                 // CASE OF SOURCE IS RELATED
                                 if (childrenConfig.source && childrenConfig.source._private.sourceType != 'dataClass' && childrenConfig.source._private.sourceType != 'relatedEntity') {
@@ -1325,23 +1533,17 @@ WAF.Widget.provide(
                                 that.focused = null;
                             });
 
-
-                            inputElements.bind('focusin', {
-                                source  : sourceRef,
-                                element : containerClone
-                            }, function(e) {
+                            var focusFunction = function matrix_children_focus(e) {
                                 this.textInputChanged = WAF.widgets[this.id].change;
                             
                                 $(this).bind('change', {}, function() {
                                     this.textInputChanged();
-                                });
+                                });                                
                                 
+                                focusOnElement(e);
                                 
-                                    focusOnElement(e);
-                                
-                                that.focused = this;
-                                
-                            });
+                                that.focused = this;                             
+                            }
 
                             focusOnElement = function focusOnElement (e) {
                                 var 
@@ -1360,8 +1562,15 @@ WAF.Widget.provide(
                                 source     = e.data.source;
                                 
                                 that.clickOnElement = true;
+                                
                                 source.select(parseInt(thatElt.attr('data-dsPos')));
                             }
+
+                            inputElements.unbind('focusin', focusFunction);
+                            inputElements.bind('focusin', {
+                                source  : sourceRef,
+                                element : containerClone
+                            }, focusFunction);
 
                             // Add click event on container
                             containerClone.bind('mousedown', {
@@ -1394,10 +1603,9 @@ WAF.Widget.provide(
                 pos2 += (elt[typeSize] + margin[typePos]);
             }
 
-            eltHtml.hide();
-
             // Do not display the originale element
             $('#' + thisConfig.id).hide();
+            //eltHtml.css('left', '-100000px')
 
             // Reset tmp variables
             that.tmp     = 0;
@@ -1447,6 +1655,118 @@ WAF.Widget.provide(
          */
         goToPrevious : function(){
             return this.goToPreviousPage()
+        },
+        
+        /**
+         * Custom getChildren function
+         * @method getChildren
+         */
+        getChildren : function matrix_getChildren() {
+            
+            var
+            widget,
+            children,
+            htmlObject;
+
+            htmlObject  = this.$domNode;
+            children    = [];
+
+            $.each(htmlObject.find('.matrix-container').children(), function(i) {
+                widget = $$($(this).attr('id'));
+
+                if (widget) {
+                    children.push(widget);
+                }
+            });
+                
+            return children;
+        },
+        
+        /**
+         * Custom disable function (disable sub widgets)
+         * @method disable
+         */
+        disable : function matrix_disable() {
+            var
+            i,
+            children,
+            childrenLength;
+            
+            children = this.getChildren();
+            childrenLength = children.length;
+            
+            /*
+             * Disable all sub widgets
+             */
+            for (i = 0; i < childrenLength; i += 1) {
+                children[i].disable();
+            }      
+            
+            /*
+             * Call super class enable function
+             */
+            WAF.Widget.prototype.disable.call(this);
+
+            /*
+             * Remove scrollbar
+             */
+            this.$domNode.css('overflow', 'hidden');
+
+            /*
+             * hide resize handle
+             */
+            this.$domNode.children('.ui-resizable-handle').hide();
+        },
+        
+        /**
+         * Custom enable function (enable sub widgets)
+         * @method enable
+         */
+        enable : function matrix_enable() {
+            var
+            i,
+            children,
+            childrenLength;
+            
+            children = this.getChildren();
+            childrenLength = children.length;
+            
+            /*
+             * Enable all sub widgets
+             */
+            for (i = 0; i < childrenLength; i += 1) {
+                children[i].enable();
+            }
+            
+            /*
+             * Call super class enable function
+             */
+            WAF.Widget.prototype.enable.call(this);
+
+            /*
+             * Display scrollbar
+             */
+            if (this.scrolling === 'vertical') {
+                this.$domNode.css({
+                    'overflow-y' : 'auto',
+                    'overflow-x' : 'hidden'
+                });
+            } else {
+                this.$domNode.css({
+                    'overflow-y' : 'hidden',
+                    'overflow-x' : 'auto'
+                });
+            }
+
+            /*
+             * Display resize handle
+             */
+            this.$domNode.children('.ui-resizable-handle').show();
+        
+        },
+
+        clear : function matrix_clear() {              
+            this.$domNode.children().hide();  
         }
         
     }
@@ -1508,7 +1828,6 @@ $.event.special.scrollstop = {
             }, $.event.special.scrollstop.latency);
                     
         };
-            
         jQuery(this).bind('scroll', handler).data('D' + (+new Date() + 1), handler);
             
     },

@@ -1,28 +1,24 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
-*/
+ * This file is part of Wakanda software, licensed by 4D under
+ *  (i) the GNU General Public License version 3 (GNU GPL v3), or
+ *  (ii) the Affero General Public License version 3 (AGPL v3) or
+ *  (iii) a commercial license.
+ * This file remains the exclusive property of 4D and/or its licensors
+ * and is protected by national and international legislations.
+ * In any event, Licensee's compliance with the terms and conditions
+ * of the applicable license constitutes a prerequisite to any use of this file.
+ * Except as otherwise expressly stated in the applicable license,
+ * such license does not include any other license or rights on this file,
+ * 4D's and/or its licensors' trademarks and/or other proprietary rights.
+ * Consequently, no title, copyright or other proprietary rights
+ * other than those specified in the applicable license is granted.
+ */
 WAF.addWidget({
     
     /**
-    *  Widget Descriptor
-    *
-    */ 
+     *  Widget Descriptor
+     *
+     */ 
     
     /* PROPERTIES */
 
@@ -65,10 +61,11 @@ WAF.addWidget({
         visibility  : 'hidden'
     }, {
         name        : 'data-chartType',
-        //        description : 'Type',
-        //        type        : 'dropdown',
-        //        options     : ['Pie Chart' , 'Line Chart' , 'Bar Chart'],
         defaultValue: 'Pie Chart',
+        visibility  : 'hidden'
+    }, {
+        name        : 'data-chartLineType',
+        defaultValue: 'basic',
         visibility  : 'hidden'
     }, {
         name        : 'data-tooltipDisplay',
@@ -126,7 +123,7 @@ WAF.addWidget({
     },  {
         name        : 'data-labelAlign',
         visibility  : 'hidden',
-        defaultValue: 'start'
+        defaultValue: 'middle'
     },
     {
         name            : 'data-column',
@@ -141,15 +138,20 @@ WAF.addWidget({
             var
             tag,
             chartType;
-            
             tag = this.data.tag;
+            tag.axisColumns = this;
             chartType = tag.getAttribute('data-chartType').getValue();
-            
             switch(chartType) {
                 case 'Pie Chart':
-                    this.editable           = false;
-                    this.sortable           = false;
-                    this.buttons.visible    = false;
+                    this.editable               = false;
+                    this.sortable               = false;
+                    this.buttons.visible        = false;
+                    if(this._itemsMdl.length > 2){
+                        this._itemsMdl.pop();
+                        this._header.pop();
+                    }
+                    //                    this._itemsMdl[0].disabled  = true;
+                    //                    this._itemsMdl[1].disabled  = true;
                     break;
                     
                 default:
@@ -168,12 +170,34 @@ WAF.addWidget({
             title       : 'attribute',
             name        : 'sourceAttID',
             type        : 'textfield',
-            typeValue   : 'dataSource'
+            typeValue   : 'dataSource',
+            onchange    : function(){
+                var 
+                htmlObj = this.htmlObject,
+                parent  = htmlObj.parent(),
+                prevNode= parent.prev(),
+                title   = prevNode.find('input');
+                
+                title.val(this.getValue());
+                
+            } 
+        },{
+            title       : 'color',
+            name        : 'color',
+            type        : 'color',
+            defaultValue: 'rgba(255,0,0,1)'
         }],
         toolbox         : [{
             name    : 'format',
             type    : 'textfield'
-        }], 
+        }],
+        beforeRowAdd     : function(){
+            var
+            tag     = this.data.tag,
+            count   = this.getRows().length;
+            
+            this._itemsMdl[2].value = tag._colors[count % tag._colors.length];
+        },
         onsave          : function(data) {
             var
             tag,
@@ -186,13 +210,13 @@ WAF.addWidget({
                 columns = tag.getColumns();
                 
                 /*
-                 * Clear columns
-                 */
+                     * Clear columns
+                     */
                 columns.clear();
                 
                 /*
-                 * Get new rows
-                 */
+                     * Get new rows
+                     */
                 $.each(data.value.rows, function() {
                     var
                     row,
@@ -213,23 +237,28 @@ WAF.addWidget({
                             column.getAttribute('colID').setValue(value.replace(/\./g, '_'));
                             
                             /*
-                             * Check if the new attribute is valid
-                             */
+                                 * Check if the new attribute is valid
+                                 */
                             attrib = Designer.env.ds.catalog.getByName(tag.getSource()).getAttributeByName(value);
                             if (attrib && attrib.type && attrib.type.match(new RegExp('(^number$)|(^long$)|(^long64$)|(^float$)|(^duration$)'))) {
-                                // DO NOTHING
+                            // DO NOTHING
                             } else {
                                 check = false;
                                 row[1].component.getHtmlObject().addClass('studio-form-invalid');
                             }
                         }
+                        else if(name == "color" && !column.getAttribute(name)){
+                            column._attributes.add(new WAF.tags.descriptor.AttributeColumn({
+                                name    : "color"
+                            }));
+                        }
                         
                         column.getAttribute(name).setValue(value);
                     });
                     
-                    if (check) {
-                        columns.add(column);
-                    }
+                    //                    if (check) {
+                    columns.add(column);
+                //                    }
                 });              
                 
             } catch(e) {
@@ -241,7 +270,7 @@ WAF.addWidget({
     columns: {
         attributes : [    
         {
-            name       : 'format'        
+            name       : 'format'
         }
         ],
         events: []
@@ -295,6 +324,21 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Data Point Events'
+    },
+    {
+        name       : 'touchstart',
+        description: 'On Touch Start',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchend',
+        description: 'On Touch End',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchcancel',
+        description: 'On Touch Cancel',
+        category   : 'Touch Events'
     }
     ],
 
@@ -328,11 +372,11 @@ WAF.addWidget({
     /* METHODS */
 
     /*
-    * function to call when the widget is loaded by WAF during runtime
-    * 
-    * @param {Object} config contains all the attributes of the widget  
-    * @result {WAF.widget.Rifox} the widget
-    */
+     * function to call when the widget is loaded by WAF during runtime
+     * 
+     * @param {Object} config contains all the attributes of the widget  
+     * @result {WAF.widget.Rifox} the widget
+     */
     onInit: function (config) {                                
         var widget = new WAF.widget.Chart(config); 
         if (config['data-draggable'] === "true") {
@@ -343,17 +387,17 @@ WAF.addWidget({
     },
 
     /**
-    * function to call when the widget is displayed in the GUI Designer
-    * 
-    * @param {Object} config contains all the attributes for the widget
-    * @param {Designer.api} set of functions used to be managed by the GUI Designer
-    * @param {Designer.tag.Tag} container of the widget in the GUI Designer
-    * @param {Object} catalog of dataClasses defined for the widget
-    * @param {Boolean} isResize is a resize call for the widget (not currently available for custom widgets)
-    */
+     * function to call when the widget is displayed in the GUI Designer
+     * 
+     * @param {Object} config contains all the attributes for the widget
+     * @param {Designer.api} set of functions used to be managed by the GUI Designer
+     * @param {Designer.tag.Tag} container of the widget in the GUI Designer
+     * @param {Object} catalog of dataClasses defined for the widget
+     * @param {Boolean} isResize is a resize call for the widget (not currently available for custom widgets)
+     */
     onDesign: function (config, designer, tag, catalog, isResize) {
-        //        console.log(Designer.env.dom.isReady);
         var columns = tag.getColumns().toArray();
+        var r;
         
         var values  = function(){
             var res = [];
@@ -368,113 +412,41 @@ WAF.addWidget({
                 result.push((tag.getSource() ? tag.getSource() + ' Entity ' : 'Fake Data ') + item)
             }
             return result;
-        }.call();
+        }.call(),
+        colors = [];
          
-        
+        if(!tag._subWidgets){
+            return;
+        }
         
         /*
-         *Initialization of the structure of the widget
+         * Initialization of the graph
          */
-        tag.createChart = function tag_draw() {
-            this._linkedWidgets = {};
-            var containerDef    = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('container')),
-            container       = new Designer.tag.Tag(containerDef),
-            titleDef        = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('richText')),
-            title           = new Designer.tag.Tag(titleDef),
-            subTitleDef     = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('richText')),
-            subTitle        = new Designer.tag.Tag(subTitleDef),
-            legendaryDef    = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('container')),
-            legendary       = new Designer.tag.Tag(legendaryDef);
-                
-            
-            // The Container
-            container.create({
-                id      : this.getId() + "-container",
-                width   : this.getWidth() + 180,
-                height  : this.getHeight() + 90
-            });
-            
-            container._linkedWidget = this;
-            container.setXY(this.getX(), this.getY(), true);
-            container.setParent(this.getParent());
-            
-            
-            // The Title :
-            title.create({
-                id      : this.getId() + "-title",
-                width   : container.getWidth(),
-                height  : 40
-            });
-            
-            title._linkedWidget = this;
-            title.getAttribute('data-autoWidth').setValue("false");
-            title.getAttribute('data-text').setValue("Wakanda Chart");
-            title.setXY(0, 10, true);
-            title.setParent(container);
-            
-            // Css of the title : 
-            title.setCss('font-family'  , "'Times New Roman', Times, serif");
-            title.setCss('font-size'    , "30px");
-            title.setCss('font-weight'  , "bold");
-            title.setCss('text-align'   , "center");
-            
-            // The subTitle : 
-            subTitle.create({
-                id      : this.getId() + "-subTitle",
-                width   : 175,
-                height  : 13
-            });
-            
-            subTitle._linkedWidget = this;
-            subTitle.getAttribute('data-autoWidth').setValue("false");
-            subTitle.getAttribute('data-text').setValue("");
-            subTitle.setXY(( container.getWidth() - 175 )/2, 55, true);
-            subTitle.setParent(container);
-            
-            // Css of the subTitle :
-            subTitle.setCss('text-align'   , "center");
-            
-            // The Legendary :
-            legendary.create({
-                id      : this.getId() + "-legendary",
-                width   : 130,
-                height  : 102
-            });
-            
-            legendary.getAttribute('data-draggable').setValue(true);
-            legendary._properties.style.text = true;
-            legendary.setXY(510, 80, true);
-            legendary._linkedWidget = this;
-            legendary.setParent(container);
-            
-            this.setXY(20, 80, true);
-            this.setParent(container);
-            this._linkedWidgets = {
-                container   : container,
-                title       : title,
-                subTitle    : subTitle,
-                legendary   : legendary
-            };
-            this.refresh();
-        }
+        r = tag._graph;
+        
+        r.setSize(tag.getWidth(),tag.getHeight());
+        r.clear();
+        
+        var subWidgets  = tag._subWidgets();
+        
         /*
          * Designing the legendary
          */
-        if(tag._linkedWidgets && tag._linkedWidgets.title && tag.getAttribute('data-oldSource').getValue() !== tag.getSource()){
-            tag._linkedWidgets.title.getAttribute('data-text').setValue(tag.getSource() + " Chart");
-            tag._linkedWidgets.title.refresh();
+        if(subWidgets.title && tag.getAttribute('data-oldSource').getValue() !== tag.getSource()){
+            subWidgets.title.getAttribute('data-text').setValue(tag.getSource() + " Chart");
+            subWidgets.title.refresh();
            
             tag.getAttribute('data-oldSource').setValue(tag.getSource());
         }
-        if(typeof tag._linkedWidgets !== 'undefined' && tag._linkedWidgets.legendary !== 'undefined'){
-            legendary = tag._linkedWidgets.legendary;
+        
+        if(subWidgets.legendary){
+            var legendary = subWidgets.legendary;
             if (legendary) {
                 $('#' + legendary.getId()).empty();
             }
         }
         
         if(labels.length == 0 || values.length == 0){
-            var r = Raphael(tag.getId(),$("#" + tag.getId()).width(),$("#" + tag.getId()).height());
             r.text(r.width/2,r.height/2,'Drop a datasource here').attr({
                 'font-size':20
             });
@@ -485,30 +457,35 @@ WAF.addWidget({
          * Drawing The legendary for Bar and Line Chart
          */
         tag.createLengendary = function(){
-            if(typeof tag._linkedWidgets !== 'undefined' && legendary){
+            if(legendary){
                 var legendaryC = $('#' + legendary.getId());
                 legendaryC.empty();
-                legendaryC.css('overflow','auto');
-                var legTable = $('<table></table>').appendTo('#' + legendaryC.attr('id'));
+                var legTable = $('<table></table>').appendTo('#' + legendaryC.prop('id'));
 
                 for(var i = 0 ; i < values.length ; i++){
                     var htmlObj = $('<TR>' + 
                         '<TD style="padding:1px">' + 
-                        '<DIV id = "' + legendaryC.attr('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
+                        '<DIV id = "' + legendaryC.prop('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
                     htmlObj.appendTo(legTable);
                     $('<TD style="padding-left:3px">' + tag.getColumns().toArray()[i].title  + '</TD>').appendTo(htmlObj);
-                    Raphael(legendaryC.attr('id') + '-legendary-item-' + i , 20 , 20).rect(0,0,20,20).attr({
+                    Raphael(legendaryC.prop('id') + '-legendary-item-' + i , 20 , 20).rect(0,0,20,20).attr({
                         fill:colors[i]
                     });
                 }
             }
         }
         
-        /*
-         * Initialization of the graph
-         */
-        var r = Raphael(tag.getId(),$("#" + tag.getId()).width(),$("#" + tag.getId()).height());
-        var colors = ["hsb(0.34,0.69,0.65)","hsb(0.19,0.82,0.81)","hsb(0.15,1,1)","hsb(0.10,0.91,0.97)","hsb(0.06,0.85,0.92)","hsb(0.02,0.83,0.90)","hsb(0.98,0.85,0.79)","hsb(0.82,0.71,0.51)","hsb(0.76,0.68,0.51)","hsb(0.69,0.65,0.52)","hsb(0.57,1,0.65)","hsb(0.46,1,0.61)"];
+        switch(tag.getAttribute('data-chartType').getValue()){
+            case 'Line Chart':
+            case 'Bar Chart' :
+                for(i = 0 ; column = columns[i] ; i++){
+                    colors.push(column.color);
+                }
+                break;
+            case 'Pie Chart':
+                colors = ["hsb(0.34,0.69,0.65)","hsb(0.19,0.82,0.81)","hsb(0.15,1,1)","hsb(0.10,0.91,0.97)","hsb(0.06,0.85,0.92)","hsb(0.02,0.83,0.90)","hsb(0.98,0.85,0.79)","hsb(0.82,0.71,0.51)","hsb(0.76,0.68,0.51)","hsb(0.69,0.65,0.52)","hsb(0.57,1,0.65)","hsb(0.46,1,0.61)"];
+                break;
+        }
         tag.chart = null;
         
         /*
@@ -520,8 +497,6 @@ WAF.addWidget({
              * Drawing the pie chart
              */
             case 'Pie Chart' :
-                
-                
                 var radius  = Math.min(tag.getWidth(), tag.getHeight())/2 - 50,
                 opts    = {
                     colors      : colors,
@@ -534,11 +509,12 @@ WAF.addWidget({
                     legendothers: null,
                     legendpos   : null
                 };
+                
                 tag.chart     = r.g.piechart(r.width/2, r.height/2, radius, values[0],opts);
                 
                 if(tag.getAttribute('data-tooltipDisplay').getValue() == 'true'){
                     tag.chart.hover(function () {
-                        this.tag = r.g.blob(this.cx + (radius + 2)*Math.cos(this.mangle*Math.PI / 180),this.cy-(radius + 2)*Math.sin(this.mangle*Math.PI / 180), labels[this.sector.value.order] + "\n" + this.sector.value.value, this.mangle).insertBefore(this.cover);
+                        this.tag = r.g[tag.getAttribute('data-tooltipType').getValue()](this.cx + (radius + 2)*Math.cos(this.mangle*Math.PI / 180),this.cy-(radius + 2)*Math.sin(this.mangle*Math.PI / 180), labels[this.sector.value.order] + "\n" + this.sector.value.value, this.mangle).insertBefore(this.cover);
                         this.tag[0].attr({
                             fill : colors[this.sector.index], 
                             stroke : "#000"
@@ -558,8 +534,9 @@ WAF.addWidget({
                 });
                 delete i;
                 
-                if (typeof tag._linkedWidgets !== 'undefined' && legendary){
-                    $('#' + legendary.getId()).css('overflow','auto');
+                if (subWidgets.legendary){
+                    legendary = subWidgets.legendary;
+                    
                     var legTable = $('<table></table>').appendTo('#' + legendary.getId());
                     for(i = 0 ; i < labels.length ; i++){
                         var htmlObj = $('<TR>' + 
@@ -581,7 +558,8 @@ WAF.addWidget({
                     return;
                 }
                 labels = [0,1,2,3];
-                var offset = 20,
+                var 
+                offset = 20,
                 opts    = {
                     vgutter     : null,
                     shade       : null,
@@ -643,16 +621,19 @@ WAF.addWidget({
                 if(columns.length == 0){
                     return;
                 }
+
                 opts = {
-                    type    : 'soft',
+                    type    : tag.getAttribute('data-chartLineType').getValue() == 'basic' ? 'soft' : 'square',
                     colors  : colors,
                     gutter  : 0,
                     vgutter : 0,
                     to      : null,
-                    stacked : null
+                    stacked : tag.getAttribute('data-chartLineType').getValue() != 'basic'
                 };
-                var max = values[0][0],
-                textMax     = 0;
+
+                var
+                max = values[0][0],
+                textMax     = 0,
                 textSet     = r.set(),
                 y           = 25,
                 barvgutter  = opts.vgutter ,
@@ -660,15 +641,47 @@ WAF.addWidget({
                 x           = textTemp.getBBox().width + 15,
                 gutter      = opts.gutter || 10,
                 barhgutter  = (r.width - x)*gutter/(labels.length*(100+gutter)+gutter),
-                barwidth    = barhgutter*100/gutter;
+                barwidth    = barhgutter*100/gutter,
                 posTemp     = x + barhgutter,
-                labelAngle  = parseInt(tag.getAttribute('data-labelAngle').getValue());
+                labelAngle  = parseInt(tag.getAttribute('data-labelAngle').getValue()),
+                valuesPer   = [],
+                arraySum    = new Array(values[0].length);
                     
-                textTemp.remove();   
-                for (i = 0; i < values.length; i++) {
-                    for(j = 0 ; j<values[i].length ; j++){
-                        if(max < values[i][j]){
-                            max = values[i][j];
+                textTemp.remove();
+                
+                if(tag.getAttribute('data-chartLineType').getValue() == 'percentage'){
+                    for (i = 0; i < values.length; i++) {
+                        for(j = 0 ; j<values[i].length ; j++){
+                            if(arraySum[j] === undefined){
+                                arraySum[j] = values[i][j];
+                            }
+                            else{
+                                arraySum[j] += values[i][j];
+                            }
+                            if(max < values[i][j]){
+                                max = values[i][j];
+                            }
+                        }
+                    }
+                    
+                    for (i = 0; i < values.length; i++) {
+                        valuesPer.push([]);
+                        for(j = 0 ; j<values[i].length ; j++){
+                            if(i == 0){
+                                valuesPer[i].push(100*values[i][j]/arraySum[j]);
+                            }
+                            else{
+                                valuesPer[i].push(100*values[i][j]/arraySum[j] + valuesPer[i-1][j]);
+                            }
+                        }
+                    }
+                }
+                else{
+                    for (i = 0; i < values.length; i++) {
+                        for(j = 0 ; j<values[i].length ; j++){
+                            if(max < values[i][j]){
+                                max = values[i][j];
+                            }
                         }
                     }
                 }
@@ -694,7 +707,7 @@ WAF.addWidget({
                                 x : posTemp + barwidth/2,
                                 y : r.height - textMax/2,
                                 textAnchor  : tag.getAttribute('data-labelAlign').getValue(),
-                                angle       : labelAngle
+                                angle       : -labelAngle
                             };
                             break;
                         case 'end' :
@@ -705,16 +718,32 @@ WAF.addWidget({
                                 angle       : -labelAngle
                             }
                             break;
+                        default:
+                            point = {
+                                x : posTemp + barwidth/2,
+                                y : r.height - textMax/2,
+                                textAnchor  : tag.getAttribute('data-labelAlign').getValue(),
+                                angle       : -labelAngle
+                            };
+                            break;
                     }
-                    textTemp = r.text(point.x, point.y , labels[i]).attr({'text-anchor' : point.textAnchor}).rotate(point.angle, point.x, point.y);
+                    textTemp = r.text(point.x, point.y , labels[i]).attr({
+                        'text-anchor' : point.textAnchor
+                    }).rotate(point.angle, point.x, point.y);
                     
                     textSet.push(textTemp);
                     posTemp += barwidth + barhgutter;
                 }
                 
-                tag.chart = r.g.barchart(x , y, r.width - x, r.height - textMax - y, values,opts);
+                if(tag.getAttribute('data-chartLineType').getValue() == 'percentage'){
+                    tag.chart = r.g.barchart(x , y, r.width - x, r.height - textMax - y, valuesPer,opts);
+                    r.g.axis(x + barhgutter/2 , r.height - textMax - barvgutter , r.height - textMax - y - 2*barvgutter , 0 , 100 , 10 , 1 );
+                }
+                else{
+                    tag.chart = r.g.barchart(x , y, r.width - x, r.height - textMax - y,values ,opts);
+                    r.g.axis(x + barhgutter/2 , r.height - textMax - barvgutter , r.height - textMax - y - 2*barvgutter , 0 , max , 10 , 1 );
+                }
                 
-                r.g.axis(x + barhgutter/2 , r.height - textMax - barvgutter , r.height - textMax - y - 2*barvgutter , 0 , max , 10 , 1 );
                 r.g.axis(x + barhgutter/2 , r.height - textMax - barvgutter , r.width - x - barhgutter, 0 , 1 , labels.length , 2 ).text.remove();
                 tag.createLengendary();
                 break;
@@ -740,8 +769,8 @@ WAF.addWidget({
                         break;
                 }
                 var dirs = ['South','West','North','East'];
-                tag.tooltip = r.g[tag.getAttribute('data-tooltipType').getValue()](pos.x,tag.getAttribute('data-tooltipType').getValue() === 'label'?pos.y - 15 :pos.y,tag.getAttribute('data-tooltipType').getValue() === "popup"?dirs[parseInt(tag.getAttribute('data-tooltipAngle').getValue())%360]:parseInt(tag.getAttribute('data-tooltipAngle').getValue() + "°"),parseInt(tag.getAttribute('data-tooltipAngle').getValue())-360).attr([{
-                    fill: 'green' , 
+                tag.tooltip = r.g[tag.getAttribute('data-tooltipType').getValue()](pos.x,tag.getAttribute('data-tooltipType').getValue() === 'label'?pos.y - 15 :pos.y,tag.getAttribute('data-tooltipType').getValue() === "popup"?dirs[parseInt(tag.getAttribute('data-tooltipAngle').getValue())%360]:parseInt(tag.getAttribute('data-tooltipAngle').getValue()%360 + "°"),parseInt(tag.getAttribute('data-tooltipAngle').getValue())-360).attr([{
+                    fill: colors[0] , 
                     stroke : '#000'
                 }, {
                     fill: '#000'
@@ -751,6 +780,297 @@ WAF.addWidget({
 
             }
         }
+    },
+    onCreate : function(tag , param){
+        var 
+        title,
+        group,
+        classes,
+        container,
+        legendary;
+            
+        tag._classes    = {
+            container   : 'waf-chart-container',
+            legendary   : 'waf-chart-legendary',
+            title       : 'waf-chart-title'
+        }
+        
+        tag._colors = ["#198c1e" , "#a4bb12" , "#ffe500" , "#ec920b" , "#d95911" , "#d12a13" , "#ba0f23" , "#67126f" , "#46146d" , "#23176d" , "#0060a5" , "#009b76"];
+        
+        /**
+         * add widget
+         * @method _addWidget
+         */
+        tag._addWidget = function add_widget(config){
+            var
+            group,
+            widget,
+            groupId,
+            allFits,
+            reloadTag,
+            defaultConfig,
+            camelCaseFits;
+            
+            allFits         = ['top' , 'left' , 'right' , 'bottom'];
+            camelCaseFits   = ['Top' , 'Left' , 'Right' , 'Bottom']
+            groupId         = tag.getGroupId();
+            group           = Designer.getGroup(groupId);
+            reloadTag       = false;
+            defaultConfig   = {
+                fit         : ['top' , 'left'],
+                height      : null,
+                width       : null,
+                left        : null,
+                top         : null,
+                type        : 'button',
+                parent      : this,
+                'class'     : null,
+                attribs     : null,
+                'z-index'   : null,
+                subElem     : true
+            };
+            
+            config = $.extend(true, defaultConfig , config);
+            
+            widget = Designer.createTag({
+                type        : config.type,
+                width       : config.width,
+                height      : config.height,
+                fit         : config.fit,
+                silentMode  : true,
+                parent      : config.parent
+            });
+            
+            if(config['class']){
+                widget.addClass(config['class']);
+            }
+            
+            for(var i = 0 , fit ; fit = allFits[i] ; i++ ){
+                
+                if($.inArray(fit, config.fit) >= 0){
+                    widget.savePosition(fit, config[fit], false, false);
+                }
+                
+                else{
+                    widget['setFitTo' + camelCaseFits[i]](false);
+                    widget.savePosition(fit, null);
+                }
+            }
+            
+            if(config.attribs){
+                for(var attr in config.attribs){
+                    widget.getAttribute(attr).setValue(config.attribs[attr]);
+                }
+                
+                reloadTag = true;
+            }
+            
+            if(config['z-index']){
+                widget.updateZindex(-1);
+                reloadTag = true;
+            }
+            
+            if(reloadTag){
+                widget.refresh();
+            }
+            
+            if(config.subElem){
+                widget.setAsSubElement(true);
+            }
+            
+            this.link(widget);
+            group.add(widget);
+            
+            return widget;
+        }
+        
+        /**
+         * Get linked Widgets
+         * @method _subWidgets
+         */
+        tag._subWidgets = function(){
+            var
+            res,
+            classes,
+            linkedTags;
+            
+            classes = tag._classes;
+            
+            if(this._private && this._private.subWidgets){
+                return this._private.subWidgets;
+            }
+            
+            res = {
+                container   : null,
+                legendary   : null,
+                title       : null
+            };
+            
+            linkedTags = tag.getLinks();
+            
+            for(var i = 0 , widget; widget = linkedTags[i] ; i++ ){
+                var
+                htmlObj;
+                
+                htmlObj = widget.getHtmlObject();
+                
+                if(htmlObj.hasClass(classes.container)){
+                    res.container = widget;
+                    continue;
+                }
+                
+                else if(htmlObj.hasClass(classes.legendary)){
+                    res.legendary = widget;
+                    continue;
+                }
+                
+                else if(htmlObj.hasClass(classes.title)){
+                    res.title = widget;
+                    continue;
+                }
+            }
+            
+            this._private = this._private || {};
+            this._private.subWidgets = res;
+            
+            return res;
+        }
+        
+        tag._graph  = Raphael(tag.getId(),tag.getWidth(),tag.getHeight());
+        
+        /*
+         *Initialization of the structure of the widget
+         */
+        if(!param._isLoaded) {
+            
+            classes = tag._classes;
+            
+            /**
+             * Create the group
+             */
+            group   = new Designer.ui.group.Group();
+
+            group.add(tag);
+            
+            container = tag._addWidget({
+                height      : tag.getHeight() + 90,
+                width       : tag.getWidth() + 190,
+                left        : param.x || param.pos.x,
+                top         : param.y || param.pos.y,
+                'class'     : classes.container,
+                parent      : tag.getParent(),
+                type        : 'container',
+                subElem     : false
+            });
+            
+            
+            tag._addWidget({
+                fit         : ['top' , 'left' , 'right'],
+                height      : 40,
+                top         : 10,
+                left        : 0,
+                right       : 0,
+                'class'     : classes.title,
+                parent      : container,
+                type        : 'richText',
+                attribs : {
+                    'data-text'     : 'Wakanda Chart',
+                    'data-autoWidth': 'false'
+                }
+            });
+            
+            tag._addWidget({
+                height      : 155,
+                width       : 160,
+                left        : 470,
+                top         : 80,
+                right       : 15,
+                'class'     : classes.legendary,
+                type        : 'container',
+                fit         : ['right' , 'top'],
+                parent      : container
+            });
+            
+            tag.setParent(container);
+            
+            tag.setFitToRight(true);
+            tag.setFitToBottom(true);
+            
+            tag.savePosition('bottom', 0 , false , false);
+            tag.savePosition('right', 180 , false , false);
+            tag.savePosition('top', 85 , false , false);
+            tag.savePosition('left', 15 , false , false);
+        }
+        else {
+            /*
+             * Execute script when widget is entirely loaded (with linked tags) 
+             */
+            $(tag).bind('onReady', function(){
+                tag.onDesign(true);
+                
+                if(tag.getAttribute('data-chartType').getValue() == 'Line Chart' && tag.getEvents().count() < 8){
+                    var evts = [];
+                    evts.push({
+                        name       : 'clickColumn',
+                        description: 'On Click',
+                        category   : 'Data Column Events'
+                    },{
+                        name       : 'dblclickColumn',
+                        description: 'On Double Click',
+                        category   : 'Data Column Events'
+                    },{
+                        name       : 'mousedownColumn',
+                        description: 'On Mouse Down',
+                        category   : 'Data Column Events'
+                    },{
+                        name       : 'mousemoveColumn',
+                        description: 'On Mouse Move',
+                        category   : 'Data Column Events'
+                    },{
+                        name       : 'mouseoutColumn',
+                        description: 'On Mouse Out',
+                        category   : 'Data Column Events'
+                    },{
+                        name       : 'mouseoverColumn',
+                        description: 'On Mouse Over',
+                        category   : 'Data Column Events'
+                    },{
+                        name       : 'mouseupColumn',
+                        description: 'On Mouse Up',
+                        category   : 'Data Column Events'
+                    });
+                    for(var item in evts){
+                        tag.getEvents().add(new WAF.tags.descriptor.Event(evts[item]));
+                    }
+                    Designer.tag.refreshPanels();
+                }
+            });
+        }
     }
-});              
+}); 
+// Replaced by the finger gRaphael API
+//
+//(function () {
+//    Raphael.fn.g.legendaryItem = function(opts){
+//        var 
+//        res         = this.set(),
+//        defaultOpts = {
+//            x       : 0,
+//            y       : 0,
+//            width   : 100,
+//            height  : 100,
+//            arrowH  : 20
+//        };
+//        
+//        opts    = $.extend(true, defaultOpts , opts);
+//        res.push(this.path("M" + opts.x + " " + (opts.y + opts.arrowH) +
+//                 "L" + (opts.x + opts.width/2) + " " + opts.y + 
+//                 "L" + (opts.x + opts.width) + " " + (opts.y + opts.arrowH) +
+//                 "L" + (opts.x + opts.width) + " " + (opts.y + opts.height) +
+//                 "L" + opts.x + " " + (opts.y + opts.height) +
+//                 "Z"));
+//        return res;
+//    }
+//}());
+//
 

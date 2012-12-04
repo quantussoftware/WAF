@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 //// "use strict";
 
@@ -56,22 +52,38 @@ WAF.Widget.provide(
     function (inConfig, inData, shared) {
         var 
         i,
-        classes,
         theme,
-        parentClasses,
-        isSubmenu,
+        level,
         themes,
+        classes,
+        direction,
+        isSubmenu,
+        tabMargin,
+        parentsBar,
         htmlObject,
-        htmlObjectItems;            
+        parentClasses,
+        htmlObjectItem,
+        htmlObjectItems,
+        htmlObjectItemsLenght;            
             
-        htmlObject          = $(this.containerNode);      
-        htmlObjectItems     = htmlObject.children('.waf-menuItem');      
-        classes             = htmlObject.attr('class');
-        isSubmenu           = htmlObject.parents('.waf-menuItem, .waf-menuBar').length > 0 ? true : false;
-        parentClasses       = isSubmenu ? htmlObject.parents('.waf-menuBar').attr('class') : '';
-        
+        htmlObject          = this.$domNode;      
+        htmlObjectItems     = htmlObject.children('.waf-menuItem');
+        htmlObjectItemsLength = htmlObjectItems.length;
+        level				= inData.level || 0;
+        classes             = htmlObject.prop('class');
+        isSubmenu           = level > 0;
+        parentsBar          = htmlObject.parents('.waf-menuBar');
+        parentClasses       = isSubmenu ? htmlObject.parents('.waf-menuBar').prop('class') : '';
+        tabMargin           = inData['tab-margin'] || 0;        
+
+        level               = parentsBar.length;
+
         htmlObject.addClass('waf-menuBar-' + inData.display);
         
+        /*if (WAF.PLATFORM.modulesString == "mobile") {
+            htmlObject[0].style.width = "100% !important";
+        }*/
+
         // Setting the theme
         if (inData.theme) {
            htmlObject.addClass(inData.theme);
@@ -97,13 +109,120 @@ WAF.Widget.provide(
             htmlObject.addClass(themes.join(' '));
             htmlObjectItems.addClass(themes.join(' '));
         }
-    },
-    {
-        // [Prototype]
-        // The public shared properties and methods inherited by all the instances
-        // NOTE: "this" is available in this context
-        // These methods and properties are available from the constructor through "this" 
+        
+        
+		// Setting classes
+		for (var i = 0; i < htmlObjectItemsLength; i++) {
+			htmlObjectItem = htmlObjectItems.eq(i);
 
+            // Setting position first
+			if (i == 0) {
+				htmlObjectItem.addClass('waf-menuItem-first');
+			} else {
+				htmlObjectItem.removeClass('waf-menuItem-first');
+			}
+			
+            htmlObjectItem
+                // Setting level
+    			.addClass('waf-menuItem-level-' + level)
+
+                // Setting direction
+                .removeClass('waf-menuItem-horizontal waf-menuItem-vertical')
+                .addClass('waf-menuItem-' + inData.display);
+    			
+            // Setting position last
+			if (i == (htmlObjectItemsLength - 1)) {
+				htmlObjectItem.addClass('waf-menuItem-last');
+			} else {
+				htmlObjectItem.removeClass('waf-menuItem-last');
+			}
+		}
+
+        /*
+         * @DEPRECATED : Add margin (margin is now set into the css style sheet)
+         */
+        if (tabMargin) {            
+            switch (inData.display) {
+                case 'horizontal':
+                    htmlObject.children('li:not(:last-child)').css({'margin-right': tabMargin + 'px'});   
+                    break;
+
+                case 'vertical':
+                    htmlObject.children('li:not(:last-child)').css({'margin-bottom': tabMargin + 'px'}); 
+                    break;
+            }
+        }
+    }, {
+        /**
+         * Get the menu items of the menubar
+         * @method getMenuItems
+         * @return {array} list of menu items
+         */
+        getMenuItems : function menubar_get_menuitems () {
+            var
+            items;
+            
+            items = [];
+            
+            $.each(this.$domNode.children(), function() {
+                items.push($$($(this).prop('id')));
+            });
+            
+            return items;
+        },
+        
+        /**
+         * Get a specific menu item
+         * @method getMenuItem
+         * @return {object} menu item
+         */
+        getMenuItem : function menubar_get_menuitem (index) {            
+            return this.getMenuItems()[index];
+        },
+       
+        setWidth : function menuitem_set_width(value) {
+            /*
+             * Set dom node width
+             */
+            this.$domNode.css('cssText', 'width:' +  value + 'px !important')
+
+            /*
+             * Call resize function
+             */
+            this._callResizeEvents('stop');
+        },
+       
+        setHeight : function menuitem_set_height(value) {
+            /*
+             * Set dom node width
+             */
+            this.$domNode.css('cssText', 'height:' +  value + 'px !important')
+
+            /*
+             * Call resize function
+             */
+            this._callResizeEvents('stop');
+        },
+
+        /**
+         * Get the selected menu item
+         * @method getSelectedMenuItem
+         * @return {object} selected menu item
+         */
+        getSelectedMenuItem : function getSelectedMenuItem () {
+            var
+            index,
+            result;
+
+            index = this.$domNode.children('li').index(this.$domNode.children('.waf-state-selected'));
+
+            if (index != -1) {
+                result = this.getMenuItem(index);
+            } else {
+                result = null;
+            }
+
+            return result;
+        }
     }
-
 );

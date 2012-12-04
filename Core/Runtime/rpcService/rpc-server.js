@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * @brief			rpc-server.js
@@ -41,6 +37,7 @@ if (typeof WAF === 'undefined') {
 }
 WAF.classes = WAF.classes || {};
 WAF.classes.Rpc = WAF.classes.Rpc || {} ;
+
 /***
  * root object
  */
@@ -52,18 +49,70 @@ WAF.root = this;
 WAF.rpc = {
 
     serviceDescription : {},
+        
+    /**
+     * Call and check a function
+     * @namespace WAF.rpc
+     * @method callAndCheck
+     * @param {String} func name of the function to call
+     * @param {Array} groupExecID ID of execution
+     * @param {Array} groupPromoteID of promote
+     * @return {Function} the function
+     * @static
+     */
+    callAndCheck : function (modulePath, func, groupExecID, groupPromoteID) {
+        var embbedder = function () {
+            var result = null,
+            promotionToken = null,
+            module = null,
+            okExec = true,
+            session = currentSession();
+            
+            if (groupPromoteID != null && session != null) {
+                promotionToken = session.promoteWith(groupPromoteID);
+            }
+
+            if (groupExecID != null) {
+                if (session == null) {
+                    okExec = false;
+                } else {
+                    okExec = session.checkPermission(groupExecID);
+                }
+            }
+            if (okExec) {
+                if (modulePath) {				
+                    module = require(modulePath);
+                    result = module[func].apply(this, arguments[0]);
+                } else {
+                    result = WAF.root[func].apply(this, arguments[0]);
+                }
+            }
+            if (groupPromoteID != null && promotionToken != null && session != null) {
+                session.unPromote(promotionToken);
+            }
+            return result;
+        }
+        return embbedder;
+    },    
 
     /**
      * Call a function
      * @namespace WAF.rpc
      * @method call
+     * @param {String} modulePath module path of the function to call
      * @param {String} functionName name of the function to call
      * @param {Array} args arguments to send to the function
      * @static
      */
-    call : function (functionName, args) {
+    call : function (modulePath, functionName, args) {
         var result = '',
-        tabArgs = [];
+        tabArgs = [],
+        executePerm = null,
+        executePermGroupID = null,                
+        promotePerm = null,
+        promotePermGroupID = null,
+        myRpcFunction_secure = '',
+        embbedderFunction = null;
 
         if (args.constructor === Array) {
             tabArgs = args;
@@ -72,7 +121,58 @@ WAF.rpc = {
         }
 
         tabArgs.push(args);
-        result = WAF.root[functionName].apply(this, tabArgs);
+        
+        // check permissions                
+        if (typeof application.permissions !== 'undefined') {  
+            
+            // check module permission
+            
+            executePerm = application.permissions.findResourcePermission('module', modulePath, 'executeFromClient');
+            promotePerm = application.permissions.findResourcePermission('module', modulePath, 'promote');
+            
+            if (executePerm || promotePerm) {
+            
+                if (executePerm) {
+                    executePermGroupID = executePerm.groupID;
+                }            
+                if (promotePerm) {
+                    promotePermGroupID = promotePerm.groupID;
+                }
+                
+                myRpcFunction_secure = functionName;
+                embbedderFunction = WAF.rpc.callAndCheck(modulePath, functionName, executePermGroupID, promotePermGroupID);
+	
+                if ((embbedderFunction !== null) && (typeof embbedderFunction !== 'undefined')) {
+                    myRpcFunction_secure = embbedderFunction;
+                }
+
+                result = myRpcFunction_secure(tabArgs);
+            
+            } else {                    
+                // check function permission if no permission on module
+
+                executePerm = application.permissions.findResourcePermission('function', modulePath + '/' + functionName, 'executeFromClient');
+                if (executePerm) {
+                    executePermGroupID = executePerm.groupID;
+                }
+                promotePerm = application.permissions.findResourcePermission('function', modulePath + '/' + functionName, 'promote');
+                if (promotePerm) {
+                    promotePermGroupID = promotePerm.groupID;
+                }
+        
+                myRpcFunction_secure = functionName;
+                embbedderFunction = WAF.rpc.callAndCheck(modulePath, functionName, executePermGroupID, promotePermGroupID);
+	
+                if ((embbedderFunction !== null) && (typeof embbedderFunction !== 'undefined')) {
+                    myRpcFunction_secure = embbedderFunction;
+                }
+
+                result = myRpcFunction_secure(tabArgs);
+            }
+        } else {
+            result = WAF.root[functionName].apply(this, tabArgs);
+        }
+        
         return result;
     },
 
@@ -231,7 +331,7 @@ function getCatalog(params) {
     hasDescription = false,
     i = 0;
 
-    signature = application.rpcService.getCatalog();  // SWIAC Edouard/sc 02/03/2010
+    // signature = application.rpcService.getCatalog(); // sc 16/05/2012 rpcService property was removed
     oSignature = JSON.parse(signature);
 
     // get Params
@@ -345,14 +445,14 @@ function doRequest(request, response) {
             result = WAF.rpc.execute(jsonObj.method.keys, jsonObj.params, jsonObj.method.source);
             version = jsonObj.jsonrpc;
         } else {
-            if (WAF.root[jsonObj.method] !== undefined) {
-                result = WAF.rpc.call(jsonObj.method, jsonObj.params || []);
-                version = jsonObj.jsonrpc;
-            } else {
+            // if (WAF.root[jsonObj.method] !== undefined) {
+            result = WAF.rpc.call(jsonObj.module, jsonObj.method, jsonObj.params || []);
+            version = jsonObj.jsonrpc;
+        /*  } else {
                 errorCode = -32601;
                 errorMessage = 'method ' + jsonObj.method + ' not found';
                 response.statusCode = 500;
-            }
+            }*/
         }
 
     } catch (error) {
@@ -364,7 +464,11 @@ function doRequest(request, response) {
         } else {
             errorCode = -32603;
             errorMessage = 'Internal error while handling ' + request.body;
-            response.statusCode = 500;
+            if (errorInfo.indexOf('failed permission') != -1) {
+                response.statusCode = 401;
+            } else {
+                response.statusCode = 500;
+            }
         }
     }
 

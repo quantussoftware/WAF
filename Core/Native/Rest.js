@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * @module			Native
@@ -415,7 +411,7 @@ WAF.core.restConnect.restRequest = function(connectionMode)
      * @method go
      * @return Boolean
      **/
-	this.go = function()
+	this.go = function(options)
 	{
 		var handler = this.handler;
 
@@ -531,6 +527,12 @@ WAF.core.restConnect.restRequest = function(connectionMode)
 		if (this.distinct)
 		{
 			queryString += (!deja$ ? "$distinct=" : "&$distinct=") + this.distinct;
+			deja$ = true;
+		}
+		// $findKey
+		if (this.findKey != null)
+		{
+			queryString += (!deja$ ? "$findKey=" : "&$findKey=")+encodeURIComponent(""+this.findKey);
 			deja$ = true;
 		}
 		if (this.queryPlan)
@@ -652,6 +654,21 @@ WAF.core.restConnect.restRequest = function(connectionMode)
 				deja$ = true;
 				queryString += this.autoExpand;
 		}
+		
+		if (this.autoSubExpand != null && this.autoSubExpand != "")
+		{
+			if (!deja$)
+				{
+					queryString += "$subExpand=";
+				}
+				else
+				{
+					queryString += "&$subExpand=";
+				}
+				deja$ = true;
+				queryString += this.autoSubExpand;
+		}
+
 
 		// Adds queryString to url
 		if (queryString !== "")
@@ -689,44 +706,51 @@ WAF.core.restConnect.restRequest = function(connectionMode)
 
 		this.http_request.parent = this;
 		
-		if (handler != null)
+		if (options && options.generateRESTRequestOnly)
 		{
-			this.http_request.onreadystatechange = function()
-			{
-				handler(this.parent);
-			};
+			return url;
 		}
-
-		try
+		else
 		{
-			if (this.fullURL)
+			if (handler != null)
 			{
-				url = this.fullURL;
+				this.http_request.onreadystatechange = function()
+				{
+					handler(this.parent);
+				};
 			}
-			this.http_request.open(command, url, this.connectionMode);
-
-			if (this.postdata)
+	
+			try
 			{
-				this.http_request.setRequestHeader('Content-Type', 'application/json');
-			}
-
-			this.http_request.setRequestHeader('If-Modified-Since', 'Thu, 1 Jan 1970 00:00:00 GMT'); // due to IE9 caching XHR
-			this.http_request.setRequestHeader('Cache-Control', 'no-cache'); // due to IE9 caching XHR
-
-			this.http_request.send(this.postdata);
-
-			if (!this.connectionMode)
+				if (this.fullURL)
+				{
+					url = this.fullURL;
+				}
+				this.http_request.open(command, url, this.connectionMode);
+	
+				if (this.postdata)
+				{
+					this.http_request.setRequestHeader('Content-Type', 'application/json');
+				}
+	
+				this.http_request.setRequestHeader('If-Modified-Since', 'Thu, 1 Jan 1970 00:00:00 GMT'); // due to IE9 caching XHR
+				this.http_request.setRequestHeader('Cache-Control', 'no-cache'); // due to IE9 caching XHR
+	
+				this.http_request.send(this.postdata);
+	
+				if (!this.connectionMode)
+				{
+					handler(this.http_request);
+				}
+	
+				return true;
+	
+			} catch (e)
 			{
-				handler(this.http_request);
+	            // TODO log the error
+	            return true;
+				//alert(e);
 			}
-
-			return true;
-
-		} catch (e)
-		{
-                        // TODO log the error
-                        return true;
-			//alert(e);
 		}
 
 		return false;

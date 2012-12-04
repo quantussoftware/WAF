@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
@@ -83,7 +79,7 @@ WAF.Widget.provide(
 			if (loginManager.dialog == null)
 			{
 				var dataTheme = "";
-				var existingClasses = htmlObject.attr('class')+" waf-login-dialog";
+				var existingClasses = htmlObject.prop('class')+" waf-login-dialog";
 				 existingClasses.split(" ").forEach(function(className) {
 			        if (className != "inherit" && className.substr(0,4) != "waf-") {
 			                dataTheme += className+" ";
@@ -92,6 +88,7 @@ WAF.Widget.provide(
 
 				html += '<div class="waf-widget-body waf-login-body '+dataTheme+'" title="'+loginManager.labels.loginTitle+'">';
 				
+				html += '<form class="waf-login-form" action="#" methos="POST">';
 				html += '<div class="waf-login-div waf-login-dialog-user">';
 				html += '<label class="waf-widget waf-label waf-login-label '+dataTheme+'">' + loginManager.labels.userLabel + '</label>';
 				html += '<div><input id="name_login_'+loginManager.divID+'" type="text" data-type="textField" data-lib="WAF" class="waf-widget waf-textField '+dataTheme+'" size="20"/></div>';
@@ -105,6 +102,7 @@ WAF.Widget.provide(
 				html += '<span>' + loginManager.labels.loginButton + '</span>';
 				html += '</button>';
 				html += '</div>';
+				html += '</form>';
 				html += '</div>';
 				
 				
@@ -114,7 +112,7 @@ WAF.Widget.provide(
 				
 				$html.addClass(existingClasses);
 				$html.removeClass("waf-login");
-				$html.dialog({model: true, resizable: false});
+				$html.dialog({modal: true, resizable: false});
 				var dialogWidget = $html.dialog("widget");
 				dialogWidget
 					.addClass(dataTheme+" waf-widget waf-login-dialog ")
@@ -131,7 +129,14 @@ WAF.Widget.provide(
 
 				loginManager.dialog = $html;
 				loginManager.dialogWidget = dialogWidget;
-				$(".waf-login-button", $html).click(loginButton);
+				$(".waf-login-button", $html).bind("click", function (event) {
+					event.preventDefault();
+					loginButton(event);
+				});
+				$(".waf-login-form", $html).bind("submit", function (event) {
+					event.preventDefault();
+					loginButton(event);
+				});
 			}
 			else
 			{
@@ -184,7 +189,7 @@ WAF.Widget.provide(
 				if (user == null)
 				{
 					html += '<div class="waf-login-user">' + loginManager.labels.noUserDisplay + '</div>'
-					html += '<div class="waf-login-login"> <a href="aaa">' + loginManager.labels.loginAction + '</a> </div>';
+					html += '<div class="waf-login-login"> <a>' + loginManager.labels.loginAction + '</a> </div>';
 				}
 				else
 				{
@@ -192,7 +197,7 @@ WAF.Widget.provide(
 					if (text == null || text === "")
 						text = user.userName;
 					html += '<div class="waf-login-user">' + loginManager.labels.userDisplay + text + '</div>'
-					html += '<div class="waf-login-logout"><a href="aaa">' + loginManager.labels.logoutAction + '</a> </div>';
+					html += '<div class="waf-login-logout"><a>' + loginManager.labels.logoutAction + '</a> </div>';
 				}
 				
 				htmlObject.html(html);

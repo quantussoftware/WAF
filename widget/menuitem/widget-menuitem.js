@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 //// "use strict";
 
@@ -54,42 +50,53 @@ WAF.Widget.provide(
      * @default WAF.widget.GoogleMap
      **/
     function (inConfig, inData, shared) {
-        var 
-            htmlObject,
-            height,            
-            width,
-            paragraphe,
-            padding,
-            fnShow,
-            fnHide,
-            subMenuShow,
-            parentSubMenuShow,
-            parentBars,
-            except,
-            exceptItem;                     
+        var
+        htmlObject,
+        height,
+        width,
+        paragraphe,
+        padding,
+        fnShow,
+        fnHide,
+        subMenuShow,
+        parentSubMenuShow,
+        parentBars,
+        except,
+        objHtmlText,
+        widget,
+        exceptItem;
         
-        htmlObject          = $(this.containerNode); 
+        widget              = this;
+        htmlObject          = $(this.containerNode);
         
         parentBars          = htmlObject.parents('.waf-menuBar');
+        objHtmlText         = htmlObject.children('.waf-menuItem-text');
         height              = htmlObject.outerHeight();
         width               = htmlObject.outerWidth();
         paragraphe          = htmlObject.children('p');
-        padding             = parseInt(htmlObject.css('padding-left'));
+        padding             = parseInt(htmlObject.css('padding-left'), 10);
         
-        width               = (parseInt(width) - (padding*2));
-        height              = (parseInt(height) - (padding*2));
+        width               = (parseInt(width, 10) - (padding*2));
+        height              = (parseInt(height, 10) - (padding*2));
         subMenuShow         = $(parentBars[parentBars.length - 1]).attr('data-subMenuShow');
         
+        /*
+        * force event type for mobile
+        */
+        if (waf.PLATFORM.isTouch) {
+            subMenuShow = "click";
+        }
         
         if (inData.theme) {
            htmlObject.addClass(inData.theme);
-        }        
+        }
+        
         paragraphe.css({
             height  : height + 'px',
             width   : width + 'px'
-        })
+        });
         
-        htmlObject.html(htmlObject.html().replace(/\n/g, '<br/>'));
+        objHtmlText.html() && objHtmlText.html(objHtmlText.html().replace(/\n/g, '<br/>'));
                 
         // Setting the theme
         if (inData.theme) {
@@ -99,43 +106,50 @@ WAF.Widget.provide(
         /**
          * Display a submenu
          */
+        
         fnShow = function fnShow (e) {
             var 
-                that,
-                ul;
+            that,
+            ul;
                 
             that    = $(this);
-            ul      = that.children('ul');
+            ul      = that.children('ul');            
             
-            
+            /*
+             * Prevent script execution if disabled
+             */
+            if (widget.isDisabled()) {
+                return false;
+            }
+  
             if (e.type === 'click') {          
                 
                 except      = '';
                 exceptItem  = '';
                 
-                $('.waf-menuItem .waf-menuBar').each(function(){
-                    var thisBarId = $(this).attr('id');
+                $('#' + widget.getParent().id +' .waf-menuItem .waf-menuBar').each(function(){
+                    var thisBarId = $(this).prop('id');
                     
                     parentBars.each(function() {
                         var thatElt = $(this);
-                        if (thatElt.attr('id') === thisBarId) {
+                        if (thatElt.prop('id') === thisBarId) {
                             except += '[id!=' + thisBarId + ']';
-                            exceptItem += '[id!=' + thatElt.parent().attr('id') + ']';
+                            exceptItem += '[id!=' + thatElt.parent().prop('id') + ']';
                         }
                     })
                 });
                 
-                $('.waf-menuItem .waf-menuBar' + except + '').fadeOut(200);
-                $('.waf-menuItem' + exceptItem + '').removeClass('waf-state-active');
-                that.addClass('waf-state-active');
+                $('#' + widget.getParent().id +' .waf-menuItem .waf-menuBar' + except + '').fadeOut(200);
+                $('#' + widget.getParent().id +' .waf-menuItem' + exceptItem + '').removeClass('waf-state-selected');
+                that.addClass('waf-state-selected');
                 
                 
         
             } else {
-                that.addClass('waf-state-hover');
+                !(that.hasClass('waf-state-selected') || that.hasClass('waf-state-active'))  && that.addClass('waf-state-hover');
             }
                         
-            $('#' + that.attr('id') + '>ul>li>p').css('width', that.outerWidth() + 'px')
+            $('#' + that.prop('id') + '>ul>li>p').css('width', that.outerWidth() + 'px')
             
             ul.stop(true, true).fadeIn(100);
         }
@@ -144,25 +158,39 @@ WAF.Widget.provide(
          * Hide a submenu
          */
         fnHide = function fnHide (e) {
-            var 
-                that,
-                ul;
-                
+            var
+            that,
+            ul;
+            
+            /*
+             * Prevent script execution if disabled
+             */
+            if (widget.isDisabled()) {
+                return false;
+            }
+
             that    = $(this);
             ul      = that.children('ul');
             ul.stop(true, true).fadeOut(200);
             
             if (e.type !== 'click') {    
-                that.removeClass('waf-state-hover');
+                that.removeClass('waf-state-hover waf-state-active');
             }
         }
         
         switch (subMenuShow) {
             case 'click' :
                 htmlObject.click(fnShow);
-                
+  
                 // Add hover class on hover                
-                htmlObject.hover(function(e){$(this).addClass('waf-state-hover')}, function(e){$(this).removeClass('waf-state-hover')});                   
+                htmlObject.hover(
+                    function(e){
+                        !($(this).hasClass('waf-state-selected') || $(this).hasClass('waf-state-active')) && $(this).addClass('waf-state-hover')
+                    },
+                    function(e){
+                        $(this).removeClass('waf-state-hover')
+                    }
+                );                   
                 break;
                 
             default :
@@ -171,15 +199,138 @@ WAF.Widget.provide(
                 break;
         }
         
-        htmlObject.bind('click', function(e) {e.stopPropagation();});
-    },
-    
-    {
-        // [Prototype]
-        // The public shared properties and methods inherited by all the instances
-        // NOTE: "this" is available in this context
-        // These methods and properties are available from the constructor through "this" 
+        /*
+         * Active state on mouse down
+         */
+        htmlObject.bind('mousedown', function(e) {
+            var
+            widget,
+            htmlObject;
+            
+            htmlObject  = $(this);
+            
+            htmlObject
+                .removeClass('waf-state-hover')
+                .addClass('waf-state-active');
 
+            e.stopPropagation();
+        });
+        
+        /*
+         * Remve state on mouse down
+         */
+        htmlObject.bind('mouseup', function(e) {
+            var
+            widget,
+            htmlObject;
+            
+            htmlObject  = $(this);
+            
+            htmlObject.removeClass('waf-state-active');
+
+            (subMenuShow !== 'click') && htmlObject.addClass('waf-state-hover')
+        });
+        
+        htmlObject.bind('click', function(e) {
+            var
+            id,
+            widget,
+            htmlObject;
+            
+            htmlObject  = $(this);
+            id          = htmlObject.prop('id');
+            widget      = $$(id);
+            
+            if (widget.onClick) {
+                widget.onClick();
+            }
+            e.stopPropagation();
+        });
+    }, {
+        ready : function (argument) {
+            var
+            richText;
+
+            richText = this.$domNode.children('.waf-richText');
+
+            richText.addClass('waf-menuItem-text');
+
+            /*
+             * @DEPRECATED: Remove old paragraphe (paragraphes are deprecated)
+             */
+            if (richText.length > 0) {
+                this.$domNode.find('p').remove();
+                if (richText.css('top') != '0px') {
+                    richText.css({
+                        'top'   : '0px',
+                        'left'  : '0px'
+                    })
+                }
+            }
+        },
+
+        /**
+         * Get the index of the menu item
+         * @method getIndex
+         * @return {number} index
+         */
+        getIndex : function menuitem_get_index() {
+           return this.$domNode.index();
+        },
+       
+        /**
+         * Change the menu item
+         */
+        renameMenuItem : function menuitem_rename_menuItem(label) {
+            var
+            richText;
+            richText = this.$domNode.children('.waf-richText');
+            richText.html(label);
+        },
+       
+        setWidth : function menuitem_set_width(value) {
+            var
+            tabs,
+            menuBar,
+            totalWidth,
+            menuBarMargin;
+           
+            menuBar     = this.getParent();
+            
+            /*
+             * Set dom node width
+             */
+            this.$domNode.width(value);
+
+            /*
+             * Call resize function
+             */
+            this._callResizeEvents('stop');
+            
+            /*
+             * Resize menuItem
+             */     
+            tabs            = menuBar.$domNode.children('.waf-menuItem');
+            totalWidth      = 0;
+            menuBarMargin   = parseInt(menuBar.config['data-tab-margin']);
+            
+            $.each(tabs, function(i){
+               totalWidth += tabs.outerWidth();
+               
+               if (i != tabs.length-1) {
+                    totalWidth += menuBarMargin;
+               }
+               
+            
+            });
+            /*
+             * Update only if the size is smaller than total size
+             */
+            if (totalWidth >= menuBar.getWidth()) {
+                menuBar.setWidth(totalWidth);
+            }
+            
+        }
     }
 
 );

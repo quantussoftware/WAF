@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * Widget radiogroup
@@ -33,7 +29,8 @@
  * -------------------------------------------------------
  */
  .waf-radioGroup {
-     overflow: auto;
+ 	font-size: 0;
+	overflow: auto;
  }
 
 /**
@@ -43,16 +40,28 @@
  */
 .waf-radioGroup li {
     position: relative;
-    clear: both;
-    padding: 2px;
 }
 
-.waf-radioGroup li label {
-    position: absolute;
-    left: 19px;
-    right: 0;
 
-    line-height: 16px;
+/**
+ * -------------------------------------------------------
+ * @section radio
+ * -------------------------------------------------------
+ */
+.waf-radioGroup .waf-radio {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    overflow: hidden;
+}
+
+.waf-radioGroup label {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    padding-left: 30px;
     
     /* HERITED FROM RADIOGROUP */
     font-family: inherit;
@@ -62,16 +71,10 @@
     text-align: inherit;
     text-decoration: inherit;
     color: inherit;
-}
-
-/**
- * -------------------------------------------------------
- * @section radio
- * -------------------------------------------------------
- */
-.waf-radioGroup .waf-radio {
-    float: left;
-    position: relative;
+    
+   text-overflow : ellipsis; 
+   white-space: nowrap;
+   
 }
 
 .waf-radioGroup .waf-radio input {
@@ -92,70 +95,54 @@
 	        appearance: none;
 }
 
-
-.waf-radioGroup.horizontal li,
-.waf-radioGroup.Horizontal li {
-    display : inline;
+.waf-radioGroup.waf-direction-horizontal .waf-radio-box, 
+.waf-radioGroup.waf-direction-vertical .waf-radio-box {
+    top: 50%;
+    left: 10px;
 }
 
-.waf-radio-icon img{
+.waf-radioGroup.waf-direction-vertical li {
+    display : block;
+    width: 100%;
+}
+
+.waf-radioGroup.waf-direction-horizontal li {
+    display : inline-block;
+    height: 100%;
+}
+
+
+/**
+ * -------------------------------------------------------
+ * @subection radio icon
+ * -------------------------------------------------------
+ */
+.waf-radio-icon img {
     width: 100%;
     height: 100%;
 }
 
-/**
- * -------------------------------------------------------
- * @Icon image default state
- * -------------------------------------------------------
- */
-.waf-radio-icon.waf-icon-image .waf-radio-icon-default {
- 	display: block;
-}
-.waf-radio-icon.waf-icon-image .waf-radio-icon-active,
-.waf-radio-icon.waf-icon-image .waf-radio-icon-hover,
-.waf-radio-icon.waf-icon-image .waf-radio-icon-selected {
- 	display: none;
-}
 
 /**
  * -------------------------------------------------------
- * @Icon image hover state
+ * @subsubection radio icon state
  * -------------------------------------------------------
  */
-.waf-state-hover .waf-radio-icon.waf-icon-image .waf-radio-icon-hover {
- 	display: block;
-}
-.waf-state-hover .waf-radio-icon.waf-icon-image .waf-radio-icon-active,
-.waf-state-hover .waf-radio-icon.waf-icon-image .waf-radio-icon-default,
-.waf-state-hover .waf-radio-icon.waf-icon-image .waf-radio-icon-selected {
- 	display: none;
+/*.waf-radio .waf-radio-icon {
+	display: none;
 }
 
-/**
- * -------------------------------------------------------
- * @Icon image active state
- * -------------------------------------------------------
- */
-.waf-state-active .waf-radio-icon.waf-icon-image .waf-radio-icon-active {
- 	display: block;
+.waf-radio.waf-state-active .waf-radio-icon,
+.waf-radio.waf-state-selected .waf-radio-icon {
+	display: block;
+}*/
+.waf-radio .waf-radio-icon img {
+    display: none;
 }
-.waf-state-active .waf-radio-icon.waf-icon-image .waf-radio-icon-hover,
-.waf-state-active .waf-radio-icon.waf-icon-image .waf-radio-icon-default,
-.waf-state-active .waf-radio-icon.waf-icon-image .waf-radio-icon-selected {
- 	display: none;
-}
- 
- 
-/**
- * -------------------------------------------------------
- * @Icon image selected state
- * -------------------------------------------------------
- */
-.waf-state-selected .waf-radio-icon.waf-icon-image .waf-radio-icon-selected {
- 	display: block;
-}
-.waf-state-selected .waf-radio-icon.waf-icon-image .waf-radio-icon-hover,
-.waf-state-selected .waf-radio-icon.waf-icon-image .waf-radio-icon-default,
-.waf-state-selected .waf-radio-icon.waf-icon-image .waf-radio-icon-active {
- 	display: none;
+
+.waf-radio:not(.waf-state-hover):not(.waf-state-active):not(.waf-state-selected) .waf-radio-icon img.waf-radio-icon-default,
+.waf-radio.waf-state-hover .waf-radio-icon img.waf-radio-icon-hover,
+.waf-radio.waf-state-active .waf-radio-icon img.waf-radio-icon-active,
+.waf-radio.waf-state-selected .waf-radio-icon img.waf-radio-icon-selected {
+    display: block;
 }

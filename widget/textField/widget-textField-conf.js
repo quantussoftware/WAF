@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type       : 'textField',
@@ -52,7 +48,7 @@ WAF.addWidget({
     {
         name        : 'data-label',
         description : 'Label',
-        defaultValue: 'label'
+        defaultValue: 'Label'
     },
     {
         name        : 'data-label-position',
@@ -61,7 +57,7 @@ WAF.addWidget({
     },
     {
         name       : 'data-autocomplete',
-        description: 'Auto-complete',
+        description: 'Autocomplete',
         type        : 'checkbox'
     },
     {
@@ -78,23 +74,28 @@ WAF.addWidget({
     },
     {
         name        : 'data-datapicker-on',
-        description : 'Allow calendar for dates',
+        description : 'Enable datepicker',
         type        : 'checkbox',
         typeValue   : 'bool',
         defaultValue: 'true'
     },
     {
         name        : 'data-datapicker-icon-only',
-        description : 'Display calendar when icon is clicked',
+        description : 'Show datepicker button',
         type        : 'checkbox',
         typeValue   : 'bool',
         defaultValue: 'false'
     },
     {
-        name       : 'tabindex',
+        name		: 'tabindex',
         description : 'Tabindex',
         typeValue   : 'integer'
-    }],
+    },
+	{
+		name		: 'placeholder',
+		description	: 'Input placeholder',
+		type		: 'string'
+	}],
     events: [
     {
         name       : 'blur',
@@ -160,15 +161,41 @@ WAF.addWidget({
         name       : 'select',
         description: 'On Select',
         category   : 'Keyboard Events'
+    },
+    {
+        name       : 'touchstart',
+        description: 'On Touch Start',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchend',
+        description: 'On Touch End',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchcancel',
+        description: 'On Touch Cancel',
+        category   : 'Touch Events'
     }],
     style: [
     {
         name        : 'width',
-        defaultValue: '153px'
+        defaultValue: '130px'
     },
     {
-        name        : 'height',
-        defaultValue: '25px'
+        name                : 'height',
+        defaultValue        : function() { 
+            var result;
+            if (typeof D != "undefined") {
+                if (D.isMobile) {
+                    result = "40px";
+                } else {
+                    result = "22px";
+                }
+                return result;
+            }
+
+        }.call()
     }],
     properties: {
         style: {
@@ -192,6 +219,9 @@ WAF.addWidget({
         },{
             label   : 'focus',
             cssClass: 'waf-state-focus'
+        },{
+            label   : 'disabled',
+            cssClass: 'waf-state-disabled'
         }]
     },
     onInit: function (config) {
@@ -206,39 +236,63 @@ WAF.addWidget({
 
         return widget;
     },
-    onDesign: function (config, designer, tag, catalog, isResize) {
-        var 
-        theme,
-        newClass,
-        newStyle,
+    onDesign: function (config, designer, tag, catalog, isResize) { 
+        var
+        value,
+        multiline,
         htmlObject,
-        t,
-        dblClickEvt;
-
-
-        theme           = tag.config.attributes[10].options;
-        newClass        = '';
-        newStyle        = '';
-        t               = 0;
-        dblClickEvt     = function(){};
-        htmlObject      = $('#' + tag.getId());
-        for(t in theme) {
-            $('#' + tag.getAttribute('id').getValue()).removeClass(theme[t]);
+        htmlElement;
+        
+        htmlObject  = tag.getHtmlObject();
+        htmlElement = htmlObject[0];
+        multiline   = tag.getAttribute('data-multiline').getValue(),
+		placeHolder = tag.getAttribute('placeholder').getValue(),
+        value       = tag.getAttribute('value').getValue();
+        
+        /*
+         * Change tag type into textarea if multiline
+         */
+        if (tag._config.changeType && htmlElement.tagName == "INPUT" && multiline == 'true') {
+            tag._config.changeType(tag, 'textarea');
+        }
+        
+        /*
+         * Change tag type into input if not multiline
+         */
+        if(tag._config.changeType && htmlElement.tagName == "TEXTAREA" && multiline == 'false') {
+            tag._config.changeType(tag, 'input');
         }
 
-        // Setting the theme
-        if (tag.getTheme()) {
-            htmlObject.addClass(tag.getTheme().replace(',', ' '));
-        } else if (tag.tmpTheme) {
-            htmlObject.removeClass(tag.tmpTheme);
+        /*
+         * Add default value
+         */
+        if (value) {
+            htmlObject.val(value);
+        } else if (tag.getSource()) {
+            htmlObject.val('[' + tag.getSource() + ']');
+        } else {
+            htmlObject.val('');
         }
 
-        // Dblclick event
-        htmlObject.bind('dblclick', {}, dblClickEvt = function (e) {
+		htmlObject.attr('placeholder', placeHolder);
+    },
+    
+    onCreate : function (tag, param) {
+        var 
+        htmlObject;
+        
+        htmlObject = tag.getHtmlObject();
+
+        /*
+         * Dblclick event
+         */
+        htmlObject.bind('dblclick', {tag : tag}, function (e) {
             var
-            htmlObject,
-            source;
+            tag,
+            source,
+            htmlObject;
             
+            tag         = e.data.tag;
             htmlObject  = $(this);
             source      =  tag.getSource();
             
@@ -247,15 +301,22 @@ WAF.addWidget({
             }
             
             htmlObject.css('cursor', 'text');
-            // Force focus on widget
+            
+            /*
+             * Force focus on widget
+             */
             tag.setFocus(true);
 
-            // Lock d&d
+            /*
+             * Lock d&d
+             */
             tag.lock();
 
             htmlObject.css('cursor ', 'text');
 
-            // Disable the events key
+            /*
+             * Disable the events key
+             */
             Designer.ui.core.disableKeyEvent();
 
             Designer.api.setListenerMode(false);
@@ -265,17 +326,22 @@ WAF.addWidget({
             htmlObject.focus();
             htmlObject.select();
 
-            // Force focus on widget on click
+            /*
+             * Force focus on widget on click
+             */
+            htmlObject.unbind('click');
             htmlObject.bind('click', {}, function(e){
                 tag.setFocus(true)
-            })
+            });
 
+            htmlObject.unbind('keydown');
             htmlObject.bind('keydown', function (e) {
                 if (e.keyCode === 13 && (!e.shiftKey || tag.getAttribute('data-multiline').getValue() === 'false')) {
                     $(this).blur();
                 }
             });
 
+            htmlObject.unbind('blur');
             htmlObject.bind('blur', {}, function(e){
                 var
                 htmlObject;
@@ -298,57 +364,73 @@ WAF.addWidget({
                 tag.resize.unlock(true);
 
 
-                // unlock d&d
+                /*
+                 * Unlock d&d
+                 */
                 tag.unlock();
 
                 htmlObject.css('cursor ', 'move');
             });
 
         });
-
-        var changeTagType = function(type) {
-            var
-            tagId,
-            htmlObject,
-            tmpHtmlObject,
-            value,
-            source;
-            
-            tagId       = tag.getId();
-            htmlObject  = $('#' + tagId);
-            value       = tag.getAttribute('value').getValue();
-            source      =  tag.getSource();
-            
-            tmpHtmlObject = $('<' + type + '/>').attr('id', 'tmp-' + tagId);
-            tmpHtmlObject.appendTo('#' + tag.overlay.id + ' .bd');
-            newClass = htmlObject.attr('class');
-            newStyle = htmlObject.attr('style');
-            
-            tmpHtmlObject.addClass(newClass);
-            tmpHtmlObject.attr('style', newStyle);
-            
-            if (!value && source) {
-                value = '[' + source + ']';
-            }
-            
-            htmlObject.remove();
-            if (type === 'textarea') {
-                tmpHtmlObject.html(value);
-            } else {
-                tmpHtmlObject.val(value);
-                document.getElementById('tmp-' + tagId).setAttribute('type', 'text')
-            }
-            tmpHtmlObject.attr('id', tagId);
-
-            tmpHtmlObject.bind('dblclick', {}, dblClickEvt);
-            
-
-        }
-        if (tag.getAttribute('data-multiline').getValue() === 'false') {
+    },
+    
+    /**
+     * Change the widget tag type
+     * @method changeType
+     * @param {object} tag
+     * @param {string} type
+     */
+    changeType : function (tag, type){
+        var
+        i,
+        tagId,
+        value,
+        event,
+        events,
+        source,
+        newStyle,
+        newClass,
+        htmlObject,
+        tmpHtmlObject;
         
-            changeTagType('input');
-        } else if (tag.getAttribute('data-multiline').getValue() !== 'false'){
-            changeTagType('textarea');
+        tagId           = tag.getId();
+        htmlObject      = $('#' + tagId);
+        value           = tag.getAttribute('value').getValue();
+        source          = tag.getSource();
+        newClass        = htmlObject.attr('class');
+        newStyle        = htmlObject.attr('style');
+        events          = htmlObject.data('events');
+
+        tmpHtmlObject   = $('<' + type + '/>').attr('id', 'tmp-' + tagId);
+        tmpHtmlObject.appendTo('#' + tag.overlay.id + ' .bd');
+
+        tmpHtmlObject.addClass(newClass);
+        tmpHtmlObject.attr('style', newStyle);
+
+        if (!value && source) {
+            value = '[' + source + ']';
+        }
+
+        htmlObject.remove();
+        
+        if (type === 'textarea') {
+            tmpHtmlObject.html(value);
+        } else {
+            tmpHtmlObject.val(value);
+            
+            document.getElementById('tmp-' + tagId).setAttribute('type', 'text')
+        }
+        
+        tmpHtmlObject.prop('id', tagId);
+        
+        /*
+         * Reapply events
+         */
+        for (i in events) {
+            event = events[i][0];
+            
+            tmpHtmlObject.bind(event.type, event.data, event.handler);
         }
     }
 });

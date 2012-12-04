@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
@@ -44,6 +40,7 @@ WAF.Widget.provide(
      * @default TODO: set to the name to this class (ex: WAF.widget.DataGrid)
      **/
     function WAFWidget(config, data, shared) {
+
         var
         widget,
         htmlObject,
@@ -61,11 +58,14 @@ WAF.Widget.provide(
         tagHeight,
         splitterCss,
         parent,
-        dragMethod;
+        dragMethod,
+        scrollable;
         
         widget          = this;
         htmlObject      = $(this.containerNode);
         
+        (config["data-scrollable"] == "true") ? scrollable = true : scrollable = false;
+
         splitted        = htmlObject.children('.waf-split-container');
         splittedLength  = splitted.length;
         splitterConfig  = {};
@@ -73,9 +73,14 @@ WAF.Widget.provide(
         tagWidth        = this.containerNode.offsetWidth;
         tagHeight       = this.containerNode.offsetHeight;        
         parent          = htmlObject.parent();
-        
+
         htmlObject.children('.waf-splitter').remove();
-                 
+
+        //add scroll for mobile
+        if (WAF.PLATFORM.modulesString == "mobile" && scrollable && splittedLength === 0) {
+            new iScroll(config.id);  
+        }
+
         /*
          * Check if the container get splitted containers
          */
@@ -125,8 +130,8 @@ WAF.Widget.provide(
                                 container.css('height', ((tagHeight - ui.position.top) - (splitterHeight/2)) + 'px');
                             }   
 
-                            if ($$(container.attr('id'))) {
-                                $$(container.attr('id'))._resizeSplitters();
+                            if ($$(container.prop('id'))) {
+                                $$(container.prop('id'))._resizeSplitters();
                             }
                         });
                         }
@@ -177,8 +182,8 @@ WAF.Widget.provide(
                                 container.css('width', ((tagWidth - ui.position.left) - (splitterWidth/2)) + 'px');
                             }   
 
-                            if ($$(container.attr('id'))) {
-                                $$(container.attr('id'))._resizeSplitters();
+                            if ($$(container.prop('id'))) {
+                                $$(container.prop('id'))._resizeSplitters();
                             }
                         });
                         }
@@ -194,13 +199,13 @@ WAF.Widget.provide(
                 'left'          : splitterLeft + 'px',
                 'top'           : splitterTop + 'px',
                 'cursor'        : splitType == 'horizontally' ? 'row-resize' : 'col-resize',
-                'z-index'       : 9999999
+                'z-index'       : 8888888
             });
             
             splitter    = $('<div>');
 
             splitter
-                .attr('id', 'waf-splitter-' + htmlObject.attr('id'))
+                .prop('id', 'waf-splitter-' + htmlObject.prop('id'))
                 .addClass('waf-splitter')
                 .css(splitterCss)
                 .draggable(splitterConfig)
@@ -220,15 +225,17 @@ WAF.Widget.provide(
                 splitter.css('visibility', 'hidden');
             }
             
-            this._initTmpPosition = this._tmpPosition;
+            this._initTmpPosition = this._tmpPosition;            
             
+            splitted        = widget.$domNode.children('.waf-split-container');
+            splittedLength  = splitted.length;
             /*
              * Case of loaded from a component into GUI
              */
-            if (this.$domNode.parents('#cms-body')) {
+            if (this.$domNode.parents('#cms-body').length > 0) {
                 var checkResize = this._checkResize();
                 
-                if (checkResize) {
+                if (checkResize && this._callResizeEvents) {
                     this._callResizeEvents('on');
                     $(window).resize(function(){
                         if (checkResize.x || checkResize.y) {
@@ -237,12 +244,12 @@ WAF.Widget.provide(
                     });
                 }
             }
-            
         }   
     },{      
         ready : function(){
             var
             that,
+            orient,
             splitted,
             splittedLength;
             
@@ -251,7 +258,7 @@ WAF.Widget.provide(
             splittedLength  = splitted.length;
             if (splittedLength > 0) { 
                 $.each(splitted, function(){
-                    that._splitted.push($$($(this).attr('id')));
+                    that._splitted.push($$($(this).prop('id')));
                 });                
             
                 /*
@@ -261,27 +268,81 @@ WAF.Widget.provide(
                 
                 if (this._button) {
                     this._button.hide();            
-
-                    this._button.$domNode.bind('click', {that : this}, function(e){
-                        var
-                        thatHtml,
-                        floatContainer;
-
-                        thatHtml        = $(this);
-                        floatContainer  = e.data.that._splitted[0];
-
-                        floatContainer.toggle();
-
-                        floatContainer.$domNode
-                            .css({
-                                left    : thatHtml.offset().left + 'px',
-                                top     : thatHtml.offset().top + thatHtml.height() + 15 + 'px'
-                            })
-                            .addClass('waf-container-split-mobile');
-                    });
+                    
+                    if (WAF.PLATFORM.isTouch) {                            
+                        this._button.$domNode.bind('touchstart', {that : this}, function(e){
+                            e.data.that._displayFloatContainer();
+                        });
+                        
+                    } else {
+                    
+                        this._button.$domNode.bind('click', {that : this}, function(e){
+                            e.data.that._displayFloatContainer();
+                        });
+                    }
                 }
+                    
             }
+            
+            if (this._button) {
+                this._splitter.hide();
+            }            
+            
+            orient = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";  
 
+            if (this._button) {
+                /*
+                 * Default display
+                 */
+                if (orient == 'profile') {
+                    this.mobileSplitView(true);
+                } else {
+                    this.mobileSplitView(false);
+                }
+                
+                /*
+                 * Orientation change + touchstart events for mobile device
+                 */
+                if( WAF.PLATFORM.isTouch ) {
+                    
+                    $("body").bind('touchstart', {that : this}, function(e){ 
+
+                        var parentContainerID = $(e.target).closest(".waf-split-container")[0].id,
+                            loatContainer,
+                            orient  = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";
+
+                        if (parentContainerID && e.target.id != e.data.that._button.id && e.target.offsetParent.id != e.data.that._button.id && parentContainerID != that._splitted[0].id && orient == 'profile') {
+
+                            floatContainer  = e.data.that._splitted[0];
+
+                            if (floatContainer.$domNode[0].style.visibility === "visible") {
+                                floatContainer.toggle('visibility');
+                            }
+
+                        }
+
+                    });
+                    
+                    $(window).bind('orientationchange', {widget: that}, function (e) {
+                        var 
+                        orient,
+                        widget;
+                        
+                        widget  = e.data.widget;
+                        orient  = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";  
+
+                        if (orient == 'profile') {
+                            widget.mobileSplitView(true);
+                        } else {
+                            widget.mobileSplitView(false);
+                        }
+                        
+                        if (widget._callResizeEvents) {        
+                            widget._callResizeEvents('on');
+                        }
+                    })
+                } 
+            } 
         },
         
         _button : null,
@@ -303,7 +364,9 @@ WAF.Widget.provide(
                 this._resizeSplitters('on');
             } else {
                 $.each(this.getChildren(), function() {
-                    this._callResizeEvents('on');
+                    if (this._callResizeEvents) {
+                        this._callResizeEvents('on');
+                    }
                 });
             }
         },  
@@ -368,7 +431,7 @@ WAF.Widget.provide(
             }
             
             return result;
-        },
+        },        
         
         /*
          * Resize method called on stop resize
@@ -379,7 +442,9 @@ WAF.Widget.provide(
                 this._resizeSplitters('stop');
             } else {
                 $.each(this.getChildren(), function() {
-                    this._callResizeEvents('stop');
+                    if (this._callResizeEvents) {
+                        this._callResizeEvents('stop');
+                    }
                 });
             }
         },    
@@ -393,7 +458,9 @@ WAF.Widget.provide(
                 this._resizeSplitters('start');
             } else {
                 $.each(this.getChildren(), function() {
-                    this._callResizeEvents('start');
+                    if (this._callResizeEvents) {
+                        this._callResizeEvents('start');
+                    }
                 });
             }
         },       
@@ -430,7 +497,7 @@ WAF.Widget.provide(
          * @method setSplitPosition
          * @param {number} value position to define
          */
-        setSplitPosition   : function container_set_split_size(value, force) {
+        setSplitPosition   : function container_set_split_size(value, force) { 
             var
             widget,
             htmlObject,
@@ -478,7 +545,7 @@ WAF.Widget.provide(
                             container.css('height', ((tagSize - value) - calcul) + 'px');
                         }   
 
-                        $$(container.attr('id'))._resizeSplitters();
+                        $$(container.prop('id'))._resizeSplitters();
                     });
                     break;
                     
@@ -512,7 +579,7 @@ WAF.Widget.provide(
                             container.css('width', ((tagSize - value) - calcul) + 'px');
                         }   
 
-                        $$(container.attr('id'))._resizeSplitters();
+                        $$(container.prop('id'))._resizeSplitters();
                     });
                     break;
             }
@@ -582,7 +649,7 @@ WAF.Widget.provide(
             
             that        = $(this.containerNode);
             container   = this;
-            children    = that.children();
+            children    = that.children(':not(.waf-split-container-float)');
             
             type        = type || 'on';
             
@@ -612,7 +679,7 @@ WAF.Widget.provide(
                 checkResize;
                 
                 child       = $(this);
-                childWidget = $$(child.attr('id'));
+                childWidget = $$(child.prop('id'));
                 containerX  = parseInt(child.css('left'));
                 containerY  = parseInt(child.css('top'));
                 
@@ -661,13 +728,16 @@ WAF.Widget.provide(
             });  
             
             
-            if( WAF.PLATFORM.isTouch ) { 
-                orient = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";
+            if (this._button) {                
+                if( !WAF.PLATFORM.isTouch ) {       
+                    var orient;
+                    orient = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";  
 
-                if (orient == 'profile') {
-                    this.mobileSplitView(true);
-                } else {
-                    this.mobileSplitView(false);
+                    if (orient == 'profile') {
+                        container.mobileSplitView(true);
+                    } else {
+                        container.mobileSplitView(false);
+                    }
                 }
             }
         },
@@ -685,13 +755,13 @@ WAF.Widget.provide(
             
             htmlObject = $('#' + this.id);
             
-            if (htmlObject.attr('data-dsPos')) {
-                dsPos = htmlObject.attr('id') + '-' + htmlObject.attr('data-dsPos');
+            if (htmlObject.data('dsPos')) {
+                dsPos = htmlObject.prop('id') + '-' + htmlObject.data('dsPos');
             } else {
                 dsParent = htmlObject.parents('[data-dsPos]');
                 
                 if (dsParent.length > 0) {
-                    dsPos = htmlObject.attr('id') + '-' + dsParent.attr('data-dsPos');
+                    dsPos = htmlObject.prop('id') + '-' + dsParent.data('dsPos');
                 }
             }
             
@@ -703,6 +773,45 @@ WAF.Widget.provide(
                 WAF._tmpSplitPosition[this.id] = position;
             } 
         },
+
+        _displayFloatContainer : function() {
+            var
+            top,
+            left,
+            buttonHtml,
+            thatOffset,
+            containerHtml,
+            floatContainer;
+
+            buttonHtml      = this._button.$domNode;
+            floatContainer  = this._splitted[0];
+            containerHtml   = floatContainer.$domNode;
+            buttonOffset    = buttonHtml.offset();
+            left            = buttonOffset.left;
+            top             = buttonOffset.top + buttonHtml.height() + 15;
+
+            floatContainer.toggle('visibility');
+
+            containerHtml
+                .addClass('waf-container-split-mobile');
+
+            if (buttonOffset.top < window.innerHeight/2) {
+                containerHtml
+                    .css({
+                        left    : left + 'px',
+                        top     : top + 'px',
+                        width   : this._initTmpPosition + 'px'
+                    })
+            } else {
+                containerHtml
+                    .css({
+                        left    : left + 'px',
+                        top     : '15px',
+                        bottom  : window.innerHeight - buttonOffset.top + 10 + 'px',
+                        width   : this._initTmpPosition + 'px'
+                    })
+            }
+        },
         
         /**
          * Display the splitter has a mobile splitview
@@ -713,7 +822,8 @@ WAF.Widget.provide(
             var
             that,
             splitted,
-            firstSplitted;
+            firstSplitted,
+            firstSplitWidth;
             
             if (mobile == this._display || !this._splitter) {
                 return false;
@@ -723,22 +833,27 @@ WAF.Widget.provide(
             this._display   = mobile;   
             firstSplitted   = this._splitted[0];
             
-            
             if (mobile) {
-                splitted        = firstSplitted.$domNode;
+                
+                splitted = firstSplitted.$domNode;
+                
                 /*
                  * Collapse splitted
                  */
                 this.setSplitPosition(0, true);
-
+                console.log()
                 splitted
                     .css({
                         'width'     : this._initTmpPosition + 'px',
+                        'position'  : 'fixed',
+                        //'height'    : splitted.height() + 'px',
                         'z-index'   : 10
                     })
-                    .appendTo('body');
-
-                firstSplitted.hide();                    
+                    .addClass('waf-split-container-float')
+                    //.appendTo('body');
+                
+                firstSplitted.hide('visibility');
+                
 
                 this._splitted[1].$domNode.css({
                     'left'      : '0px',
@@ -749,9 +864,11 @@ WAF.Widget.provide(
                 /*
                  * Hide splitter
                  */
-                this._splitter.hide();                    
+                this._splitter.css('visibility', 'hidden');
 
-                this._button.show();                    
+                this._button.show();       
+                
+                this._splitted[1]._callResizeEvents('on');
             } else {
                 firstSplitted.show();
 
@@ -759,17 +876,26 @@ WAF.Widget.provide(
                     .css({
                         'left'      : 0,
                         'top'       : 0,
-                        'z-index'   : 9
+                        'z-index'   : 9,
+                        'position'  : 'absolute',
+                        'height'    : this.getHeight()
                     })
-                    .appendTo(that.$domNode)
+                    .removeClass('waf-split-container-float')
+                    //.appendTo(that.$domNode)
                     .removeClass('waf-container-split-mobile');
 
                 this._button.hide();
-
+                
+                firstSplitWidth = firstSplitted.$domNode.width();
+                
                 this._splitted[1].$domNode.css({
                     'left'      : firstSplitted.$domNode.width() + 'px',
-                    'z-index'   : 10
+                    'z-index'   : 10,
+                    'width'     : window.innerWidth - firstSplitWidth
                 });
+                
+                firstSplitted._callResizeEvents('on');
+                this._splitted[1]._callResizeEvents('on');
             }
         }
     }

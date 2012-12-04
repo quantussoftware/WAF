@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.tags.descriptor.menuItem = {}
     
@@ -25,60 +21,67 @@ WAF.tags.descriptor.menuItem = {}
  * @class MenuItem
  * @params {Object} config parameters
  */
-WAF.tags.descriptor.MenuItem = function(config) {
-    config              = config            || {};
+WAF.tags.descriptor.MenuItem = function(config) {  //console.log(config, "rr")
+    config                  = config            || {};
     
-    config.text         = config.text       || null;
-    config.icon         = config.icon       || null;
-    config.margin       = config.margin     || 10;
-    config.tag          = config.tag        || null;
-    config.iconPos      = config.iconPos    || 'top';
-    config.padding      = config.padding    || 0;
+    config.text             = config.text           || null;
+    config.icon             = config.icon           || null;
+    config.margin           = config.margin         || 10;
+    config.tag              = config.tag            || null;
+    config.iconPos          = config.iconPos        || 'top';
+    config.padding          = config.padding        || 0;
+    config.parentPadding    = config.parentPadding  || 0;
     
     this._text          = config.text;
     this._icon          = config.icon;
     this._iconPosition  = config.iconPos;
     this._padding       = config.padding;
     this._parent        = config.parent;
+    this._width         = config.width;
+    this._height        = config.height;
     this._tag           = config.tag;
-    
+    this._parentPadding = config.parentPadding;
     this._value         = '';    
     this._name          = null;
 };
-
 
 /**
  * 
  */
 WAF.tags.descriptor.MenuItem.prototype.init = function ( init ) {
     var 
+    index,
     menuItemLi,
     parentHTML,
     tagDefinition,
     menuItem,
     borderLeft,
-    borderTop;
+    borderTop,
+    paddingTop;
     
     menuItemLi      = $('<li>');
     parentHTML      = $('#' + this._parent.getId());
     tagDefinition   = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('menuItem'));
     
+    parentHTML.append(menuItemLi);   
+
     if (this._tag) {
         menuItem    = this._tag;
     } else {
         menuItem    = new Designer.tag.Tag(tagDefinition);
         borderLeft  = parseInt(this._parent.getComputedStyle('border-width')) * 2;
         borderTop   = borderLeft;  
+        paddingTop  = parseInt(this._parentPadding) * 2;
         // create the tag
         menuItem.create({
-            parent : this._parent
+            parent      : this._parent,
+            width       : this._width,
+            silentMode  : true
         });
-        
-        menuItem.setCss('text-align', 'center');
-        
+
         switch(this._parent.getAttribute('data-display').getValue() ) {
             case 'horizontal' :       
-                menuItem.setHeight(this._parent.getHeight() - borderTop, false)
+                menuItem.setHeight(this._parent.getHeight() - borderTop - paddingTop, false)
                 break;
                 
             case 'vertical' :       
@@ -89,18 +92,23 @@ WAF.tags.descriptor.MenuItem.prototype.init = function ( init ) {
         menuItem.save(false, false, false);           
     }
 
-    menuItem.setParent(this._parent);    
+    //menuItem.setParent(this._parent);    
     
     // Disable d&d
     menuItem.ddElt.lock();
 
     menuItemLi.append($('#' + menuItem.getOverlayId()));
-    
-    parentHTML.append(menuItemLi);   
 
     menuItem._menuItem = this;    
 
-    this.setDescriptor(menuItem);    
+    this.setDescriptor(menuItem); 
+    
+    menuItem._menuIndex = this._menuIndex = parseInt(this._parent.getMenuItems().count());
+    
+    if (this._parent.getParent().getType() == 'tabView' && this._text == 'auto') {
+        this._text = '[Tab ' + (menuItem._menuIndex  + 1) + ']';
+    }
+    
     
     this.refreshContaint(init);
     
@@ -153,7 +161,6 @@ WAF.tags.descriptor.MenuItem.prototype.update = function (tag) {
     this._id    = tag.getId();
     this._name  = tag.getId();
     this._tag   = tag;
-    console.log(this)
 }
 
 /**
@@ -234,7 +241,7 @@ WAF.tags.descriptor.MenuItem.prototype.getName = function () {
  * @method refreshContaint
  * @param {Boolean} indicate if the widget has just been init
  */
-WAF.tags.descriptor.MenuItem.prototype.refreshContaint = function ( init ) {
+WAF.tags.descriptor.MenuItem.prototype.refreshContaint = function ( init ) { 
     var 
     aText,
     tag,
@@ -310,49 +317,52 @@ WAF.tags.descriptor.MenuItem.prototype.refreshContaint = function ( init ) {
     pWidth  = paragraphe.width() + (this._padding * 2);    
     
     // Check paragraphe height & width to resize menu item then menu bar
-    switch(tagParent.getAttribute('data-display').getValue() ) {
-        case 'horizontal' :       
-            if (tagHeight < pHeight && !init) {
-                tagParent.setHeight(pHeight, true); // true to refresh widget      
-                pHeight -= borderTop;
-                pHeight -= (this._padding * 2);
-            } else {
-                pHeight = tagHeight - (this._padding * 2);
-            }
-
-            // Check paragraphe width to resize menu item then menu bar
-            if (tagWidth < pWidth && !init) {
-                tagWidth = pWidth;
-                tag.setWidth(tagWidth);
-                tagParent.onDesign(true);  
-                pWidth -= borderLeft;
-                pWidth -= (this._padding * 2);
-            } else {
-                pWidth = tagWidth - (this._padding * 2);
-            }               
-            break;
-            
-        default :            
-            if (tagWidth < pWidth && !init) {
-                tagParent.setWidth(pWidth, true); // true to refresh widget      
-                pWidth -= borderLeft - (this._padding * 2);
-            } else {
-                pWidth = tagWidth - (this._padding * 2);
-            } 
-
-            // Check paragraphe width to resize menu item then menu bar
-            if (tagHeight < pHeight && !init) {
-                tagHeight = pHeight;
-                tag.setHeight(tagHeight);
-                tagParent.onDesign(true);    
-                pHeight -= borderTop; 
-                pHeight -= (this._padding * 2); 
-            } else {
-                pHeight = tagHeight - (this._padding * 2);
-            }            
-            break;
-    }
     
+    if (tagParent && tagParent.getAttribute('data-display')) {
+        switch(tagParent.getAttribute('data-display').getValue() ) {
+            case 'horizontal' :       
+                if (tagHeight < pHeight && !init) {
+                    tagParent.setHeight(pHeight, true); // true to refresh widget      
+                    pHeight -= borderTop;
+                    pHeight -= (this._padding * 2);
+                } else {
+                    pHeight = tagHeight - (this._padding * 2);
+                }
+
+                // Check paragraphe width to resize menu item then menu bar
+                if (tagWidth < pWidth && !init) {
+                    tagWidth = pWidth;
+                    tag.setWidth(tagWidth);
+                    tagParent.onDesign(true);  
+                    pWidth -= borderLeft;
+                    pWidth -= (this._padding * 2);
+                } else {
+                    pWidth = tagWidth - (this._padding * 2);
+                }               
+                break;
+
+            default :            
+                if (tagWidth < pWidth && !init) {
+                    tagParent.setWidth(pWidth, true); // true to refresh widget      
+                    pWidth -= borderLeft - (this._padding * 2);
+                } else {
+                    pWidth = tagWidth - (this._padding * 2);
+                } 
+
+                // Check paragraphe width to resize menu item then menu bar
+                if (tagHeight < pHeight && !init) {
+                    tagHeight = pHeight;
+                    tag.setHeight(tagHeight);
+                    tagParent.onDesign(true);    
+                    pHeight -= borderTop; 
+                    pHeight -= (this._padding * 2); 
+                } else {
+                    pHeight = tagHeight - (this._padding * 2);
+                }            
+                break;
+        }
+    }
+
     htmlObject.children('.' + Designer.constants.menuItem.spanTextClass).css('height', pHeight + 'px');
     htmlObject.children('.' + Designer.constants.menuItem.spanTextClass).css('width', pWidth + 'px');
 }
@@ -362,23 +372,24 @@ WAF.tags.descriptor.MenuItem.prototype.refreshContaint = function ( init ) {
  * @namespace WAF.tags.descriptor.MenuItem
  * @method redraw
  */
-WAF.tags.descriptor.MenuItem.prototype.redraw = function (size, position) {
+WAF.tags.descriptor.MenuItem.prototype.redraw = function (size, position) { 
     var 
-        tag,
-        parent,
-        borderLeft,
-        borderTop;
+    tag,
+    parent,
+    borderLeft,
+    borderTop;
     
     tag             = this._descriptor;
     parent          = this._parent;  
     borderLeft      = parseInt(parent.getComputedStyle('border-width'));
+    paddingLeft     = parseInt(parent.getComputedStyle('padding-left'));
     borderTop       = borderLeft;  
-            
+
     // Resize height
     if (parent.getAttribute('data-display').getValue() === 'horizontal') {
         tag.setHeight(parent.getHeight() - (borderTop*2), true);
     } else {
-        tag.setWidth(parent.getWidth() - (borderLeft*2), true);
+        tag.setWidth(parent.getWidth() - (borderLeft*2)  - (paddingLeft*2) , true);
     }
     
     if (tag._menuBar) {   
@@ -390,7 +401,7 @@ WAF.tags.descriptor.MenuItem.prototype.redraw = function (size, position) {
             if (size) {
                 tag._menuBar.setWidth(tag.getWidth());
             }
-        } else {
+        } else { 
             if (position) {
                 tag._menuBar.setXY(tag.getWidth() + borderLeft, 0, true);
             }
@@ -460,7 +471,6 @@ WAF.tags.descriptor.MenuItem.prototype.remove = function () {
             break;
         }
     }       
-    
 }
     
 

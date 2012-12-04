@@ -1,23 +1,18 @@
 /*
- * Copyright (c) 4D, 2011
- *
- * This file is part of Wakanda Application Framework (WAF).
- * Wakanda is an open source platform for building business web applications
- * with nothing but JavaScript.
- *
- * Wakanda Application Framework is free software. You can redistribute it and/or
- * modify since you respect the terms of the GNU General Public License Version 3,
- * as published by the Free Software Foundation.
- *
- * Wakanda is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * Licenses for more details.
- *
- * You should have received a copy of the GNU General Public License version 3
- * along with Wakanda. If not see : http://www.gnu.org/licenses/
+ * This file is part of Wakanda software, licensed by 4D under
+ *  (i) the GNU General Public License version 3 (GNU GPL v3), or
+ *  (ii) the Affero General Public License version 3 (AGPL v3) or
+ *  (iii) a commercial license.
+ * This file remains the exclusive property of 4D and/or its licensors
+ * and is protected by national and international legislations.
+ * In any event, Licensee's compliance with the terms and conditions
+ * of the applicable license constitutes a prerequisite to any use of this file.
+ * Except as otherwise expressly stated in the applicable license,
+ * such license does not include any other license or rights on this file,
+ * 4D's and/or its licensors' trademarks and/or other proprietary rights.
+ * Consequently, no title, copyright or other proprietary rights
+ * other than those specified in the applicable license is granted.
  */
-
 /**
  * WAF Component
  *
@@ -51,14 +46,17 @@ WAF.loadComponent = function (param) {
     domObj = null,
     sourceName = '',
     wigdetName = '',
+    tempId = '',
     styleUpdate = '',
     compManager = WAF.loader.componentsManager,
+    rpcFileManager = WAF.loader.rpcFileManager,
     tabName = [];        
     
     param = param || {} ;
     
-    param.id   = param.id   || '';
-    param.path = param.path || '';
+    param.id        = param.id   || '';
+    param.path      = param.path || '';
+    param.onSuccess = param.onSuccess || function () {};
 
     if (typeof param.data === 'undefined') {
         param.data = {};
@@ -103,20 +101,30 @@ WAF.loadComponent = function (param) {
     
     param.name = name;
     
+    // add userData if any
+    if (typeof param.userData !== 'undefined') {
+        param.data.userData = param.userData;    
+    }
+     
     // check if component ressources already loaded
     // read the ressources from the client cache
-    if (WAF.components[param.path]) {
-        icomponent = WAF.components[param.path];
-        
-        // add the component to the list of the widgets
-        WAF.widgets[param.id] = {};
-        WAF.widgets[param.id].data = param.data;
-        
+    icomponent = WAF.components[param.path];
+    if (icomponent && icomponent.cache && icomponent.cache.html && icomponent.cache.style && icomponent.cache.script) {                                       
         // clean the component placeholder
+        if ($$(param.id) && $$(param.id).widgets) {
+            for (wigdetName in $$(param.id).widgets) {                
+                $('#' + param.id + '_' + wigdetName).remove();
+            } 
+        }
         $('#' + param.id).empty();        
         if (document.getElementById('waf-component-' + param.id)) {
             $('#' + 'waf-component-' + param.id).remove();
         }
+        
+        // add the component to the list of the widgets
+        
+        WAF.widgets[param.id] = {};
+        WAF.widgets[param.id].data = param.data;
         
         // hide component
         $('#' + param.id).css('visibility', 'hidden');
@@ -151,40 +159,81 @@ WAF.loadComponent = function (param) {
         
         // create the instance of the component                                          
         myComp = new WAF.widget[param.name](param.data);
+        WAF.widgets[param.id] = myComp; 
         
-        // add existing source in source property
-        myComp.sources = {};
-                                    
-        if (sources) {
-            for (sourceName in sources) {
-                if (sourceName.indexOf(param.id + '_') == 0) {
-                    myComp.sources[sourceName.replace(param.id + '_', '')] = sources[sourceName];
-                }
-            }
-        }
-        
-        // add existing widget in widgets property
-        myComp.widgets = {};
-                                                    
         for (wigdetName in WAF.widgets) {
             if (wigdetName.indexOf(param.id + '_') == 0) {
-                myComp.widgets[wigdetName.replace(param.id + '_', '')] = WAF.widgets[wigdetName];
+                
+                /*
+                 * Execute widget component load custom event
+                 */
+                if (WAF.widgets[wigdetName].onComponentLoad) {
+                    WAF.widgets[wigdetName].onComponentLoad();
+                }
             }
         } 
          
         if (myComp.load) {
             myComp.load(param.data);  
+                                                  
+            /**
+             * On resize function on widget. Call children widgets resize functions
+             * @method onResize
+             */            
+            myComp.onResize = function (){
+                var
+                i,
+                child,
+                children,
+                childrenLength;
+
+                children = this.getChildren();
+                childrenLength  = children.length;
+
+                for (i = 0; i < childrenLength; i += 1) {
+                    child = children[i];
+                    if (child.onResize) {
+                        child.onResize();
+                    }
+                }
+            }                                        
+                                        
+            /*
+             * Call onResize function
+             */
+            myComp.onResize();
+                                        
+                                        
+            /*
+             * Call onReady function
+             */
+            for (i in myComp.widgets) {
+                if (myComp.widgets[i].ready) {
+                    myComp.widgets[i].ready();                                                
+                }
+            }                                                                                    
+                                        
+        }  
+               
+        param.onSuccess();
+    } else {    
+        
+        icomponent = {};
+        
+        if ($$(param.id) && $$(param.id).widgets) {
+            for (wigdetName in $$(param.id).widgets) {                
+                $('#' + param.id + '_' + wigdetName).remove();
+            } 
         }
         
-        WAF.widgets[param.id] = myComp;  
-    } else {       
+        tempId = Math.floor((Math.random()*10000000));  
         
         // get the manifest
         $.ajax({
-            url     : param.path + '/manifest.json',
+            url     : param.path + '/manifest.json' + '?tmp=' + tempId,
             dataType: 'json',
-            success : function (data) {
-                icomponent = data;
+            success : function (params) {
+                icomponent = params;
             
                 // create the cache
                 icomponent.cache = {};
@@ -195,12 +244,15 @@ WAF.loadComponent = function (param) {
                 // add the component to the list of the widgets
                 WAF.widgets[param.id] = {};
                 WAF.widgets[param.id].data = param.data;
+                
+                tempId = Math.floor((Math.random()*10000000));                
             
                 // get the html            
-                $.get(param.path + '/' + data.html, function (html) {
+                $.get(param.path + '/' + params.html + '?tmp=' + tempId, function (html) {
                 
                     var tabRequire = [],
                     scripts = [],
+                    script = '',
                     styles = [],
                     listScripts = '',
                     listStyles = '',
@@ -210,6 +262,7 @@ WAF.loadComponent = function (param) {
                     path = '',
                     reqCss = null,
                     reqScript = null,
+                    tempId = 0,
                     htmlUpdate = '';
                 
                     // add html
@@ -239,7 +292,10 @@ WAF.loadComponent = function (param) {
                     }                 
                     listStyles = tabRequire.join(',');
                     xhref = window.location.href.split('/').join('\\');
-                    path = "/waf-optimize?referer='" + encodeURIComponent(xhref) + "'&files='" + listStyles + "'";
+                    
+                    tempId = Math.floor((Math.random()*10000000));
+                    
+                    path = "/waf-optimize?referer='" + encodeURIComponent(xhref) + "'&tmp=" + tempId + "&files='" + listStyles + "'";
                 
                     if (path[0] == '+') {
                         path = WAF.config.baseURL + path.slice(1);
@@ -273,13 +329,22 @@ WAF.loadComponent = function (param) {
 
                     // add JS                                                                                
                     scripts = icomponent.scripts;
+                    script = '';
                     length = scripts.length;
                     for (i = 0; i < length; i++) {
-                        tabRequire[i] = param.data['data-path'] + '/' + scripts[i];
+                        script = scripts[i];
+                        if (script.indexOf('/') == 0) {
+                            tabRequire[i] = script;
+                        } else {
+                            tabRequire[i] = param.data['data-path'] + '/' + script;
+                        }
                     }                
                     listScripts = tabRequire.join(',');
                     xhref = window.location.href.split('/').join('\\');
-                    path = "/waf-optimize?referer='" + encodeURIComponent(xhref) + "'&files='" + listScripts + "'";
+                    
+                    tempId = Math.floor((Math.random()*10000000));                   
+                    
+                    path = "/waf-optimize?referer='" + encodeURIComponent(xhref) + "'&tmp=" + tempId + "&files='" + listScripts + "'";
                 
                     if (path[0] == '+') {
                         path = WAF.config.baseURL + path.slice(1);
@@ -297,7 +362,10 @@ WAF.loadComponent = function (param) {
                                 Component = null,
                                 myComp = null,
                                 codeProvide = '',
-                                sourceName = '';
+                                sourceName = '',
+                                sourcesVarName = '',
+                                extObject = '', 
+                                varName = '';
                                 
                                 // generate the widgets of the componeny just before the load of the component
                                 // needed for some jQuery widgets
@@ -325,15 +393,61 @@ WAF.loadComponent = function (param) {
                                         document.getElementsByTagName('head')[0].appendChild(tagScript);
                                     
                                         icomponent.cache.script = includeJavascript;  
-                                                                                                                                                                                                     
+                                        
+                                        // add properties                                        
+                                        extObject += "this.sources    = {};\r\n\t";
+                                        extObject += "this.sourcesVar = {};\r\n\t";
+                                        extObject += "this.widgets    = {};\r\n\t";
+
+                                        for (wigdetName in WAF.widgets) {
+                                            if (wigdetName.indexOf(param.id + '_') == 0) {                                                                                         
+                                                extObject += "this.widgets['" + wigdetName.replace(param.id + '_', '') + "'] = WAF.widgets['" + wigdetName + "'];\r\n\t";
+                                                
+                                            // alias
+                                            //extObject += "var " + wigdetName.replace(param.id + '_', '').replace('-', '') + " = WAF.widgets['" + wigdetName + "'];\r\n\t";
+                                            //codeComponent = codeComponent.replace("var " + wigdetName.replace(param.id + '_', '').replace('-', '') + " = {};", ""); 
+                                                
+                                            }
+                                        }
+                                        
+                                        if (sources) {
+                                            for (sourceName in sources) {
+                                                if (sourceName.indexOf(param.id + '_') == 0) {                           
+                                                    extObject += "this.sources['" + sourceName.replace(param.id + '_', '') + "'] = sources['" + sourceName + "'];\r\n\t";                                                
+                                                    
+                                                    if (typeof window[sourceName] !== 'undefined') {                                                    
+                                                        sourcesVarName = sourceName.replace(param.id + '_', '');                                                                                                            
+                                                        extObject += "(function (that, " + sourcesVarName + ", " + sourceName + ") {\r\n\t";                                                                                                                                                              
+                                                        extObject += "    Object.defineProperty(that.sourcesVar, '" + sourcesVarName + "', {\r\n\t";
+                                                        extObject += "        get: function() {\r\n\t";
+                                                        extObject += "            return window['" + sourceName + "'];\r\n\t";
+                                                        extObject += "        },\r\n\t";
+                                                        extObject += "        set: function(value) {\r\n\t";
+                                                        extObject += "             window['" + sourceName + "'] = value;\r\n\t";
+                                                        extObject += "        }\r\n\t";
+                                                        extObject += "    });\r\n\t";                                                                                                              
+                                                        extObject += "} )(this, '" + sourcesVarName +"', '" +sourceName + "');\r\n\t";                                                                                                                
+                                                        
+                                                    // alias
+                                                    //extObject += "var " + sourcesVarName + " = this.sourcesVar['" + sourcesVarName + "'];\r\n\t";                                                     
+                                                    }
+                                                }
+                                            }
+                                        }
+                                                                                                                                                                       
                                         // add internal methods dynamically                                        
                                         codeComponent = codeComponent.replace("constructor (id) {" ,
-                                            "constructor (id) { \r\n\r\n\tfunction getHtmlObj (componentId) { \r\n\t\treturn $('#' + id + '_' + componentId);\r\n\t};" +
-                                            "\r\n\r\n\tfunction getHtmlId (componentId) { \r\n\t\treturn id + '_' + componentId;\r\n\t};"                                    
+                                            "constructor (id) { " +
+                                            "\r\n\r\n\t// @region generated code" +
+                                            "\r\n\t" + extObject +
+                                            "\r\n\tfunction getHtmlObj (componentId) { \r\n\t\treturn $('#' + id + '_' + componentId);\r\n\t};" +                                            
+                                            "\r\n\r\n\tfunction getHtmlId (componentId) { \r\n\t\treturn id + '_' + componentId;\r\n\t};" +
+                                            "\r\n\t// @endregion generated code"
                                             );
-                                        
-                                        // replace comment
-                                        codeComponent = codeComponent.replace('var $comp = this;', 'var $comp = $$$(id);');
+                                                                                                                        
+                                        // replace comment                                        
+                                        codeComponent = codeComponent.replace('var $comp = this;', 'var $comp = $$$(id);\r\n\t');                                                                                
+                                                                                                                                                                                                    
                                         codeComponent = codeComponent.replace("// Add the code that needs to be shared between components here" , "");                                        
                                         
                                         // add core class in the list of component core class                                                                   
@@ -374,9 +488,10 @@ WAF.loadComponent = function (param) {
                                         codeProvide += "          }\r\n\t";      
                                         codeProvide += "          }\r\n\t";    
                                         codeProvide += "          WAF.loadComponent({\r\n\t";
-                                        codeProvide += "              id   : params.id || this.config.id,\r\n\t";
-                                        codeProvide += "              path : params.path || this.config['data-path'],\r\n\t";
-                                        codeProvide += "              data : this.config\r\n\t";           
+                                        codeProvide += "              id        : params.id        || this.config.id,\r\n\t";
+                                        codeProvide += "              path      : params.path      || this.config['data-path'],\r\n\t";
+                                        codeProvide += "              onSuccess : params.onSuccess || function () {},\r\n\t";
+                                        codeProvide += "              data      : this.config\r\n\t";           
                                         codeProvide += "          });\r\n\t"; 
                                         codeProvide += "      }\r\n\t";
                                         codeProvide += "  }\r\n\t";                                               
@@ -387,7 +502,12 @@ WAF.loadComponent = function (param) {
                                         codeProvide += "    length = childrens.length,\r\n\t";
                                         codeProvide += "    cssTag = null,\r\n\t";
                                         codeProvide += "    i = 0,\r\n\t";
-                                        codeProvide += "    children = null;\r\n\t";                                        
+                                        codeProvide += "    children = null;\r\n\t";
+                                        codeProvide += "    if (this.widgets) {\r\n\t";
+                                        codeProvide += "      for (wigdetName in this.widgets) { \r\n\t";               
+                                        codeProvide += "          $('#' + param.id + '_' + wigdetName).remove();\r\n\t";
+                                        codeProvide += "          } \r\n\t";
+                                        codeProvide += "     }\r\n\t";
                                         codeProvide += "    for (i = 0; i < length; i++) {\r\n\t";
                                         codeProvide += "        children = childrens[i];    \r\n\t";            
                                         codeProvide += "        if (children.id) {\r\n\t";
@@ -414,26 +534,18 @@ WAF.loadComponent = function (param) {
                                     }
 
                                     myComp = new WAF.widget[param.name](param.data);
-
-                                    // add existing source in source property
-                                    myComp.sources = {};
-                                    
-                                    if (sources) {
-                                        for (sourceName in source) {
-                                            if (sourceName.indexOf(param.id + '_') == 0) {
-                                                myComp.sources[sourceName.replace(param.id + '_', '')] = source[sourceName];
+          
+                                    for (wigdetName in WAF.widgets) {
+                                        if (wigdetName.indexOf(param.id + '_') == 0) {                                     
+                
+                                            /*
+                                             * Execute widget component load custom event
+                                             */
+                                            if (WAF.widgets[wigdetName].onComponentLoad) {
+                                                WAF.widgets[wigdetName].onComponentLoad();
                                             }
                                         }
                                     }     
-                                    
-                                    // add existing widget in widgets property
-                                    myComp.widgets = {};
-                                                    
-                                    for (wigdetName in WAF.widgets) {
-                                        if (wigdetName.indexOf(param.id + '_') == 0) {
-                                            myComp.widgets[wigdetName.replace(param.id + '_', '')] = WAF.widgets[wigdetName];
-                                        }
-                                    }                                    
                                                      
                                     if (myComp.load) {
                                         myComp.load(param.data);  
@@ -464,8 +576,7 @@ WAF.loadComponent = function (param) {
                                          * Call onResize function
                                          */
                                         myComp.onResize();
-                                        
-                                        
+                                                                                
                                         /*
                                          * Call onReady function
                                          */
@@ -489,16 +600,19 @@ WAF.loadComponent = function (param) {
                                                              
                                 compManager.remove(
                                     function () {
-                                        if (!compManager.hasComponent()) {
-                                            WAF.onReady();
+                                        if (!compManager.hasComponent() && !rpcFileManager.hasRpcFile() && WAF._private.catalogLoaded) {                                
+                                            WAF.onReady();			
                                         }
                                     });
-                                
+                                    
+                                param.onSuccess();                                
                             }
                         }
                     };
                         
-                    reqScript.send(null); 
+                    reqScript.send(null);
+                    
+                    
                        
                 });
                 

@@ -1,0 +1,31 @@
+/* 
+    Document   : widget-accordion
+    Created on : Sep 3, 2012, 11:37:53 AM
+    Author     : Mac
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+.waf-widget.waf-accordion .waf-container.accordion-section.accordion-expanded .accordion-header{
+
+				
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
+	
+}
+
+.waf-widget.waf-accordion .waf-container.accordion-section.accordion-expanded .accordion-content{
+
+	border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
+
+}

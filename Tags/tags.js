@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * The engine that converts static HTML tags into dynamic Widgets
@@ -35,11 +31,11 @@
 WAF.tags = {
     
     /**
-    * Parse the document to find Wakanda Widget and Datasource markup and create them
-    *
-    * @static
-    * @method createView
-    */
+     * Parse the document to find Wakanda Widget and Datasource markup and create them
+     *
+     * @static
+     * @method createView
+     */
     createView: function createView() {    
         var tabDataSources = [],
         tabDom = [],
@@ -184,6 +180,8 @@ WAF.tags = {
                 config[attributeName] = domObj.getAttribute(attributeName);
                 attributeName = 'data-lib';
                 config[attributeName] = domObj.getAttribute(attributeName);
+                attributeName = 'data-hideonload';
+                config[attributeName] = domObj.getAttribute(attributeName);
 
                 // creation of the component
                 component = definition.onInit(config);
@@ -300,12 +298,16 @@ WAF.tags = {
         domDataType = '',
         domDataScope = '',
         i = 0,
+        nbDom = 0,
         container = $$(id),
         source = null,
+        internalSources = {},
         nbComponent = 0,
         privateData = '',
         position = 0,
-        dataSourceList = [],
+        tabDomBindings = [],
+        lstDomBindings = {},
+        binding = {},
         dataSourceNameGlobalList = {};
         
         if (typeof includeItself === 'undefined') {
@@ -328,18 +330,19 @@ WAF.tags = {
             domDataType = domobj.getAttribute('data-type');
             domDataScope = domobj.getAttribute('data-scope');
                       
-            if (sources && typeof (sources[domId]) === 'undefined' && domDataType === 'dataSource') {      
-                
+            if (sources && typeof (sources[domId]) === 'undefined' && domDataType === 'dataSource') {                      
                 if (domDataScope == 'global') {
                     dataSourceNameGlobalList[domId] = domId;
+                }                
+                source = this.createComponent(domobj, true);
+                internalSources[domId] = source;
+            } else {
+                if (sources && typeof (sources[domId]) !== 'undefined' && domDataType === 'dataSource') {
+                    internalSources[domId] = sources[domId];
                 }
-                
-                this.createComponent(domobj, true);
-            }
+            }                        
         }
-
-        dataSourceList = WAF.dataSource.list;
-		
+        		
         // if some sources depends from others, need a second pass
         WAF.dataSource.fullyInitAllSources();
                 
@@ -349,12 +352,23 @@ WAF.tags = {
             this.createComponent(domobj, false);
         }
         
+        // check for datasource in use in widgets
+        tabDomBindings = $('#' + id + ' [data-binding]');
+        nbDom = tabDomBindings.length;
+        for (i = 0; i < nbDom; i++) {
+            binding = tabDomBindings[i].getAttribute('data-binding');
+            if (binding) {
+                binding = binding.split('.')[0];
+                lstDomBindings[binding] = binding;
+            }
+        }
+                
         // resolve the source
-        for (var e in dataSourceList)  {
-            source = dataSourceList[e];
+        for (var e in internalSources)  {
+            source = internalSources[e];
             privateData = source._private;
             position = source.getPosition();
-            if (source.mustResolveOnFirstLevel()) {             					
+            if (lstDomBindings[source.getID()]) {             
                 // catch the error if there is a pb with the dataSource
                 try {   
                     
@@ -365,19 +379,16 @@ WAF.tags = {
                             } else {
                                 source.select(1);
                             }
-                        }
-                    
+                        }                    
                         if (dataSourceNameGlobalList[e]) {
                             source.resolveSource(); 
-                        }
-                                            
+                        }                                            
                         if (source.select) {
                             source.select(position);
                         }            
                     } else {
                         source.resolveSource(); 
-                    }
-                    
+                    }                    
                 } catch (e) {
                     // TODO change alert on a kind of Error
                     if (typeof console !== 'undefined' && 'log' in console) {
@@ -390,23 +401,23 @@ WAF.tags = {
         }
         
         // resizable
-        if (container && container.resizable && $('#'+ id).attr('data-resizable') == 'true') {
+        if (container && container.resizable && $('#'+ id).data('resizable') == true) {
             container.resizable(true);           
         }
         
         // draggable
-        if (container && container.resizable && $('#'+ id).attr('data-draggable') == 'true') {           
+        if (container && container.resizable && $('#'+ id).data('draggable') == true) {           
             container.draggable(true);          
         }
         
         //modal
-        if ($('#'+ id).attr('data-modal') == 'true') {                       
+        if ($('#'+ id).data('modal') == true) {
+         
             $('#'+ id).css('z-index', '99999');            
-            $('body').append('<div id="waf-component-fade"></div>'); 
+            $('#'+ id).parent().append('<div id="waf-component-fade"></div>'); 
             $('#waf-component-fade').css({
                 'filter': 'alpha(opacity=50)'
             }).fadeIn();                                                   
-        } 
-                
+        }   
     }
 }; 

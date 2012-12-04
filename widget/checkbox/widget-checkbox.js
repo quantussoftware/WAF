@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
@@ -42,22 +38,24 @@ WAF.Widget.provide(
     function WAFWidget(config, data, shared) {
         var
         i,
-        checkboxHtml,
-        readOnly,
         icon,
         theme,
-        themes,
-        definedTheme,
-        classes,
-        htmlObject,
-        imgHtml,
         icons,
-        cssClass;
+        widget,
+        themes,
+        classes,
+        imgHtml,
+        readOnly,
+        cssClass,
+        htmlObject,
+        definedTheme,
+        checkboxHtml;
 
         config      = config || {};
 
-        htmlObject  = $(this.containerNode);
-        classes     = htmlObject.attr('class');
+        widget      = this;
+        htmlObject  = this.$domNode;
+        classes     = htmlObject.prop('class');
         themes      = [];
         
         /*
@@ -76,8 +74,7 @@ WAF.Widget.provide(
         
         htmlObject.children().remove()
         
-        $('<div class="waf-checkbox-box">').appendTo(htmlObject);
-        
+        $('<div class="waf-checkbox-box">').appendTo(htmlObject);        
         
         icons   = [];
         
@@ -105,7 +102,7 @@ WAF.Widget.provide(
 
                 imgHtml.addClass(icons[i].cssClass);
                 
-                imgHtml.attr({
+                imgHtml.prop({
                     src : icons[i].value
                 });
 
@@ -129,7 +126,7 @@ WAF.Widget.provide(
             
         icon.appendTo(htmlObject);
 
-        checkboxHtml = $('<input>').attr('type', 'checkbox');
+        checkboxHtml = $('<input>').prop('type', 'checkbox');
 
         checkboxHtml.appendTo(htmlObject);
         
@@ -137,10 +134,10 @@ WAF.Widget.provide(
          * Check the box if checked is true
          */
         if(data.checked === 'true' || data.checked === true) {
-            checkboxHtml.attr('checked', 'checked');        
+            checkboxHtml.prop('checked', 'checked');        
             htmlObject.addClass('waf-state-selected');
         } else {
-            checkboxHtml.removeAttr('checked');
+            checkboxHtml.removeProp('checked');
         }
         
         /*
@@ -149,37 +146,44 @@ WAF.Widget.provide(
          */
         htmlObject.hover(
             function () {
-                $(this).addClass("waf-state-hover");
+                widget.setState('hover');
             },
             function () {
-                $(this).removeClass("waf-state-hover waf-state-active");
+                widget.setState('default');
             }
         );
 
-        htmlObject.bind('mousedown', {}, function(e) {
-            if (checkboxHtml.attr('checked')) {    
-                htmlObject.removeClass('waf-state-selected');
-            }
-        
-            $(this).addClass("waf-state-active");
+        htmlObject.bind('mousedown', {widget : this}, function(e) {
+            widget.removeState('selected');
+            widget.setState('active');
         });
 
-        htmlObject.bind('mouseup', {}, function(e) {
-            $(this).removeClass("waf-state-active");
-        
-            if (checkboxHtml.attr('checked')) {    
-                htmlObject.removeClass('waf-state-selected');
-            } else {
-                htmlObject.addClass('waf-state-selected');
-            }
+        htmlObject.bind('mouseup', {widget : this}, function(e) {
+            widget.setState('hover');
         });
+
+        checkboxHtml.bind('change', function() {
+            if ($(this).is(':checked')) {
+                widget.setState('selected');
+            } else {
+                widget.setState('default');
+            }
+        })
+
 
         htmlObject.focusin(function() {
-            $(this).addClass("waf-state-focus");
+            widget.setState('focus'); 
         });
 
         htmlObject.focusout(function() {
-            $(this).removeClass("waf-state-focus");
+            widget.setState('default'); 
+        });
+        
+        /*
+         * Active click on checkbox label to check/uncheck
+         */
+        $('label[for=' + widget.id + ']').bind('click', {widget: widget}, function(e) {
+            e.data.widget.toggleCheckbox();
         });
         
         /*
@@ -194,27 +198,17 @@ WAF.Widget.provide(
             
             readOnly    = this.att.readOnly;
 
-            checkboxHtml.bind('click', {}, function() {
-                var 
-                widget,
-                sourceAtt,
+            checkboxHtml.bind('click', {widget : this}, function(e) {
+                var
                 value;
-                
-                widget      = WAF.widgets[config.id];
-                sourceAtt   = widget.source.getAttribute(widget.att.name);
-                value       = '';
-                
-                if(checkboxHtml.is(':checked')) {
+
+                if($(this).is(':checked')) {
                     value = true;
                 } else {
                     value = false;
                 }
 
-                sourceAtt.setValue(value, {
-                    dispatcherID: config.id
-                });
-
-                widget.clearErrorMessage();
+                e.data.widget._changeDsValue(value);
             })
 
 
@@ -246,12 +240,13 @@ WAF.Widget.provide(
 
                     if (!value || value === 'false') {
                         checkboxHtml[0].checked = false;
-                        checkboxHtml.removeAttr('checked', 'checked');        
-                        htmlObject.removeClass('waf-state-selected');
+                        checkboxHtml.attr('checked', false);    
+                        widget.removeState('selected');    
+                        widget.setState('default');
                     } else {
                         checkboxHtml[0].checked = true;
-                        checkboxHtml.attr('checked', 'checked');    
-                        htmlObject.addClass('waf-state-selected');
+                        checkboxHtml.attr('checked', 'checked');      
+                        widget.setState('selected');
                     }
                 }
             }, {
@@ -262,21 +257,134 @@ WAF.Widget.provide(
                 widget  : this
             });
         }
-    }, {
-        check : function () {
+    }, {   
+        /**
+          * Change the associated ds attribute value
+          * @function _changeDsValue
+          * @param {boolean} value
+          */ 
+        _changeDsValue : function(value) {                
+            var 
+            widget,
+            sourceAtt;
+
+            checkboxHtml = this.$domNode.find('input');
+
+            if (this.sourceAtt && !this.isDisabled()) {
+                sourceAtt   = this.source.getAttribute(this.att.name);
+
+                sourceAtt.setValue(value, {
+                    dispatcherID: this.id
+                });
+
+                this.clearErrorMessage();
+            }
+        },
+
+        /**
+         * Check the checkbox
+         * @method check
+         */
+        check : function checkbox_check() {    
+            var
+            htmlObject,
+            checkboxHtml;
             
+            htmlObject      = this.$domNode
+            checkboxHtml    = htmlObject.find('input');
+            
+            htmlObject.removeClass("waf-state-active");
+            
+            htmlObject.addClass('waf-state-selected');
+            
+            checkboxHtml.attr('checked', 'checked');
+
+            this._changeDsValue(true);
+        },
+        
+        /**
+         * Uncheck the checkbox
+         * @method uncheck
+         * @param updateDs
+         */
+        uncheck : function checkbox_uncheck(updateDs) {    
+            var
+            htmlObject,
+            checkboxHtml;
+            
+            htmlObject      = this.$domNode
+            checkboxHtml    = htmlObject.find('input');
+            
+            htmlObject.removeClass("waf-state-active");
+        
+            htmlObject.removeClass('waf-state-selected');            
+            
+            checkboxHtml.attr('checked', false);
+
+            if (updateDs !== false) {
+                this._changeDsValue(false);
+            }
+        },
+        
+        /**
+         * Check or uncheck the checkbox
+         * @method toggleCheckbox
+         */
+        toggleCheckbox : function checkbox_toggle_checkbox() {
+            var
+            htmlObject,
+            checkboxHtml;
+            
+            htmlObject      = this.$domNode
+            checkboxHtml    = htmlObject.find('input');
+            
+            if (checkboxHtml.is(':checked')) {
+                this.uncheck();
+            } else {
+                this.check();
+            }
+
+            /*
+             * Trigger on change event
+             */
+            this.$domNode.trigger('change');
+        },
+        
+        /**
+         * Custom getValue function
+         * @method getValue
+         * @return {boolean}
+         */
+        getValue : function checkbox_get_value() {
+            return this.$domNode.find('input').is(':checked');
         },
         
         /**
          * Custom setValue function
-         * @setValue getValue
+         * @method getValue
          */
         setValue : function checkbox_set_value(value) {
-            if (value) {
-                this.check();
-            } else {
-                this.uncheck();
+            if (!this.isDisabled()) {
+                if (value) {
+                    this.check();
+                } else {
+                    this.uncheck();
+                }
             }
+
+            /*
+             * Trigger on change event
+             */
+            this.$domNode.trigger('change');
+        },
+
+        /**
+         * Custom clear function
+         * @method clear
+         * @param updateDs
+         */
+        clear : function checkbox_clear(updateDs) {
+            this.uncheck(updateDs);
         }
     }
 );

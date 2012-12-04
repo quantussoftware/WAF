@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * Widget dataGrid
@@ -25,6 +21,7 @@
  * @link /walib/WAF/widget/css/widget.css
  *
  */
+
 
 /**
  * -------------------------------------------------------
@@ -45,7 +42,7 @@
 
 .waf-dataGrid-header .waf-dataGrid-cell {
 	width: 89px;
-	height: 50px;
+	height: 25px;
 	padding: 0;
 	float: left;
 	overflow: hidden;
@@ -69,13 +66,13 @@
 	position: absolute;
 	width: 16px;
 	height: 16px;
-	margin-top: 10px;
-	right: 6px;
+	margin-top: 5px;
+	right: 8px;
 }
 .waf-dataGrid-header .waf-sort .waf-icon {
 	position: absolute;
-	left: 0;
-	top: 0;
+	left: 0px;
+	top: 0px;
 }
 .waf-dataGrid-header .waf-sort.waf-sort-asc .waf-icon-sortDesc,
 .waf-dataGrid-header .waf-sort.waf-sort-desc .waf-icon-sortAsc {
@@ -86,7 +83,8 @@
     cursor: pointer;
 }
 .waf-dataGrid-header .waf-dataGrid-cell > .content {
-	padding: 6px 22px 6px 5px;
+	padding: 0px;
+	position: absolute;
 }
 
 
@@ -107,8 +105,14 @@
  * -------------------------------------------------------
  */
 .waf-dataGrid-row {
-	position: relative;
+	position: absolute;
 	top: 0;
+	overflow: hidden;
+}
+
+.waf-datagrid-row-inside {
+	position: relative;
+	display: table-row;
 	overflow: hidden;
 }
 
@@ -120,9 +124,11 @@
  */
 .waf-dataGrid-cell {
 	position: relative;
-	float: left;
+	/* float: left; */
 	overflow: hidden;
 	cursor: default;
+	display: table-cell;
+	vertical-align:middle;
 }
 
 .waf-dataGrid-cell :not(input){
@@ -131,34 +137,61 @@
 }
 
 .waf-dataGrid-cell > .content {
-	position: absolute;
+	position: relative;
 	left: 0;
 	width: 100%;
 	padding: 6px 5px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	height:50px;        
-	line-height:35px;   
+	/*height:25px;        
+	line-height:25px;   */
+}
+
+.waf-dataGrid-cell > .content-edit {
+	position: relative;
+	left: 0;
+	/* width: 100%; */
+	/* height: 100%; */
+	padding: 5px 5px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.waf-dataGrid-cell > .content.content-img {
+	padding: 0px 5px;
 }
 
 .waf-dataGrid-cell.clickable > .content {      
 	line-height:25px;   
 }
 
+.waf-dataGrid-checkbox-label {
+	margin-left:6px;
+}
+
+.waf-dataGrid-radio-label {
+	margin-left:6px;
+	margin-right:15px;
+}
+
 .waf-dataGrid-cell.editing {
 	background-color: #fff;
 }
 .waf-dataGrid-cell.editing > input[type="text"] {
-	position: absolute;
-	width: 100%;
+	position: relative;
+	/*width: 100%;*/
 	left: 0;
 	top: 0;
 	background-color: transparent;
 	margin: 0;
-	padding: 6px 4px;
+	padding: 5px 4px;
 	border: 0 none;
-	outline: none 0;
+	/* outline: none 0; */
+	outline-color: yellow;
+	outline-style: solid;
+	outline-width: 1px;
 	overflow: visible;
 	
 	

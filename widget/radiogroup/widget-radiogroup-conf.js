@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type        : 'radioGroup',
@@ -31,11 +27,11 @@ WAF.addWidget({
     },
     {
         name       : 'data-binding',
-        description: 'Source In'
+        description: 'Choice Source'
     },
     {
         name       : 'data-binding-out',
-        description: 'Source Out',
+        description: 'Value Source',
         typeValue  : 'datasource'
     },
     {
@@ -68,7 +64,7 @@ WAF.addWidget({
     {
         name        : 'data-label',
         description : 'Label',
-        defaultValue: 'label'
+        defaultValue: 'Label'
     },
     {
         name        : 'data-label-position',
@@ -91,7 +87,17 @@ WAF.addWidget({
         description : 'Source',
         tab         : 'style',
         tabCategory : 'Icon',
-        type        : 'file'
+        type        : 'file',
+        ready       : function () {
+            var
+            selector;
+
+            selector = this.data.tag.currentSelector;
+
+            if (selector != '.waf-radio-box') {
+                this.formPanel.hide();
+            }
+        }
     },
     {
         name        : 'data-icon-hover',
@@ -163,18 +169,93 @@ WAF.addWidget({
         style: {
             theme       : true,
             fClass      : true,
-            text        : true,
+            text        : false,
             background  : true,
             border      : true,
             sizePosition: true,
-            textShadow  : true,
+            textShadow  : false,
             dropShadow  : true,
             innerShadow : true,
             label       : true
         }
     },
     structure: [{
-        description : 'box',
+        description : 'radio button area',
+        selector    : '.waf-radio',
+        style: {
+            background  : true,
+            gradient    : true,
+            border      : true,
+            text        : true,
+            textShadow  : true
+        },
+        state : [{
+                label   : 'hover',
+                cssClass: 'waf-state-hover',
+                find    : '.waf-radio',
+                mobile  : false
+        },{
+                label   : 'active',
+                cssClass: 'waf-state-active',
+                find    : '.waf-radio',
+                mobile  : true
+        },{
+                label   : 'selected',
+                cssClass: 'waf-state-selected',
+                find    : '.waf-radio',
+                mobile  : true
+        }]
+    },{
+        description : 'radio button area - first',
+        selector    : '.waf-radio.waf-position-first',
+        style: {
+            background  : true,
+            gradient    : true,
+            border      : true,
+            text        : true,
+            textShadow  : true
+        },
+        state : [{
+                label   : 'hover',
+                cssClass: 'waf-state-hover',
+                find    : '.waf-radio',
+                mobile  : false
+        },{
+                label   : 'active',
+                cssClass: 'waf-state-active',
+                find    : '.waf-radio',
+                mobile  : true
+        },{
+                label   : 'selected',
+                cssClass: 'waf-state-selected',
+                find    : '.waf-radio',
+                mobile  : true
+        }]
+    },{
+        description : 'radio button area - last',
+        selector    : '.waf-radio.waf-position-last',
+        style: {
+            background  : true,
+            gradient    : true,
+            border      : true,
+            text        : true,
+            textShadow  : true
+        },
+        state : [{
+                label   : 'hover',
+                cssClass: 'waf-state-hover',
+                find    : '.waf-radio'
+        },{
+                label   : 'active',
+                cssClass: 'waf-state-active',
+                find    : '.waf-radio'
+        },{
+                label   : 'selected',
+                cssClass: 'waf-state-selected',
+                find    : '.waf-radio'
+        }]
+    },{
+        description : 'radio button',
         selector    : '.waf-radio-box',
         style: {
             background  : true,
@@ -194,7 +275,28 @@ WAF.addWidget({
                 cssClass: 'waf-state-selected',
                 find    : '.waf-radio'
         }]
-    }/*,{
+    }
+    /*,{
+        description : 'radio text',
+        selector    : 'label',
+        style: {
+            text        : true,
+            textShadow  : true
+        },
+        state : [{
+                label   : 'hover',
+                cssClass: 'waf-state-hover',
+                find    : '.waf-radio'
+        },{
+                label   : 'active',
+                cssClass: 'waf-state-active',
+                find    : '.waf-radio'
+        },{
+                label   : 'selected',
+                cssClass: 'waf-state-selected',
+                find    : '.waf-radio'
+        }]
+    },{
         description : 'icon',
         selector    : '.waf-radio-icon',
         style: {
@@ -220,14 +322,17 @@ WAF.addWidget({
     },
     onDesign : function (config, designer, tag, catalog, isResize) {
         var
-        htmlObject,
         icon,
         theme,
-        currentState,
         states,
+        $radio,
         radios,
-        options;
-        
+        options,
+        htmlObject,
+        currentState,
+        radiosLength,
+        radioGroupLength;
+
         options     = tag.getOptions();
         htmlObject  = tag.getHtmlObject();
         theme       = $.trim(tag.getTheme().replace('inherited', ''));
@@ -237,14 +342,20 @@ WAF.addWidget({
         /*
          * Add display class
          */
-        htmlObject.removeClass('horizontal vertical');
-        htmlObject.addClass(tag.getAttribute("data-display").getValue());
+        htmlObject.removeClass('waf-direction-horizontal waf-direction-vertical');
+        htmlObject.addClass('waf-direction-' + tag.getAttribute("data-display").getValue());
         
+        var dimension   = config['data-display'] === 'horizontal' ? 'width' : 'height',
+         	value,
+         	obj,
+            radioElem,
+            halfRadioHeight;
+
         /*
          * Create a radio input
          * @method createRadio
          */
-        tag.createRadio = function(option) {
+        tag.createRadio = function(option) { 
             var 
             radioLi,
             radioInput,
@@ -255,8 +366,9 @@ WAF.addWidget({
             url,
             imgHtml,
             icons,
-            cssClass;
-            
+            cssClass, 
+            itemHeight;
+
             option = option || {};
             
             attr = {
@@ -264,12 +376,12 @@ WAF.addWidget({
                 name    : tag.getId(),
                 value   : option.value
             }
-            
+
             radioLi = $('<li>');
             
-            radioDiv = $('<div class="waf-widget waf-radio ' + tag.getTheme()+ '">');
+            radioDiv = $('<div class="waf-widget waf-subElement waf-radio ' + tag.getTheme()+ '">');
             
-            $('<div class="waf-radio-box">').appendTo(radioDiv);
+            var radioBox = $('<div class="waf-radio-box">').appendTo(radioDiv);
 
             /*
              * Svg icon
@@ -283,6 +395,7 @@ WAF.addWidget({
             if (config['data-icon-selected'])   icons.push({cssClass : 'waf-radio-icon-selected', value : config['data-icon-selected']});
             
             cssClass    = 'waf-icon waf-radio-icon';
+
             if (icons.length == 0) {
                 cssClass += ' waf-icon-svg';
             } else {
@@ -300,7 +413,7 @@ WAF.addWidget({
                     
                     imgHtml.addClass(icons[i].cssClass);
                     
-                    imgHtml.attr({
+                    imgHtml.prop({
                         src : url
                     });
                     
@@ -319,7 +432,7 @@ WAF.addWidget({
                 }); 
             }
             
-            icon.appendTo(radioDiv);
+            icon.appendTo(radioBox);
 
             if (option.selected) {
                 attr.checked = 'checked';
@@ -332,15 +445,14 @@ WAF.addWidget({
             radioDiv.appendTo(radioLi);
             
             if (option.label) {
-                radioLabel = $('<label>').attr('for', attr.name).addClass(tag.getTheme()).html(option.label);
-                radioLabel.appendTo(radioLi);
+                radioLabel = $('<label>').prop('for', attr.name).addClass(tag.getTheme()).html(option.label);
+                //radioLabel.appendTo(radioLi);
+                radioDiv.find('input').before(radioLabel);
             }
-            
+
             return radioLi;
-        }
-        
-            
-        
+        }        
+
         /*
          * If only one radio
          */
@@ -352,17 +464,86 @@ WAF.addWidget({
                 tag.createRadio(options[i]).appendTo(htmlObject);
             }
         }
-        
+
+        window.setTimeout(function(){
+            radioGroupLength = htmlObject.children().length;
+            value = 100 / radioGroupLength + '%';
+
+            htmlObject.children().map(function(i) {
+            	obj = $(this);
+            	obj.css(dimension, value);
+                itemHeight = obj.get()[0].offsetHeight;
+            	obj.css("line-height", itemHeight + "px");
+            	radioElem = obj.find(".waf-radio-box");
+            	halfRadioHeight = radioElem.get()[0].offsetHeight / 2;
+            	radioElem.css("margin-top", "-"+halfRadioHeight+"px");
+            });
+
+        }, 0);        
+
         currentState = tag.getCurrentState();
         states       = tag.getStates();
         radios       = tag.getHtmlObject().find('.waf-radio');
+        radiosLength = radios.length;        
+        ID           = tag.getId();
+
+        // Setting position
+        tag._setPosition = function( ID ) {
+
+            var radios;
+            var radiosLength;
+
+            radios          = $("#"+ID).find(".waf-radio");
+            radiosLength    = radios.length;
+
+            radios && radios.map(function(i, radio) {
+                
+                if (!radio) {
+                    return;
+                }
+
+                $radio = $(radio);
+
+                if (i == 0) {  
+                    $radio.addClass('waf-position-first');
+                } else { 
+                    $radio.removeClass('waf-position-first');
+                }
+				
+                if (i == radiosLength - 1 ) {  
+                    $radio.addClass('waf-position-last');
+                } else {
+                    $radio.removeClass('waf-position-last');
+                }
+            });
+        }
         
+        window.setTimeout (function(){        
+            tag._setPosition(ID);
+        },0)
+	
+        
+        // Setting state
         for (i = 0; i < states.length; i += 1) {
             radios.removeClass(states[i].cssClass);
         }
         
         if (currentState) {
             radios.addClass(currentState.cssClass);
+        }
+    },
+    onCreate : function(tag, param) { 
+    	var radios = tag.getHtmlObject().find('.waf-radio');
+
+
+        tag._setPosition(tag.getId());
+        
+        if (param._isLoaded) {
+            /*
+             * Execute script when widget is entirely loaded (with linked tags) 
+             */
+            $(tag).bind('onReady', function(){
+            });
         }
     }
 });

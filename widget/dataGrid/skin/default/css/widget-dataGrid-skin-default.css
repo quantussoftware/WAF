@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /** 
  * Widget dataGrid
@@ -39,12 +35,16 @@
 	border-width: 1px;
 	border-style: solid;
 	
-	-webkit-border-radius: 3px;
-	   -moz-border-radius: 3px;
-	    -ms-border-radius: 3px;
-	     -o-border-radius: 3px;
-	        border-radius: 3px;
-	
+	-webkit-border-radius: 4px;
+	   -moz-border-radius: 4px;
+	    -ms-border-radius: 4px;
+	     -o-border-radius: 4px;
+	        border-radius: 4px;
+
+	box-shadow: 2px 2px 6px hsla(0, 0%, 0%, 0.2);
+
+	font-size: 13px;
+
 	overflow: hidden;
 }
 
@@ -54,13 +54,18 @@
  * @section dataGrid header
  * -------------------------------------------------------
  */
+.default .waf-dataGrid-header {
+	font-weight: 550;
+}
 
 /**
  * -------------------------------------------------------
  * @section dataGrid body
  * -------------------------------------------------------
  */
-
+.default .waf-dataGrid-body {
+	font-family: 'Droid Serif', serif;
+}
 
 
 /**
@@ -69,45 +74,48 @@
  * -------------------------------------------------------
  */
 .default .waf-dataGrid-row {
+	border-top-width: 0;
+	border-bottom-width: 0;
+	
+	border-top-style: none;
+	border-bottom-style: none;
+}
+
+/* states */
+.default .waf-dataGrid-row.waf-state-hover {
+	/*background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, hsla(0, 0%, 100%, 0)), color-stop(0.47, hsla(0, 0%, 100%, 0)), color-stop(0.53, hsla(0, 0%, 100%, 0.5)), color-stop(1, hsla(0, 0%, 100%, 1)));
+	background-image: -webkit-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
+	background-image:    -moz-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
+	background-image:     -ms-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
+	background-image:      -o-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
+	background-image:         linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);*/
+
 	border-top-width: 1px;
 	border-bottom-width: 1px;
 	
 	border-top-style: solid;
 	border-bottom-style: solid;
 }
-
-/* states */
-.default .waf-dataGrid-row.waf-state-hover {
-	/*
-	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, hsla(0, 0%, 100%, 0.48)), color-stop(0.17, hsla(0, 0%, 100%, 1)), color-stop(0.83, hsla(0, 0%, 100%, 0)), color-stop(1, hsla(0, 0%, 100%, 0)));
-	background-image: -webkit-linear-gradient(top, hsla(0, 0%, 100%, 0.48) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:    -moz-linear-gradient(top, hsla(0, 0%, 100%, 0.48) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:     -ms-linear-gradient(top, hsla(0, 0%, 100%, 0.48) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:      -o-linear-gradient(top, hsla(0, 0%, 100%, 0.48) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:         linear-gradient(top, hsla(0, 0%, 100%, 0.48) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	*/
-	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, hsla(0, 0%, 100%, 0)), color-stop(0.47, hsla(0, 0%, 100%, 0)), color-stop(0.53, hsla(0, 0%, 100%, 0.5)), color-stop(1, hsla(0, 0%, 100%, 1)));
-	background-image: -webkit-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
-	background-image:    -moz-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
-	background-image:     -ms-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
-	background-image:      -o-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
-	background-image:         linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 0.5) 53%, hsla(0, 0%, 100%, 1) 100%);
-}
 .default .waf-dataGrid-row.waf-state-active {
-	/*
-	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, hsla(0, 0%, 100%, 0.5)), color-stop(0.17, hsla(0, 0%, 100%, 1)), color-stop(0.83, hsla(0, 0%, 100%, 0)), color-stop(1, hsla(0, 0%, 100%, 0)));
-	background-image: -webkit-linear-gradient(top, hsla(0, 0%, 100%, 0.5) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:    -moz-linear-gradient(top, hsla(0, 0%, 100%, 0.5) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:     -ms-linear-gradient(top, hsla(0, 0%, 100%, 0.5) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:      -o-linear-gradient(top, hsla(0, 0%, 100%, 0.5) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	background-image:         linear-gradient(top, hsla(0, 0%, 100%, 0.5) 0%, hsla(0, 0%, 100%, 1) 17%, hsla(0, 0%, 100%, 0) 83%, hsla(0, 0%, 100%, 0) 100%);
-	*/
-	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, hsla(0, 0%, 0%, 0)), color-stop(0.68, hsla(0, 0%, 0%, 0)), color-stop(1, hsla(0, 0%, 0%, 0.3)));
+	/*background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, hsla(0, 0%, 0%, 0)), color-stop(0.68, hsla(0, 0%, 0%, 0)), color-stop(1, hsla(0, 0%, 0%, 0.3)));
 	background-image: -webkit-linear-gradient(bottom, hsla(0, 0%, 0%, 0) 0%, hsla(0, 0%, 0%, 0) 68%, hsla(0, 0%, 0%, 0.3) 100%);
 	background-image:    -moz-linear-gradient(bottom, hsla(0, 0%, 0%, 0) 0%, hsla(0, 0%, 0%, 0) 68%, hsla(0, 0%, 0%, 0.3) 100%);
 	background-image:     -ms-linear-gradient(bottom, hsla(0, 0%, 0%, 0) 0%, hsla(0, 0%, 0%, 0) 68%, hsla(0, 0%, 0%, 0.3) 100%);
 	background-image:      -o-linear-gradient(bottom, hsla(0, 0%, 0%, 0) 0%, hsla(0, 0%, 0%, 0) 68%, hsla(0, 0%, 0%, 0.3) 100%);
-	background-image:         linear-gradient(bottom, hsla(0, 0%, 0%, 0) 0%, hsla(0, 0%, 0%, 0) 68%, hsla(0, 0%, 0%, 0.3) 100%);
+	background-image:         linear-gradient(bottom, hsla(0, 0%, 0%, 0) 0%, hsla(0, 0%, 0%, 0) 68%, hsla(0, 0%, 0%, 0.3) 100%);*/
+
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+	
+	border-top-style: solid;
+	border-bottom-style: solid;
+}
+.default .waf-dataGrid-row.waf-state-selected {
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+	
+	border-top-style: solid;
+	border-bottom-style: solid;
 }
 
 
@@ -121,6 +129,14 @@
 	border-left-style: solid;
 }
 
+/* states */
+.default .waf-dataGrid-row.waf-state-hover .waf-dataGrid-cell > .content,
+.default .waf-dataGrid-row.waf-state-selected .waf-dataGrid-cell > .content {
+	margin-top: -1px;
+}
+.default .waf-dataGrid-row.waf-state-active .waf-dataGrid-cell > .content {
+	margin-top: 0;
+}
 
 /**
  * -------------------------------------------------------
@@ -130,4 +146,22 @@
 .default .waf-dataGrid-footer {
 	border-top-width: 1px;
 	border-top-style: solid;
+}
+
+
+
+/**
+ * -------------------------------------------------------
+ * @section dataGrid resizable icon
+ * -------------------------------------------------------
+ */
+.default.waf-dataGrid .ui-icon-gripsmall-diagonal-se {
+	width: 22px;
+	height: 22px;
+	background: url("/walib/WAF/widget/dataGrid/skin/default/svg/widget-dataGrid-skin-default-resizable.svg") 0 0 no-repeat;
+}
+
+.default.waf-dataGrid .ui-resizable-se {
+	right: 5px;
+	bottom: 4px;
 }

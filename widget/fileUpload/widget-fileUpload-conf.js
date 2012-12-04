@@ -1,22 +1,18 @@
 /*
- * Copyright (c) 4D, 2011
- *
- * This file is part of Wakanda Application Framework (WAF).
- * Wakanda is an open source platform for building business web applications
- * with nothing but JavaScript.
- *
- * Wakanda Application Framework is free software. You can redistribute it and/or
- * modify since you respect the terms of the GNU General Public License Version 3,
- * as published by the Free Software Foundation.
- *
- * Wakanda is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * Licenses for more details.
- *
- * You should have received a copy of the GNU General Public License version 3
- * along with Wakanda. If not see : http://www.gnu.org/licenses/
- */
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
+*/
 WAF.addWidget({
     
     /**
@@ -33,7 +29,7 @@ WAF.addWidget({
     lib         : 'WAF',
 
     // {String} display name of the widget in the GUI Designer 
-    description : 'File Uploader',
+    description : 'File Upload',
 
     // {String} category in which the widget is displayed in the GUI Designer
     category    : 'Form Controls',
@@ -57,20 +53,72 @@ WAF.addWidget({
     // @property {String} defaultValue, default value of the attribute (optional)
     // @property {'string'|'radio'|'checkbox'|'textarea'|'dropdown'|'integer'} type, type of the field to show in the GUI Designer (optional)
     // @property {Array} options, list of values to choose for the field shown in the GUI Designer (optional)
-    attributes  : [                                                       
+    attributes  : [
     {
-        name        : 'data-pattern',                                                 
-        description : 'Pattern'                                                
-    },
-    {
-        name        : 'data-response',                                                 
-        description : 'Response'                                                
-    } ,
-    {
-        name        : 'data-linkedWidgets',
-        defaultValue: '{}',
-        visibility  : 'hidden'
-    }  
+        name       : 'data-binding',
+        description: 'Source',
+        onchange   : function(){
+            Designer.tag.refreshPanels();
+        }
+    },{
+        name        : 'data-label',
+        description : 'Label',
+        defaultValue: 'Label'
+    },{
+               name        : 'data-label-position',
+               description : 'Label position',
+               defaultValue: 'left'
+       },{
+        name        : 'data-action',
+        visibility  : 'hidden',
+        defaultValue: 'false',
+        type        : 'checkbox'
+    },{
+        name        : 'data-text',
+        description : 'Text',
+        defaultValue: 'Drag your file(s) here'
+    },{
+        name        : 'data-maxfilesize',
+        visibility  : 'hidden',
+        defaultValue: '-1'
+    },{
+        name        : 'data-maxfilesize-unity',
+        visibility  : 'hidden',
+        defaultValue: 'KB'
+    },{
+        name        : 'data-maxfiles',
+        visibility  : 'hidden',
+        defaultValue: '-1'
+    },{
+        name        : 'data-folder',
+        visibility  : 'hidden',
+        defaultValue: 'tmp'
+    },{
+        name        : 'data-autoUpload',
+        visibility  : 'hidden',
+        defaultValue: 'false'
+    },{
+        name        : 'data-userAction',
+        visibility  : 'hidden',
+        defaultValue: 'Ask the user'
+    },{
+        name        : 'data-notification',
+        description : 'Display notification',
+        type        : 'checkbox',
+        defaultValue: 'true'
+    },{
+        name        : 'data-listStyle',
+        description : 'Display file list as',
+        type        : 'radiogroup',
+        options     : [{
+            key : 'popup', 
+            value : 'Popup'
+        }, {
+            key : 'menu', 
+            value : 'List'
+        }],
+        defaultValue: 'menu'
+    }
     ],
 
     // {Array} default height and width of the container for the widget in the GUI Designer
@@ -80,11 +128,11 @@ WAF.addWidget({
     style: [                                                                     
     {
         name        : 'width',
-        defaultValue: '210px'
+        defaultValue: '240px'
     },
     {
         name        : 'height',
-        defaultValue: '50px'
+        defaultValue: '35px'
     }],
 
     // {Array} events ot the widget
@@ -92,98 +140,24 @@ WAF.addWidget({
     // @property {String} name, internal name of the event (mandatory)     
     // @property {String} description, display name of the event in the GUI Designer
     // @property {String} category, category in which the event is displayed in the GUI Designer (optional)
-    events: [                                                              
+    events: [
     {
-        name       : 'click',
-        description: 'On Click',
-        category   : 'Mouse Events'
+        name       : 'filesUploaded',
+        description: 'On After Upload',
+        category   : 'Upload Events'
     },
     {
-        name       : 'dblclick',
-        description: 'On Double Click',
-        category   : 'Mouse Events'
-    },
-    {
-        name       : 'mousedown',
-        description: 'On Mouse Down',
-        category   : 'Mouse Events'
-    },
-    {
-        name       : 'mouseout',
-        description: 'On Mouse Out',
-        category   : 'Mouse Events'
-    },
-    {
-        name        : 'mouseover',
-        description: 'On Mouse Over',
-        category   : 'Mouse Events'
-    },
-    {
-        name       : 'mouseup',
-        description: 'On Mouse Up',
-        category   : 'Mouse Events'
+        name       : 'filesExists',
+        description: 'On File Exists',
+        category   : 'Upload Events'
     }],
 
     // {JSON} panel properties widget
     //
     // @property {Object} enable style settings in the Styles panel in the Properties area in the GUI Designer
     properties: {
-        style: {                                                
-            theme       : {
-                'roundy'    : false
-            },
-            fClass      : true,
-            text        : false,
-            background  : true,
-            border      : true,
-            sizePosition: true,
-            dropShadow  : true,
-            innerShadow : true,
-            label       : false,
-            disabled    : []
-        }
-    },
-
-    // (optional area)
-    // 
-    // {Array} list of sub elements for the widget
-    // 
-    // @property {String} label of the sub element
-    // @property {String} css selector of the sub element
-    structure: [{
-        description : 'File Path',
-        selector    : '.waf-textField',
         style: {
-            theme       : {
-                'roundy'    : false
-            },
-            fClass      : true,
-            text        : true,
-            background  : true,
-            border      : true,
-            sizePosition: true,
-            label       : true,
-            dropShadow  : true,
-            innerShadow : true,
-            textShadow  : true,
-            disabled    : []
-        },
-        state : [{
-            label   : 'hover',
-            cssClass: 'waf-state-hover',
-            find    : '.waf-textField'
-        },{
-            label   : 'focus',
-            cssClass: 'waf-state-focus',
-            find    : '.waf-textField'
-        }]
-    },{
-        description : 'Browse Button',
-        selector    : '.waf-button',
-        style: {
-            theme       : {
-                'roundy'    : false
-            },
+            theme       : true,
             fClass      : true,
             text        : true,
             background  : true,
@@ -196,35 +170,60 @@ WAF.addWidget({
         },
         state : [{
             label   : 'hover',
-            cssClass: 'waf-state-hover',
-            find    : '.waf-button'
+            cssClass: 'waf-state-dragover',
+            find    : ''
         },{
             label   : 'active',
-            cssClass: 'waf-state-active',
-            find    : '.waf-button'
-        },{
-            label   : 'focus',
-            cssClass: 'waf-state-focus',
-            find    : '.waf-button'
+            cssClass: 'waf-state-notempty',
+            find    : ''
         }]
-    },{
-        description : 'Tool Bar',
-        selector    : '.waf-fileUpload-toolbar',
-        style: {
-            theme       : {
-                'roundy'    : false
-            },
-            fClass      : true,
-            text        : false,
-            background  : true,
-            border      : true,
-            sizePosition: true,
-            dropShadow  : true,
-            innerShadow : true,
-            label       : false,
-            disabled    : []
-        }
-    }],
+    },
+
+    // (optional area)
+    // 
+    // {Array} list of sub elements for the widget
+    // 
+    // @property {String} label of the sub element
+    // @property {String} css selector of the sub element
+    structure: [
+    //    {
+    //        description : 'Files container',
+    //        selector    : '.waf-fileUpload-tabContainer',
+    //        style: {
+    //            fClass      : true,
+    //            text        : false,
+    //            background  : true,
+    //            border      : true,
+    //            sizePosition: true,
+    //            dropShadow  : true,
+    //            innerShadow : true,
+    //            label       : false,
+    //            disabled    : []
+    //        }
+    //    },
+    //    {
+    //        description : 'File Item',
+    //        selector    : '.waf-fileUpload-fileItem',
+    //        style: {
+    //            fClass      : true,
+    //            text        : false,
+    //            background  : true,
+    //            border      : true,
+    //            sizePosition: true,
+    //            dropShadow  : true,
+    //            innerShadow : true,
+    //            label       : false,
+    //            disabled    : []
+    //        },
+    //        state : [
+    //        {
+    //            label   : 'hover',
+    //            cssClass: 'waf-state-hover',
+    //            find    : ''
+    //        }
+    //        ]
+    //    }
+    ],
 
     /* METHODS */
 
@@ -235,9 +234,7 @@ WAF.addWidget({
      * @result {WAF.widget.Template} the widget
      */
     onInit: function (config) {  
-        //        config.isDesign = false;
-        var widget = new WAF.widget.FileUpload(config);       
-    //        return widget;
+        new WAF.widget.FileUpload(config);       
     },
 
     /**
@@ -250,132 +247,317 @@ WAF.addWidget({
      * @param {Boolean} isResize is a resize call for the widget (not currently available for custom widgets)
      */
     onDesign: function (config, designer, tag, catalog, isResize) {
-        tag._initFileUpload = function(){
-            var containerDef    = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('container')),
-            container       = new Designer.tag.Tag(containerDef),
-            btnBrowseDef    = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('button')),
-            btnBrowse       = new Designer.tag.Tag(btnBrowseDef),
-            btnCardinalDef  = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('button')),
-            btnCardinal     = new Designer.tag.Tag(btnCardinalDef),
-            btnUploadDef    = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('button')),
-            btnUpload       = new Designer.tag.Tag(btnUploadDef),
-            btnDeleteDef    = Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('button')),
-            btnDelete       = new Designer.tag.Tag(btnDeleteDef);
-            
-            container.create({
-                id       : this.getId()+'-container',
-                width    : this.getWidth(),
-                height   : this.getHeight(),
-                x        : this.getX(),
-                y        : this.getY()
-            });
-            container.setParent(this.getParent());
-            container.setCss('border-style','none')
-            
-            this.setXY(0,0,true);
-            this.setParent(container);
-            
-            btnBrowse.create({
-                id       : this.getId()+'-browse',
-                width    : Math.min(this.getWidth(),this.getHeight()) - 4,
-                height   : Math.min(this.getWidth(),this.getHeight()) - 4,
-                x        : this.getWidth() - Math.min(this.getWidth(),this.getHeight()) + 2,
-                y        : 2
-            });
-            btnBrowse.getAttribute('data-text').setValue('...');
-            btnBrowse.setParent(container);
-            
-            btnUpload.create({
-                id       : this.getId()+'-upload',
-                width    : 20,
-                height   : Math.min(this.getWidth(),this.getHeight()) - 4,
-                x        : btnBrowse.getX() - 22,
-                y        : 2
-            });
-            btnUpload.getAttribute('data-text').setValue('...');
-            btnUpload.setParent(container);
-            
-            btnCardinal.create({
-                id       : this.getId()+'-cardinal',
-                width    : 18,
-                height   : 18,
-                x        : btnUpload.getX() - 20,
-                y        : this.getHeight()/2 - 9
-            });
-            btnCardinal.getAttribute('data-text').setValue('n');
-            btnCardinal.setCss('-moz-border-radius' , '9px')
-            btnCardinal.setCss('border-radius' , '9px')
-            btnCardinal.setParent(container);
-            
-            btnDelete.create({
-                id       : this.getId()+'-delete',
-                width    : 18,
-                height   : 18,
-                x        : btnCardinal.getX() - 20,
-                y        : this.getHeight()/2 - 9
-            });
-            btnDelete.getAttribute('data-text').setValue('x');
-            btnDelete.setCss('-moz-border-radius' , '9px');
-            btnDelete.setCss('border-radius' , '9px');
-            btnDelete.setParent(container);
-            
-            tag._fuLinkedWidgets = {
-                container   : container,
-                btnBrowse   : btnBrowse,
-                btnCardinal : btnCardinal,
-                btnDelete   : btnDelete
-            }
-            
-            tag.getAttribute('data-linkedWidgets').setValue(JSON.stringify({
-                container   : container.getId(),
-                btnBrowse   : btnBrowse.getId(),
-                btnCardinal : btnCardinal.getId(),
-                btnDelete   : btnDelete.getId()
-            }).replace(/"/g,"'"));
-        };
-        (function(){
-            if(tag._fuLinkedWidgets && tag._fuLinkedWidgets.container){
-            
-                tag._fuLinkedWidgets.container.getWidth() != tag.getWidth() && tag._fuLinkedWidgets.container.setWidth(tag.getWidth(),true);
-                tag._fuLinkedWidgets.container.getHeight() != tag.getHeight() && tag._fuLinkedWidgets.container.setHeight(tag.getHeight(),true);
-            
-                if(tag.getX() != 0){
-                    if(tag.getParent() == tag._fuLinkedWidgets.container){
-                        if(Math.abs(tag.getX())>tag.getWidth()){
-                            tag.setX(0,true,false);
-                            tag.setParent(tag._fuLinkedWidgets.container);
-                            return;
-                        }
-                        tag._fuLinkedWidgets.container.setX(tag._fuLinkedWidgets.container.getX() + tag.getX());
-                        tag.setX(0,true,false);
-                    }
-                    else{
-                        tag._fuLinkedWidgets.container.setX(tag.getX());
-                        tag.setX(0,true,false);
-                        tag.setParent(tag._fuLinkedWidgets.container);
-                    }
+        var
+        htmlObj,
+        paragraph,
+        linkedTags;
+        
+        /**
+         * CSS classes object
+         */
+        tag.classes = {
+            btnBrowse   : 'waf-fileUpload-btnBrowse',
+            btnUpload   : 'waf-fileUpload-btnUpload',
+            btnDelete   : 'waf-fileUpload-btnDelete',
+            btnCardinal : 'waf-fileUpload-btnCardinal',
+            filesList   : {
+                classname   : 'waf-fileUpload-fileList',
+                children    : {
+                    table   : 'waf-fileUpload-fileList-table',
+                    tr      : 'waf-fileUpload-fileItem',
+                    tdname  : 'waf-fileUpload-fileItem-name',
+                    tdbutton: 'waf-fileUpload-fileItem-button'
+                },
+                states      : {
+                    popup   : 'waf-fileUpload-fileList-popup',
+                    menu    : 'waf-fileUpload-fileList-menu'
                 }
-            
-                if(tag.getY() != 0){
-                    if(tag.getParent() == tag._fuLinkedWidgets.container){
-                        if(Math.abs(tag.getY())>tag.getHeight()){
-                            tag.setY(0,true,false);
-                            tag.setParent(tag._fuLinkedWidgets.container);
-                            return;
-                        }
-                        tag._fuLinkedWidgets.container.setY(tag._fuLinkedWidgets.container.getY() + tag.getY());
-                        tag.setY(0,true,false);
-                    }
-                    else{
-                        tag._fuLinkedWidgets.container.setY(tag.getY());
-                        tag.setY(0,true,false);
-                        tag.setParent(tag._fuLinkedWidgets.container);
-                    }
+            },
+            tag         : {
+                classname   : 'waf-fileUpload',
+                children    : {
+                    paragraph   : 'waf-fileUpload-paragraph'
                 }
             }
-            tag.getOverlayHtmlObject().css('z-index', 0);
-        })();
-        config.isDesign = true;
-        var widget = new WAF.widget.FileUpload(config);
+        }
+        
+        if(!tag.getFULinkedWidgets){
+            return;
+        }
+        
+        htmlObj         = tag.getHtmlObject();
+        linkedTags      = tag.getFULinkedWidgets();
+        paragraph       = htmlObj.children('p').length == 0 ? $('<p>').appendTo(htmlObj) : $(htmlObj.children('p')[0]);
+        
+        paragraph.addClass(tag.classes.tag.children.paragraph);
+        paragraph.css({
+            'padding-top'   : tag.getHeight()/2 - 7
+        });
+        paragraph.html(tag.getAttribute('data-text').getValue() || '');
+        
+        // Fill the table container
+        
+        
+        if(isResize){
+            if(linkedTags.filesList && tag.refreshFileList){
+                var
+                fileList    = linkedTags.filesList;
+                
+                tag.refreshFileList();
+
+                fileList.setWidth(tag.getWidth())
+                fileList.setY(tag.getHeight(), true, false);
+            }
+        }
+        
+    },
+    
+    onCreate : function(tag,param){
+        var
+        group,
+        btnUpload,
+        btnDelete,
+        filesList,
+        btnBrowse,
+        paragraph,
+        btnCardinal;
+        
+        tag._oldSource  = tag.getSource();
+        group           = new Designer.ui.group.Group();
+        
+        /*
+         * Apply theme on widget theme's change
+         */
+        tag.onChangeTheme = function(theme) {
+            var
+            group;
+            
+            group = D.getGroup(this.getGroupId());
+        
+            if (group) {
+                group.applyTheme(theme, this);
+            }
+        }
+        
+        /**
+         * get linked widgets
+         * @method getLinkedWidgets
+         * @return {object} widgets
+         */
+        tag.getFULinkedWidgets = function get_linked_widgets(){
+            var
+            widgets,
+            linkedTags,
+            tag = this;
+            
+            linkedTags  = tag.getLinks();
+            widgets     = {
+                
+            };
+            
+            for (var i = 0, widget; widget = linkedTags[i]; i++) {
+                var htmlObj = widget.getHtmlObject();
+                
+                if(htmlObj.hasClass(tag.classes.filesList.classname)){
+                    widgets.filesList = widget;
+                }
+                
+                else if(htmlObj.hasClass(tag.classes.btnBrowse)){
+                    widgets.btnBrowse = widget;
+                }
+                
+                else if(htmlObj.hasClass(tag.classes.btnUpload)){
+                    widgets.btnUpload = widget;
+                }
+                
+                else if(htmlObj.hasClass(tag.classes.btnDelete)){
+                    widgets.btnDelete = widget;
+                }
+                
+                else if(htmlObj.hasClass(tag.classes.btnCardinal)){
+                    widgets.btnCardinal = widget;
+                }
+            }
+            
+            return widgets;
+        }
+        
+        
+        /**
+         * get refresh the fileList
+         * @method refreshFileList
+         * @return null
+         */
+        tag.refreshFileList = function refresh_file_list(){
+            var linkedTags      = tag.getFULinkedWidgets();
+            
+            if(linkedTags && linkedTags.filesList){
+                var
+                fileList        = linkedTags.filesList,
+                tabContainer    = fileList.getHtmlObject().empty(),
+                filesTab        = $('<table>').appendTo(tabContainer).addClass(tag.classes.filesList.children.table),
+                files           = ['File 1.png' , 'File 2.pdf' , 'File 3.jpg'];
+
+                for (var i = 0 , f; f = files[i]; i++) {
+                    var tr = $('<tr>').addClass(tag.classes.filesList.children.tr).appendTo(filesTab);
+                    $('<td>').addClass(tag.classes.filesList.children.tdname).html(f).appendTo(tr);
+                    $('<td>').addClass(tag.classes.filesList.children.tdbutton).html($('<button>')).appendTo(tr);
+                }
+
+                switch(tag.getAttribute('data-listStyle').getValue()){
+                    case 'menu' :
+                        fileList.addClass( tag.classes.filesList.classname + ' ' + tag.classes.filesList.states.menu);
+                        break;
+                    case 'popup' :
+                        fileList.addClass( tag.classes.filesList.classname + ' ' + tag.classes.filesList.states.popup);
+                        break;
+                }
+
+                fileList.domUpdate();
+            }
+        }
+        
+        /**
+         * Add buttons to the FU widget
+         * @method _addButtons
+         */
+        tag._addButton = function add_button(parent , position , config){
+            var
+            button;
+            
+            config.text         = config.text || "";
+            config.fitToRight   = config.direction || true;
+            
+            button = Designer.createTag({
+                type        : 'button',
+                fit         : ['right' , 'top' , 'bottom'],
+                silentMode  : true,
+                parent      : parent,
+                width       : config.width,
+                height      : config.height
+            });
+
+            config.fitToRight && button.setFitToLeft(false);
+            button.getAttribute('class').setValue( config['class'] );
+            
+            button.getAttribute('data-text').setValue(config.text);
+            button.savePosition('left', position.left);
+            button.savePosition('top', position.top);
+            button.savePosition('right', position.right);
+            button.savePosition('bottom', position.bottom);
+            parent.link(button);
+            
+            button.domUpdate();
+            
+            return button;
+        }
+        
+        if (!param._isLoaded) {
+            group.add(tag);
+
+            btnBrowse = tag._addButton(
+                tag, 
+                {
+                    left    : null,
+                    top     : 6,
+                    right   : 4,
+                    bottom  : null
+                } , 
+{
+                    text    : "...",
+                    'class' : tag.classes.btnBrowse,
+                    width   : 23,
+                    height  : 23
+                }
+                );
+            
+            group.add(btnBrowse);
+            
+            btnUpload = tag._addButton(
+                tag, 
+                {
+                    left    : null,
+                    top     : 6,
+                    right   : 31,
+                    bottom  : null
+                } , 
+{
+                    text    : " ",
+                    'class' : tag.classes.btnUpload,
+                    width   : 21,
+                    height  : 24
+                }
+                );
+            
+            group.add(btnUpload);
+            
+            btnCardinal = tag._addButton(
+                tag, 
+                {
+                    left    : null,
+                    top     : 11,
+                    right   : 54,
+                    bottom  : null
+                } , 
+{
+                    text    : "n",
+                    'class' : tag.classes.btnCardinal,
+                    width   : 15,
+                    height  : 15
+                }
+                );
+            
+            group.add(btnCardinal);
+            
+            btnDelete = tag._addButton(
+                tag, 
+                {
+                    left    : null,
+                    top     : 11,
+                    right   : 71,
+                    bottom  : null
+                } , 
+{
+                    text    : "x",
+                    'class' : tag.classes.btnDelete,
+                    width   : 15,
+                    height  : 15
+                }
+                );
+            
+            group.add(btnDelete);
+
+            filesList = Designer.createTag({
+                type        : 'container',
+                width       : tag.getWidth(),
+                height      : 50,
+                left        : -1,
+                top         : tag.getHeight()-1,
+                silentMode  : true,
+                parent      : tag
+            });
+
+            //filesList.getAttribute('class').setValue( tag.classes.filesList.classname + ' ' + tag.classes.filesList.states.menu);
+            filesList.addClass(tag.classes.filesList.classname + ' ' + tag.classes.filesList.states.menu);
+
+            tag.link(filesList);
+            filesList.link(tag);
+            filesList.refresh();
+
+            group.add(filesList);
+
+            Designer.ui.group.save();
+        }
+        
+        else {   
+            /*
+             * Execute script when widget is entirely loaded (with linked tags) 
+             */
+            $(tag).bind('onReady', function(){
+                tag.refreshFileList();
+            });
+        }
+        
+        tag.refresh();
     }
-});                                                                                                                                  
+});

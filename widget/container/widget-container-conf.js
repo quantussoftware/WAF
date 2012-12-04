@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({    
     type        : 'container',
@@ -32,26 +28,50 @@ WAF.addWidget({
     {
         name        : 'data-draggable',
         description : 'Draggable',
-        type        : 'checkbox'
+        type        : 'checkbox',
+        platform    : 'desktop'
     },
     {
         name        : 'data-resizable',
         description : 'Resizable',
-        type        : 'checkbox'
+        type        : 'checkbox',
+        platform    : 'desktop'
+    },
+    {
+        name        : 'data-scrollable',
+        description : 'Scrollable',
+        type        : 'checkbox',
+        platform    : 'mobile'
     },
     {
         name        : 'data-hideSplitter',
         description : 'Hide Splitters',
-        type        : 'checkbox'
+        type        : 'checkbox',
+        category    : 'Splitter Options',
+        ready       : function(){ // Check if widget is splitted to display this category
+            var
+            tag;
+            
+            tag = this.data.tag;
+                        
+            if (!tag._containers) {
+                this.formPanel.getHtmlObject().hide();
+            }
+        }
+    },
+    {
+        name        : 'data-popup-display-button',
+        description : 'Left Splitter Button',
+        category    : 'Splitter Options'
     }],
     style: [
     {
         name        : 'width',
-        defaultValue: '200px'
+        defaultValue: '294px'
     },
     {
         name        : 'height',
-        defaultValue: '200px'
+        defaultValue: '211px'
     }],
     events: [
     {
@@ -101,6 +121,26 @@ WAF.addWidget({
         description : 'On Stop Resize',
         category    : 'Resize'
         
+    },
+    {
+        name       : 'touchstart',
+        description: 'On Touch Start',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchend',
+        description: 'On Touch End',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchmove',
+        description: 'On Touch Move',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchcancel',
+        description: 'On Touch Cancel',
+        category   : 'Touch Events'
     }],
     properties: {
         style: {
@@ -124,13 +164,77 @@ WAF.addWidget({
     onDesign: function (config, designer, tag, catalog, isResize) {  
         //console.log("design")
         var
-        htmlObject,
+        i,
+        child,
         parent,
+        children,
+        childrenL,
+        htmlObject,
         containerSplitClass;
         
         containerSplitClass = 'waf-split-container';
         
-        htmlObject = tag.getHtmlObject();
+        htmlObject          = tag.getHtmlObject();
+        children            = tag.getChildren();
+        childrenL           = children.length;
+        
+        /*
+         * Also resize splitted containers
+         */
+        if (isResize && tag._containers) {
+            tag.resizeSplitted();
+        }
+        
+        if (isResize && children.length > 0) {   
+            for (i = 0; i < childrenL; i += 1) {
+                child = children[i];
+
+                if (child && !child.isDeleted()) {
+                    if (child.getType() == 'matrix' && ((child._isFitToRight && child._isFitToLeft) || (child._isFitToTop && child._isFitToBottom))) {
+                        child.rebuild();                            
+                    }
+
+                    D.ui.focus.setPosition(child);
+                    D.ui.focus.setSize(child);
+                }
+            }
+        }        
+
+        parent = tag.getParent()
+
+        /*
+         * If container is inside a tabview
+         */
+        if (isResize) {
+            if (parent && parent.getType() == 'tabView') {
+            }
+        }
+
+        /*
+         * adding states to containers inside a matrix
+         */
+        if (parent && parent.getType() === 'matrix') {
+            tag._states = [{
+                    label   : 'selected',
+                    cssClass: 'waf-state-selected'
+            }]
+
+        } else {
+            tag._states = null;
+        }
+    },
+    
+    onCreate : function (tag, param) {
+        var
+        nb,
+        containerSplitClass,
+        htmlObject,
+        parent;
+        
+        containerSplitClass = 'waf-split-container';
+        
+        htmlObject = tag.getHtmlObject();      
+
         
         /*
          * Get the first parent container of the splitted container
@@ -167,14 +271,17 @@ WAF.addWidget({
             containerX,
             containerY,
             containersWidth,
+            containersWidth2,
             containersHeight,
+            containersHeight2,
             i,
             that,
             htmlObject,
             firstParent,
             children,
             childrenLength,
-            existingClasses;                
+            existingClasses;
+            
             params              = params        || {};
             nb                  = params.nb     || 2;
             type                = params.type   || 'vertically';
@@ -187,12 +294,16 @@ WAF.addWidget({
             switch(type) {
                 case 'horizontally':
                     containersWidth     = tagWidth;
-                    containersHeight    = tagHeight/nb;
+                    containersWidth2    = tagWidth;
+                    containersHeight    = params.position || tagHeight/nb;
+                    containersHeight2   = params.position ? tagHeight-containersHeight : containersHeight;
                     break;
                     
                 case 'vertically':
-                    containersWidth     = tagWidth/nb;
+                    containersWidth     = params.position || tagWidth/nb;
+                    containersWidth2    = params.position ? tagWidth-containersWidth : containersWidth;
                     containersHeight    = tagHeight;
+                    containersHeight2   = tagHeight;
                     break;
             }
             
@@ -210,16 +321,21 @@ WAF.addWidget({
                 container = new Designer.tag.Tag(Designer.env.tag.catalog.get(Designer.env.tag.catalog.getDefinitionByType('container')));                
                 container._isSplit = true;
                 container.create();
-                
-                existingClasses = container.getAttribute('class').getValue();
-                
-                container.getAttribute('class').setValue($.trim(existingClasses) + containerSplitClass);
-                
+
+                container.addClass(containerSplitClass);                
 
                 container.setXY(containerX,containerY, true);
                 
                 container.setWidth(containersWidth);
                 container.setHeight(containersHeight);
+                
+                if (i == 0) {
+                    container.setWidth(containersWidth);
+                    container.setHeight(containersHeight);
+                } else {
+                    container.setWidth(containersWidth2);
+                    container.setHeight(containersHeight2);
+                }
 
                 
                 container.setParent(that);
@@ -243,14 +359,7 @@ WAF.addWidget({
                 /*
                  * Lock d&d on splitted containers
                  */
-                containerHtml.bind('mousedown', {container : container}, function(e) {
-                    e.data.container.ddElt.lock();
-                });
-                containerHtml.bind('mouseup', {container : container}, function(e) {
-                    e.data.container.ddElt.unlock();
-                });                      
-                
-                container.unlock();    
+                container.fix();    
             }            
             
             firstParent = that.getFirstParent();
@@ -321,7 +430,7 @@ WAF.addWidget({
              */
             if (matrixHtml.length > 0) {
                 inMatrix = true;
-                matrix = D.tag.getTagById(matrixHtml.attr('id'));
+                matrix = D.tag.getTagById(matrixHtml.prop('id'));
             }
             
             
@@ -660,38 +769,7 @@ WAF.addWidget({
             }
             
             that._containers    = containers;            
-        }
-        
-        /*
-         * Also resize splitted containers
-         */
-        if (isResize && tag._containers) {
-            tag.resizeSplitted();
-        }
-        
-        if (isResize && tag.getChildren()) {   
-            $.each(tag.getChildren(), function(){
-                if (this.isMatrix() && ((this._isFitToRight && this._isFitToLeft) || (this._isFitToTop && this._isFitToBottom))) {
-                    this.rebuild();                            
-                }
-
-                D.ui.focus.setPosition(this);
-                D.ui.focus.setSize(this);
-            });
-        }
-        
-    },
-    
-    onCreate : function (tag) {
-        var
-        nb,
-        containerSplitClass,
-        htmlObject,
-        parent;
-        
-        containerSplitClass = 'waf-split-container';
-        
-        htmlObject = tag.getHtmlObject();        
+        }  
         
         /*
          * if tag is a splitted container, append splitter to is parent
@@ -711,12 +789,7 @@ WAF.addWidget({
             /*
              * Lock d&d on splitted containers
              */
-            htmlObject.bind('mousedown', {container : tag}, function(e) {
-                e.data.container.ddElt.lock();
-            });
-            htmlObject.bind('mouseup', {container : tag}, function(e) {
-                e.data.container.ddElt.unlock();
-            }); 
+            tag.fix();
             
             /*
              * Count the number of child nodes except the undefined nodes
@@ -732,6 +805,48 @@ WAF.addWidget({
                 parent.addSplitter(parent.getSplitOrientation());
             }
         }
+        
+        /*
+         * Widget custom on file drop event
+         * Same as body
+         */
+        $(tag).bind('onFileDrop', $(D.doc.tag).data('events').onFileDrop[0].handler);
+
+        /*
+         * Widget custom on copy event
+         */
+        $(tag).bind('onWidgetCopy', function(e, original){
+            var
+            i,
+            child,
+            children,
+            containerHtml,
+            childrenLength;
+
+            /*
+             * Check if original widget is splitted
+             */
+            if (original._containers) {
+                this._containers    = [];
+                children            = this.getChildren();
+                childrenLength      = children.length;
+
+                for (i = 0; i < childrenLength; i += 1) {
+                    child           = children[i];
+                    child._isSplit  = true;
+                    containerHtml   = child.getHtmlObject();
+
+                    this._containers.push(child);
+
+                    child.fix();
+                }
+
+                /*
+                 * Display splitter
+                 */
+                 this.addSplitter(original.getSplitOrientation());
+            }
+        });
     }
 });
 

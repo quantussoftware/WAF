@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * API for management of the HTML / JSON document
@@ -300,9 +296,16 @@ WAF.dom.Document.prototype.getElementsByAttribute = function (name, attribute, v
     /**
      * @private
      */
-    function searchLoop (nodeParent, node, position, name, attribute, value) {
+    function searchLoop (nodeParent, node, position, name, attribute, value, parents) {
         var j = 0,
+        k = 0,
+        nbParents = parents.length,
+        parentsClone1 = [],
+        parentsClone2 = [],
         element = {};
+        
+        parentsClone1 = parents.slice(0);
+        
         if (node && node.nodeName) {
             if (node.nodeName === name || name === '*') {
                 if (attribute) {
@@ -317,6 +320,8 @@ WAF.dom.Document.prototype.getElementsByAttribute = function (name, attribute, v
                                         element = that.createElement();
                                         element.parentNode = that.createElement();
                                         element.parentNode._json = nodeParent;
+                                        
+                                        element.parents = parentsClone1;
                                         element._json = node;
                                         element._position = position;
 
@@ -326,6 +331,7 @@ WAF.dom.Document.prototype.getElementsByAttribute = function (name, attribute, v
                                     element = that.createElement();
                                     element.parentNode = that.createElement();
                                     element.parentNode._json = nodeParent;
+                                    element.parents = parentsClone1;
                                     element._json = node;
                                     element._position = position;
 
@@ -338,6 +344,7 @@ WAF.dom.Document.prototype.getElementsByAttribute = function (name, attribute, v
                     element = that.createElement();
                     element.parentNode = that.createElement();
                     element.parentNode._json = nodeParent;
+                    element.parents = parentsClone1;
                     element._json = node;
                     element._position = position;
 
@@ -345,15 +352,30 @@ WAF.dom.Document.prototype.getElementsByAttribute = function (name, attribute, v
                 }
             }
         }
+        
+        // create a pseudo element
+        element = {};
+        element.parentNode = null
+        element._json      = node;
+        element._position  = position;
+        if (element._json) {
+            element.tagName = element._json['nodeName'];
+        } else {
+            element.tagName = '';
+        }
+                        
+        parentsClone2 = parentsClone1.slice(0);
+        parentsClone2.unshift(element);
+        
         if (node && node.childNodes && node.childNodes.length) {
             for (j = 0; j < node.childNodes.length; j++) {
-                searchLoop(node, node.childNodes[j], j, name, attribute, value);
+                searchLoop(node, node.childNodes[j], j, name, attribute, value, parentsClone2);
             }
         }
     }
 
     for (i = 0; i < length; i++) {
-        searchLoop(this._json.document, this._json.document[i], i, name, attribute, value);
+        searchLoop(this._json.document, this._json.document[i], i, name, attribute, value, []);
     }
 
     return result;
@@ -487,24 +509,42 @@ WAF.dom.Node.prototype.remove = function () {
  */
 WAF.dom.Element = function (name) {
 
-    // {Element} parentNode parent element
-    this.parentNode = null;
     // {integer} _position position of the element in the child list of the parent
     this._position = -1;
     // {JSON} _json structure representation of the element
     this._json = {};
     // {JSON} _document document
     this._document = {};
-
+    
     if (name) {
         this._json['nodeType'] = 1;
         this._json['nodeName'] = name;
         this.nodeType = 1;
         this.nodeName = 1;
     }
+    
+    
+    // {Array} _parents parents of the element
+    this.parents = [];
 
-    // public properties
-    this.tagName = this._json['nodeName'];
+    // {Element} parentNode parent element
+    this.parentNode = null;
+            
+    // {String} tagName name of the tag
+    var _tagName = '';
+    this.__defineGetter__('tagName', function () {
+        var result = '';
+        if (_tagName) {
+            result = _tagName;            
+        } else {
+            result = this._json['nodeName'];
+        }
+        return result;
+    });        
+    this.__defineSetter__('tagName', function (value) {
+        _tagName = value;
+    });
+    
 
 };
 
@@ -579,21 +619,32 @@ WAF.dom.Element.prototype.getAttributes = function () {
  * @return {Array} array of elements
  */
 WAF.dom.Element.prototype.getChildNodes = function() {
-    var element = {},
+    var 
+    childNode,
+    element = {},
     length = {},
     i = 0,
+    parentsClone = [],      
     result = [];
 
     if (this._json.childNodes) {
         length = this._json.childNodes.length;
         for (i = 0; i < length; i++) {
-            element = this._document.createElement();
-            element.parentNode = this._document.createElement();
-            element.parentNode._json = this._json;
-            element._json = this._json.childNodes[i];
-            element._position = i;
-            element.tagName = element._json['nodeName'];
-            result.push(element);
+            childNode = this._json.childNodes[i];
+            
+            if (childNode) {
+                parentsClone = this.parents.slice(0);
+                parentsClone.unshift(this._json);         
+                                        
+                element = this._document.createElement();
+                element.parentNode = this._document.createElement();
+                element.parentNode._json = this._json;
+                element.parents = parentsClone;
+                element._json = childNode;
+                element._position = i;
+                element.tagName = element._json['nodeName'];
+                result.push(element);
+            }
         }
     }
 

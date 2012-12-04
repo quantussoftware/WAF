@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /*jslint white: true, evil: true, es5: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, immed: true, strict: true */
 
@@ -74,7 +70,7 @@ Object.defineProperty(
 	};
 
     require = Module.require = function require(id) {
-
+	
 		if (nativeModules[id] == true)
 		
 			return requireNative(id);
@@ -192,18 +188,20 @@ Object.defineProperty(
                     console.info('module: ', wafTopId, ' found in cache');
                     console.info('exports: ', Object.keys(wafModuleCache[wafTopId]));
                 }
-                
+				                
                 // set exports as the module referenced in the cache
                 exports = wafModuleCache[wafTopId];
-                
-                if (wafForce !== true) {
+				wafIsLoaded = false;
+				
+				if (wafForce !== true) {
                     // The module interface will be returned as is
                     if (require.log) {
                         console.info('Module returned from cache');
                     }
+					
                     return true;
                 }
-                
+				
             }
             
             // search the module at the current path
@@ -220,9 +218,10 @@ Object.defineProperty(
                 console.info('path ok: ' + wafModuleFile.path);
             }
             
-            if (typeof exports === "undefined") {
+            if (typeof exports == "undefined") {
                 // the module is not already referenced in the cache
                 // create a new one
+				
                 exports = new require.Module();
             }
             
@@ -262,32 +261,56 @@ Object.defineProperty(
             wafModuleCache[wafTopId] = exports;
                 
             try {   
+			
+				
                 // load module source
-                wafTs = TextStream(wafModuleFile, 'Read');
+				
+        /*        wafTs = TextStream(wafModuleFile, 'Read');
                 wafTc = wafTs.read(0);
-                wafTs.close();
+                wafTs.close();*/
+				
                 
                 // clear module context
+				var temp = wafModuleFile;
+				
                 wafForce = undefined;
                 wafModuleFile = undefined;
-                    
+				
+				var initString = "";
+				
+
+				var k;
+				for (k in module) {
+				
+					//trace(k + ": " + typeof module[k] + "=>" + module[k] +"\n");
+					
+					initString += "module." + k + "='" + module[k] + "';"
+				}
+				
+				
+				                    
                 // "exports" & "module" are not available in module scope when using "include"
                 //wafEval = include(wafModulePath, true);
                 
                 // initialize the module
-                wafEval = eval(wafTc);
-                    
+				//trace("in: " + module.id + "\n");
+            //    wafEval = eval(wafTc);
+				exports = wafEval = requireFile(temp.path, initString);
+				wafModuleCache[wafTopId] = exports;
+				//trace("out: " + module.id + "\n");
+			        
                 if (require.log) {
                     console.log('eval :', wafEval);
                 } 
                 //include(wafModulePath);
-                        
+              
             } catch (error) {
 
                 // error while evaluating the module
                 if (require.log) {
                     console.error('require error: ', JSON.stringify(error));
                 }
+				//trace("error = " + JSON.stringify(error));
                 // getting out of the module scope
                 wafParentModuleIds.pop(); 
                 throw error;
@@ -343,12 +366,12 @@ Object.defineProperty(
         
         // search the module from top id
         if (wafParseModuleFolders('')) {
-            return wafIsLoaded ? true : exports;
+			return wafIsLoaded ? true : exports;
         }
         
         // search the module in the custom paths
         if (require.paths.some(wafParseModuleFolders)) {
-            if (console.log && !wafIsLoaded) {
+		    if (console.log && !wafIsLoaded) {
                 console.info('returning the module API', exports);
             }
             return wafIsLoaded ? true : exports;
@@ -358,8 +381,8 @@ Object.defineProperty(
         if (wafAppModuleFolders === undefined) {
             if (application) {
                 wafAppModuleFolders = [
-                    Folder(getFolder().path + 'modules/'),
-                    Folder(getFolder().path + 'Modules/')
+                    Folder(getFolder().path + 'Modules/'),
+                    Folder(getFolder().path + 'modules/')
                 ];
                 if (wafAppModuleFolders.some(wafParseModuleFolders)) {
                     return wafIsLoaded ? true : exports;
@@ -376,7 +399,22 @@ Object.defineProperty(
             wafServerModulesFolder = Folder(getWalibFolder().path + '../Modules/');
         }
         if (wafParseModuleFolders(wafServerModulesFolder)) {
-            return wafIsLoaded ? true : exports;
+
+			//return wafIsLoaded ? true : exports;
+			if (wafIsLoaded == false) {
+			
+			/*	trace("is false\n");
+				for (k in exports) {
+				
+					trace(k + ": " + typeof exports[k] + "=>" + exports[k] +"\n");
+					
+				}*/
+				return exports;
+			
+			
+			} else
+			
+				return exports;
         }
         
         

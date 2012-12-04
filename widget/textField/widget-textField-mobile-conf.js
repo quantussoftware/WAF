@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type       : 'textField',
@@ -94,7 +90,12 @@ WAF.addWidget({
         name       : 'tabindex',
         description : 'Tabindex',
         typeValue   : 'integer'
-    }],
+    },
+	{
+		name		: 'placeholder',
+		description	: 'Input placeholder',
+		type		: 'string'
+	}],
     events: [
     {
         name       : 'touchstart',
@@ -209,7 +210,8 @@ WAF.addWidget({
     onDesign: function (config, designer, tag, catalog, isResize) {
 
 
-        var theme = tag.config.attributes[10].options;
+        var theme = tag.config.attributes[10].options,
+			placeHolder = tag.getAttribute('placeholder');
         var newClass = '';
         var newStyle = '';
         var t = 0;
@@ -283,12 +285,12 @@ WAF.addWidget({
         });
 
         var changeTagType = function(type) {
-            $('<' + type + '/>').attr('id', 'tmp-' + tag.getAttribute('id').getValue()).appendTo('#' + tag.overlay.id + ' .bd');
-            newClass = $('#' + tag.getAttribute('id').getValue()).attr('class');
-            newStyle = $('#' + tag.getAttribute('id').getValue()).attr('style');
+            $('<' + type + '/>').prop('id', 'tmp-' + tag.getAttribute('id').getValue()).appendTo('#' + tag.overlay.id + ' .bd');
+            newClass = $('#' + tag.getAttribute('id').getValue()).prop('class');
+            newStyle = $('#' + tag.getAttribute('id').getValue()).prop('style');
             $('#' + tag.getAttribute('id').getValue()).remove();
-            $('#tmp-' + tag.getAttribute('id').getValue()).attr('class', newClass);
-            $('#tmp-' + tag.getAttribute('id').getValue()).attr('style', newStyle);
+            $('#tmp-' + tag.getAttribute('id').getValue()).prop('class', newClass);
+            $('#tmp-' + tag.getAttribute('id').getValue()).prop('style', newStyle);
 
             if (type === 'textarea') {
                 $('#tmp-' + tag.getAttribute('id').getValue()).html(tag.getAttribute('value').getValue());
@@ -297,7 +299,7 @@ WAF.addWidget({
                 document.getElementById('tmp-' + tag.getAttribute('id').getValue()).setAttribute('type', 'text')
             }
 
-            $('#tmp-' + tag.getAttribute('id').getValue()).attr('id', tag.getAttribute('id').getValue());
+            $('#tmp-' + tag.getAttribute('id').getValue()).prop('id', tag.getAttribute('id').getValue());
 
 
             $('#' + tag.getAttribute('id').getValue()).bind('dblclick', {}, dblClickEvt);
@@ -308,5 +310,7 @@ WAF.addWidget({
         } else if (tag.getAttribute('data-multiline').getValue() !== 'false'){
             changeTagType('textarea');
         }
+
+        tag.getHtmlObject().attr('placeholder', placeHolder);
     }
 });

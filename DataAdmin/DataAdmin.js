@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /*
   panelInfo : {
@@ -144,6 +140,8 @@ function computePosition(panelInfo, panelH, panelW)
 	var inputDiv = $('input', queryDiv);
 	var textSpan = $('.qtext', queryDiv);
 	var queryButton = $('.query-button', queryDiv);
+	var importButton = $('.import-button', queryDiv);
+	var exportButton = $('.export-button', queryDiv);
 
 	var queryMarginLeft = parseInt(queryDiv.css("margin-left"));
 	var queryMarginRight = parseInt(queryDiv.css("margin-right"));
@@ -154,14 +152,9 @@ function computePosition(panelInfo, panelH, panelW)
 	
 	var textSpanWidth = textSpan.width();
 	var queryButtonWidth = queryButton.width();
-	var inputWidth = queryWidth - queryPaddingLeft - queryPaddingRight - textSpanWidth - queryButtonWidth - 10;
+	var inputWidth = queryWidth - queryPaddingLeft - queryPaddingRight - textSpanWidth - ((queryButtonWidth + 10)*3);
 	inputDiv.width(inputWidth);
-	
-	var textSpanWidth = textSpan.width();
-	var queryButtonWidth = queryButton.width();
-	var inputWidth = queryWidth - queryPaddingLeft - queryPaddingRight - textSpanWidth - queryButtonWidth - 10;
-	inputDiv.width(inputWidth);
-	
+		
 	var queryMarginTop = parseInt(queryDiv.css("margin-top"));
 	var queryHeight = queryDiv.outerHeight(true);
 	
@@ -187,8 +180,8 @@ function computePosition(panelInfo, panelH, panelW)
 
 function queryClickHandler(event)
 {
-	var sourceID = $(this).attr('data-source');
-	var queryInputID = $(this).attr('data-query-id');
+	var sourceID = $(this).data('source');
+	var queryInputID = $(this).data('query-id');
 	var input = $("#"+queryInputID)[0];
 	var mysource = source[sourceID];
 	var queryText = input.value;
@@ -199,7 +192,7 @@ function queryClickHandler(event)
 function emClickHandler(event)
 {
 	var parent = $(this).parent();
-	var emName = parent.attr('data-emname');
+	var emName = parent.data('emname');
 	var newone = false;
 	
 	if (event.shiftKey)
@@ -243,6 +236,8 @@ function emClickHandler(event)
 			
 			html = '<div class="query-container">';
 			html+= '<span class="qtext">Query: </span><input class="query-input" type="text" id="queryInput'+id+'"/>'
+			html+= '<div class="exportData-button" data-source="'+sourceID+'"> </div>';
+			html+= '<div class="importData-button" data-source="'+sourceID+'"> </div>';
 			html+= '<div class="query-button" data-source="'+sourceID+'" data-query-id="queryInput'+id+'"> </div>';
 			html+= '</div>';
 			
@@ -255,9 +250,9 @@ function emClickHandler(event)
 			var xgridDiv = $(html).appendTo(panel);
 			var gridDiv = $("#"+datagridID);
 			gridDiv.addClass('em-listview-grid waf-widget waf-dataGrid metal');
-			gridDiv.attr({
-				'data-type': 'dataGrid',
-		        'data-theme': 'metal'
+			gridDiv.data({
+				'type': 'dataGrid',
+		        'theme': 'metal'
 			});
 			
 	
@@ -393,14 +388,14 @@ function openFormView(dataClass, source, pos){
 			width: '' + panelW + 'px',
 			position: 'relative'
 		});
-		panel.attr({
-			'data-type': 'autoForm',
-			'data-theme': 'metal',
-			'data-withoutTable': 'true',
-			'data-resize-each-widget': 'true',
-			'data-lib':'WAF',
-			'data-display-error':'true',
-			'data-binding':sourceID
+		panel.data({
+			'type': 'autoForm',
+			'theme': 'metal',
+			'withoutTable': 'true',
+			'resize-each-widget': 'true',
+			'lib':'WAF',
+			'display-error':'true',
+			'binding':sourceID
 			
 		});
  
@@ -472,6 +467,42 @@ function openFormView(dataClass, source, pos){
 }
 
 
+function exportClickHandler(event)
+{
+	var sourceID = $(this).data('source');
+	var mysource = source[sourceID];
+	
+	var dataClass = mysource.getDataClass();
+	var dataClassName = dataClass.getName();
+	
+	var progressName = "export_"+dataClassName+"_"+(new Date()).toISOString()+"_"+Math.random();
+	var requestURL = WAF.dsExport.exportData({ generateRESTRequestOnly:true, callWithGet:true}, {dataClassName: dataClassName, exportType:"csv", progressInfo: progressName});
+	
+	var iframe = document.getElementById("iframeexport");
+	if (iframe == null)
+	{
+		$('body').append('<iframe id="iframeexport"></iframe>');
+		iframe = document.getElementById("iframeexport");
+	}
+	iframe.style.display = "none";
+	iframe.src = requestURL;
+	
+	var progressBar = $$("exportProgress");
+	/*
+	if (progressBar == null)
+	{
+		var html = '<div id="exportProgress" data-type="progressBar" data-lib="WAF" class="waf-widget waf-progressBar metal waf-widget" data-progressinfo="'+progressName+'"></div>';
+	}
+	*/
+}
+
+
+function importClickHandler(event)
+{
+	
+}
+
+
 WAF.onAfterInit = function() 
 {	
 	var emlist = $("#emlist");
@@ -506,7 +537,9 @@ WAF.onAfterInit = function()
 		else
 			html += '<div class="em-elem-pastille"></div>';
 		html += '<span class="em-elem-text">'+e+'</span>';
-		html += '<div class="em-elem-button"> </div>';
+		//html += '<div class="em-elem-button"> </div>';
+		html += '<div class="em-import-button"> </div>';
+		html += '<div class="em-export-button"> </div>';
 		html += '</div>';
 	}
 	
@@ -516,6 +549,8 @@ WAF.onAfterInit = function()
 	$('body').delegate('.em-elem-text', 'click', emClickHandler);
 	$('body').delegate('.em-elem-button', 'click', emClickHandler);
 	$('body').delegate('.query-button', 'click', queryClickHandler);
+	$('body').delegate('.importData-button', 'click', importClickHandler);
+	$('body').delegate('.exportData-button', 'click', exportClickHandler);
 	
 }
 

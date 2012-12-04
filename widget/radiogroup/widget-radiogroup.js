@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
@@ -59,16 +55,19 @@ WAF.Widget.provide(
 
         that            = this;
         config          = config || {};
-        htmlObject      = $(this.containerNode);
+        htmlObject      = this.$domNode;
             
         key             = data['binding-key'];
         sourceOut       = data['binding-out'];
         autoDispatch    = data['autoDispatch'];
         options         = data['binding-options'];
         primary         = "ID";
-        classes         = htmlObject.attr('class');
+        classes         = htmlObject.prop('class');
         themes          = [];
         definedTheme    = '';
+        
+        this._primary   = key;
+        this.binding    = data['binding'];
         
         for (i in WAF.widget.themes) {
             theme = WAF.widget.themes[i].key;
@@ -80,20 +79,23 @@ WAF.Widget.provide(
                 }
             }
         }
-        
+
         /*
          * Add display class
          */
-        htmlObject.removeClass('horizontal vertical');
-        htmlObject.addClass(data.display);
+        htmlObject.removeClass('waf-direction-horizontal waf-direction-vertical');
+        htmlObject.addClass('waf-direction-' + data.display);
         
         this.tmpIcon = null;
+    
+        this.dimension   = config['data-display'] === 'horizontal' ? 'width' : 'height';
+        this.value       = 100 / htmlObject.children().length + '%';               
     
         /*
          * Create a radio input
          * @method _createRadio
          */
-        this._createRadio = function radiogroup_createradio(li, svg, icons) {
+        this._createRadio = function radiogroup_createradio(li, svg, icons) { 
             var
             i,
             radioLi,
@@ -101,7 +103,10 @@ WAF.Widget.provide(
             radioIcon,
             radioInput,
             imgHtml,
-            cssClass;
+            cssClass,
+        	obj,
+            radioElem,
+            halfRadioHeight;
             
             radioLi         = li;
             radioInput      = radioLi.children('input');
@@ -113,7 +118,7 @@ WAF.Widget.provide(
             
             radioDiv.addClass(themes.join(' '));            
             
-            $('<div class="waf-radio-box">').appendTo(radioDiv);
+            var radioBox = $('<div class="waf-radio-box">').appendTo(radioDiv);
             
             cssClass    = 'waf-icon waf-radio-icon';
 
@@ -137,7 +142,7 @@ WAF.Widget.provide(
 
                     imgHtml.addClass(icons[i].cssClass);
 
-                    imgHtml.attr({
+                    imgHtml.prop({
                         src : icons[i].value
                     });
 
@@ -150,54 +155,94 @@ WAF.Widget.provide(
                 radioIcon.html($(svg).html());
             }
             
-            radioIcon.appendTo(radioDiv);
+            radioIcon.appendTo(radioBox);
             
             radioInput.appendTo(radioDiv);
             
             radioDiv.appendTo(radioLi);
             
-            radioLabel.appendTo(radioLi);
-
-            /*
-             * Hover States events for radios & label
-             */
-            this.hoverIn = function (e) {
-                radioDiv.addClass("waf-state-hover");
-            }
-                
-            this.hoverOut = function (e) {
-                radioDiv.removeClass("waf-state-hover waf-state-active");
-            }
-            radioInput.hover(this.hoverIn, this.hoverOut);
-            radioLabel.hover(this.hoverIn, this.hoverOut);
+            radioDiv.find('input').before(radioLabel);
             
-            /*
-             * Mouse down States events for radios & label
-             */
-            this.mouseDown = function(e) {
-                radioDiv.addClass("waf-state-active");
+           	 /* set elements sizes  */
+            var elemHeight, 
+                label;
+
+            if (this.binding === null) {
+                radioLi.css(this.dimension, this.value);
+               	radioLi.css("line-height", radioDiv.get()[0].offsetHeight + "px");
+               	radioElem = radioLi.find(".waf-radio-box");
+               	halfRadioHeight = radioElem.get()[0].offsetHeight / 2;
+               	radioElem.css("margin-top", "-"+halfRadioHeight+"px");
+            } else {
+               	label = radioLi.find("label");
+               	label.css("height", "auto");
+               	elemHeight = parseInt(label.get()[0].offsetHeight);
+               	radioLi.css("height", elemHeight+20 + "px");
+               	radioLi.css("line-height", elemHeight+20 + "px");
+               	radioElem = radioLi.find(".waf-radio-box");
+               	halfRadioHeight = radioElem.get()[0].offsetHeight / 2;
+               	radioElem.css("margin-top", "-"+halfRadioHeight+"px");
             }
-
-            radioInput.bind('mousedown', {}, this.mouseDown);
-            radioLabel.bind('mousedown', {}, this.mouseDown);
-
-            /*
-             * Mouse up States events for radios
-             */
-            radioInput.bind('mouseup', {}, function(e) {
-                htmlObject.find('.waf-radio').removeClass("waf-state-selected");
+            
+            if (!WAF.PLATFORM.isTouch) {
                 
-                radioDiv.addClass("waf-state-selected");
-                radioDiv.removeClass("waf-state-active");
-            });
+                /*
+                 * Hover States events for radios & label
+                 */
+                radioInput.hover(
+					function (e) {
+						radioDiv.addClass("waf-state-hover");
+					},
+					function (e) {
+						radioDiv.removeClass("waf-state-hover waf-state-active");
+					}
+                );
+            
+                /*
+                 * Mouse down States events for radios & label
+                 */
+                radioInput.bind('mousedown', {widget : this}, function(e) {
+                    if (!e.data.widget.$domNode.hasClass('waf-state-disabled')) {
+                        //htmlObject.find('.waf-radio').removeClass("waf-state-selected");
+                        radioDiv.addClass("waf-state-active");
+                    }
+                });
 
-            radioInput.focusin(function() {
-                radioDiv.addClass("waf-state-focus");
-            });
+                /*
+                 * Mouse up States events for radios
+                 */
+                radioInput.bind('mouseup', {widget : this}, function(e) {
+                    if (!e.data.widget.$domNode.hasClass('waf-state-disabled')) {
+                        /*radioDiv
+                            .addClass("waf-state-selected")
+                            .removeClass("waf-state-active");*/
 
-            radioInput.focusout(function() {
-                radioDiv.removeClass("waf-state-focus");
-            });
+                        window.setTimeout(function(){
+                            radioDiv.removeClass("waf-state-active");
+                        },0);
+                    }
+                });
+
+                radioInput.focusin(function() {
+                    radioDiv.addClass("waf-state-focus");
+                });
+
+                radioInput.focusout(function() {
+                    radioDiv.removeClass("waf-state-focus");
+                });
+            } else {
+                radioInput.bind({
+                	touchstart : function() {
+	                    radioDiv.addClass("waf-state-active");
+	                },
+	                touchend : function() {
+                        window.setTimeout(function(){
+                            radioDiv.removeClass("waf-state-active");
+                        },0);
+                        //htmlObject.find('.waf-radio').removeClass("waf-state-selected");
+	                }
+                });
+            }
             
             /*
              * To force radio state change even if click on label
@@ -229,6 +274,7 @@ WAF.Widget.provide(
             $.each(htmlObject.children(), function(){
                 that._createRadio($(this), null, icons);
             });
+        	this._setPosition();
         } else {
 
             $('<div>').svg({                        
@@ -247,7 +293,8 @@ WAF.Widget.provide(
                     $.each(htmlObject.children(), function(){
                         that._createRadio($(this), thisSvg);
                     });
-
+                    
+                    that._setPosition();
                 }
             });
         }        
@@ -256,18 +303,22 @@ WAF.Widget.provide(
                 listenerID      :this.id,
                 listenerType    :'radioGroup',
                 subID           : config.subID ? config.subID : null
-            };
+        };
         
         /*
          * Check a radio and add appropriated classes
          */
         this._checkRadio = function radiogroup__checkRadio(radio) {
-            radio.attr("checked", "checked");
-            
-            htmlObject.find('.waf-radio').removeClass("waf-state-selected");
+            if (!this.$domNode.hasClass('waf-state-disabled')) { 
+                radio.prop("checked", "checked");
+
+                htmlObject.find('.waf-radio').removeClass("waf-state-selected");
+                radio.parent().addClass("waf-state-selected");
                 
-            radio.parent().addClass("waf-state-selected");
+            } 
+
         }
+        
         
         if (this.sourceAtt) {            
             /*
@@ -277,11 +328,13 @@ WAF.Widget.provide(
             this.sourceAtt.addListener(function(e) {
                 var 
                 dsID,
-                thatDs;
+                thatDs,
+                widget;
                 
                 dsID    = e.dataSource.getID();
                 thatDs  = {};
-                
+                widget  = e.data.widget;
+
                 switch(e.eventKind) {
                     case  'onCurrentElementChange' :
                         /*
@@ -293,18 +346,18 @@ WAF.Widget.provide(
                                 if (dsID === key) {
                                     bindingInfo.dataSource[dsID].set(e.dataSource);
                                     
-                                    that._checkRadio($('#' + htmlObject.attr('id') + ' input[value="' + e.dataSource.getAttribute(primary).getValue() + '"]'));
+                                    that._checkRadio($('#' + htmlObject.prop('id') + ' input[value="' + e.dataSource.getAttribute(primary).getValue() + '"]'));
                                 } else {
                                     value = e.dataSource.getAttribute(key).getValue();
                                     bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(value);
                                     
-                                    that._checkRadio($('#' + htmlObject.attr('id') + ' input[value="' + value + '"]'));
+                                    that._checkRadio($('#' + htmlObject.prop('id') + ' input[value="' + value + '"]'));
                                 }
                             } else {
                                 if (dsID !== key) {
                                     value = e.dataSource.getAttribute(key).getValue();
                                    
-                                   that._checkRadio($('#' + htmlObject.attr('id') + ' input[value="' + value + '"]'));
+                                   that._checkRadio($('#' + htmlObject.prop('id') + ' input[value="' + value + '"]'));
                                 }
                             }
                         }
@@ -312,72 +365,12 @@ WAF.Widget.provide(
 
                     case  'onCollectionChange' :
                     case  'onAttributeChange' :            
+
                         /*
                          * Add a radio for each data
                          */
                         thatDs.addRadio = function (thisSvg, icons) {          
-                            var
-                            i;                            
-                            
-                            htmlObject.children().remove();
-                            
-                            for (i = 0; i <= e.dataSource.length; i += 1) {
-                                if (i <= 100) {
-                                    e.dataSource.getElement(i, {
-                                        onSuccess: function(e){
-                                            var 
-                                            i,
-                                            split,
-                                            label,
-                                            value,
-                                            li,
-                                            nb;
-
-                                            if (e.element) {
-                                                split = options.split(' ');
-                                                label = '';
-                                                value = e.element.getAttributeValue(key);
-                                                li    = $('<li>');
-
-                                                if (typeof(value) === 'undefined') {
-                                                    value = e.element.getAttributeValue(primary);
-                                                }
-
-                                                nb = 0;
-                                                for (i = 0; i < split.length; i += 1) {
-                                                    if (split[i] !== '') {
-                                                        nb += 1;
-                                                        label += e.element.getAttributeValue(split[i].replace('[', '').replace(']', '')) + ' ';
-                                                    }
-                                                }
-
-                                                /*
-                                                 *  Format if label is a number
-                                                 */  
-                                                if (nb === 1 && label.replace(/ /g, '').match('^\\d+$') && !label.replace(/ /g, '').match('-')) {
-                                                    label = e.data.widget.getFormattedValue(parseInt(label));
-                                                }
-
-                                                li.append($('<input/>').attr({
-                                                    'type'    : 'radio',
-                                                    'name'    : config.id,
-                                                    'data-num': e.position,
-                                                    'id'      : config.id + '-' + e.position,
-                                                    'value'   : value
-                                                }));
-                                                li.append($('<label/>').attr('for', config.id + '-' + e.position).html(label));
-
-                                                htmlObject.append(li);
-                                                
-                                                that._createRadio(li, thisSvg, icons);
-                                            }
-                                        }
-                                    },{
-                                        widget : e.data.widget
-                                    });
-                                }
-                            }
-                            
+                            that._build(e.dataSource, thisSvg, icons)
                         }
                         
                         if (icons.length > 0) {
@@ -400,6 +393,7 @@ WAF.Widget.provide(
                                     thatDs.addRadio(thisSvg);
                                 }
                             });
+
                         }
                         
                         
@@ -420,7 +414,7 @@ WAF.Widget.provide(
                 htmlObj = $(e.target);
                 
                 if ((autoDispatch && autoDispatch !== 'false') || autoDispatch === 'true' ) {                    
-                    e.data.source.select(parseInt(htmlObj.attr('data-num')))
+                    e.data.source.select(parseInt(htmlObj.data('num')))
                 }
 
                 /*
@@ -430,7 +424,7 @@ WAF.Widget.provide(
                     bindingInfo = WAF.dataSource.solveBinding(sourceOut);
 
                     if (typeof(value) === 'undefined' && e.data.source.getID() === e.data.search) {
-                        e.data.source.select(htmlObj.attr('data-num'));
+                        e.data.source.select(htmlObj.data('num'));
                         bindingInfo.dataSource[e.data.source.getID()].set(e.data.source);
                     } else {
                         bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(e.target.value);
@@ -459,12 +453,12 @@ WAF.Widget.provide(
                         e.dataSource[e.data.source.getID()].load({
                             onSuccess : function(e) {
                                 if (e.entity) {
-                                    that._checkRadio($('#' + htmlObject.attr('id') + ' [data-num=' + (e.entity[primary].getValue()-1) + ']'));                            
+                                    that._checkRadio($('#' + htmlObject.prop('id') + ' [data-num=' + (e.entity[primary].getValue()-1) + ']'));                            
                                 }
                             }
                         });
                     } else {
-                        that._checkRadio($('#' + htmlObject.attr('id') + ' input[value="' + value + '"]'));   
+                        that._checkRadio($('#' + htmlObject.prop('id') + ' input[value="' + value + '"]'));   
                     }
 
                 }, {}, {
@@ -480,13 +474,13 @@ WAF.Widget.provide(
             /*
              * Change current entity on change event
              */
-            htmlObject.bind('change', {}, function(e) {
+            htmlObject.bind('change', {widget : this}, function(e) {
                 var bindingInfo
                 
                 /*
                  * Save value if binding "out" is defined
                  */
-                if (sourceOut) {
+                if (sourceOut && !e.data.widget._preventChange) {
                     bindingInfo = WAF.dataSource.solveBinding(sourceOut);
                     bindingInfo.dataSource.getAttribute(bindingInfo.attName).setValue(e.target.value);
                 }
@@ -494,7 +488,58 @@ WAF.Widget.provide(
         }
         
     },{
-        /*
+        ready : function radio_ready() {
+            var
+            that;
+            
+            that = this;
+            if (this.config['data-binding-out']) {
+
+                this._sourceOutInfo = WAF.dataSource.solveBinding(this.config['data-binding-out']);
+                if (this._sourceOutInfo) {
+                    this.sourceOut = this._sourceOutInfo.dataSource;
+                }
+            }
+
+            if (this.sourceOut) {
+                this.sourceOut.addListener('all', function(e){
+                    var
+                    kind,
+                    value,
+                    widget;
+                    
+                    widget  = e.data.widget;
+                    kind    = e.eventKind;
+
+                    switch(kind) {
+                        case 'onAttributeChange' :
+                        case 'onCurrentElementChange' :
+                            value = e.dataSource.getAttribute(widget._sourceOutInfo.attName).getValue();
+                            
+                            if (value && typeof(value) == 'object' && value[widget._primary]) {
+                                value = value[widget._primary];
+                            }            
+
+                            /*
+                             * Prevent on change event script execution
+                             */
+                            that._preventChange = true;
+                            widget.setValue(value);
+                            that._preventChange = false;
+                            
+                            widget._tmpValue = value;
+                            
+                            break;
+                    }
+                }, {
+                
+                }, {
+                    widget : that
+                })
+            }
+        },
+
+        /**
          * Select a radio of the radiogroup depending on a value
          * @method select
          * @param {String} value
@@ -513,6 +558,174 @@ WAF.Widget.provide(
             if (radio.length > 0) {
                 this._checkRadio(radio);
             }
+        },
+        
+        _setPosition : function () {
+			var
+			radios       = this.$domNode.find('.waf-radio'),
+			radiosLength = radios.length,
+            $radio;
+			
+			
+			// Setting position
+			radios && radios.map(function(i, radio) {
+				if (!radio) {
+					return;
+				}
+				
+				$radio = $(radio);
+				
+				if (i == 0) {
+					$radio.addClass('waf-position-first');
+				} else {
+					$radio.removeClass('waf-position-first');
+				}
+				
+				if (i == radiosLength - 1) {
+					$radio.addClass('waf-position-last');
+				} else {
+					$radio.removeClass('waf-position-last');
+				}
+			});
+        },
+        
+        /**
+         * Build the widget
+         * @method _build
+         * @param {object} ds : datasource
+         */
+        _build : function (ds, thisSvg, icons) {
+            var
+            i,
+            key,
+            liCss,
+            options,
+            primary,
+            widget,
+            config,
+            htmlObject;
+            
+            widget      = this;
+            config      = this.config;
+            htmlObject  = this.$domNode;
+            key         = this.config['data-binding-key'];
+            options     = this.config['data-binding-options'];
+            primary     = "ID";
+            
+            htmlObject.children().remove();
+                            
+            for (i = 0; i <= ds.length; i += 1) {
+                if (i <= 100) {
+                    ds.getElement(i, {
+                        onSuccess: function(e){
+                            var 
+                            i,
+                            li,
+                            nb,
+                            val,
+                            split,
+                            label,
+                            value,
+                            display,
+                            dimension;
+                            
+                            display = false;
+
+                            if (e.element) {
+                                split = options.split(' ');
+                                label = '';
+                                value = e.element.getAttributeValue(key);
+                                li    = $('<li>');
+
+                                if (typeof(value) === 'undefined') {
+                                    value = e.element.getAttributeValue(primary);
+                                }
+
+                                nb = 0;
+                                for (i = 0; i < split.length; i += 1) {
+                                    if (split[i] !== '') {
+                                        nb += 1;
+                                        
+                                        val = e.element.getAttributeValue(split[i].replace('[', '').replace(']', ''));
+                                        
+                                        label += val + ' ';
+                                        
+                                        if (val != null) {
+                                            display = true;
+                                        }
+                                    }
+                                }
+
+                                /*
+                                 *  Format if label is a number
+                                 */  
+                                if (nb === 1 && label.replace(/ /g, '').match('^\\d+$') && !label.replace(/ /g, '').match('-')) {
+                                    label = e.data.widget.getFormattedValue(parseInt(label));
+                                }
+
+
+                                if (display) {
+                                    li.append($('<input/>').attr({
+                                        'type'    : 'radio',
+                                        'name'    : config.id,
+                                        'data-num': e.position,
+                                        'id'      : config.id + '-' + e.position,
+                                        'value'   : value
+                                    }));
+                                    li.append($('<label/>').prop('for', config.id + '-' + e.position).html(label));
+
+                                    htmlObject.append(li);
+
+                                    widget._createRadio(li, thisSvg, icons);
+
+                                    /*dimension   = config['data-display'] === 'horizontal' ? 'width' : 'height';
+                                    value       = 100 / htmlObject.children().length + '%';
+
+                                    htmlObject.children().map(function() {
+                                            //$(this).css(dimension, value);
+                                    });*/
+                                }
+                            }
+                        }
+                    }, {
+                        widget : this
+                    });
+                }
+            }
+
+            var childrenLi;
+
+            childrenLi = this.$domNode.children('li');
+            
+            //if (WAF.PLATFORM.isTouch) {
+                if (this.dimension == 'width') {
+                    liCss = {
+                        'width'         : 100 / ds.length + '%',
+                        'height'        : this.$domNode.css('height'),
+                        'line-height'   : this.$domNode.css('height')
+                    }
+                } else {
+                    liCss = {
+                        'height'         : 100 / ds.length + '%',
+                        'width'        : this.$domNode.css('width')
+                    }
+                }
+                
+                childrenLi.css(liCss);
+            //}
+            
+            if (!WAF.PLATFORM.isTouch && this.dimension != 'width') {
+                var childHeight;
+
+                childHeight = childrenLi.outerHeight();
+
+                this.$domNode.find('label').css({
+                    'height'        : childHeight + 'px',
+                    'line-height'   : childHeight + 'px'
+                });
+            }
+            
+            this._setPosition();
         }
     }
 );

@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type        : 'richText',
@@ -46,7 +42,28 @@ WAF.addWidget({
     },
     {
         name        : 'data-label',
-        description : 'Label'
+        description : 'Label',
+        ready       : function () {            
+            var
+            i,
+            tag,
+            selection,
+            selectionL;
+            
+            
+            selection   = Designer.env.tag.selection;
+            selectionL  = selection.count();
+
+            if (selectionL <= 0) {   
+                if (!this.data.tag.getAttribute('data-binding').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }
+            } else {
+                if (!D.ui.selection.getAttribute('data-binding').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }
+            }
+        }
     },
     {
         name        : 'data-text',
@@ -60,21 +77,55 @@ WAF.addWidget({
     },
     {
         name        : 'data-link',
-        description : 'Link'
+        description : 'Link',
+        onchange    : function(){
+            if (!this.getValue()) {
+                $('#dropdown-data-target').parent().parent().hide();
+            } else {
+                $('#dropdown-data-target').parent().parent().show();
+            }
+        }
     },
     {
         name        : 'data-target',
         description : 'Target',
         type        : 'dropdown',
         options     : ['_blank', '_self'],
-        defaultValue: '_blank'
+        defaultValue: '_blank',
+        ready     : function(){            
+            var
+            i,
+            tag,
+            selection,
+            selectionL;
+            
+            
+            selection   = Designer.env.tag.selection;
+            selectionL  = selection.count();
+
+            if (selectionL <= 0) {   
+                if (!this.data.tag.getAttribute('data-link').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }                
+            } else {
+                if (!D.ui.selection.getAttribute('data-link').getValue()) {
+                    this.getHtmlObject().parent().parent().hide();
+                }  
+            }
+        }
     },
     {
         name        : 'data-overflow',
         description : 'Scrollbar',
         type        : 'dropdown',
         options     : ['Hidden', 'Horizontal', 'Vertical', 'Both'],
-        defaultValue: '_blank'
+        defaultValue: 'Hidden'
+    },
+    {
+        name        : 'data-plainText',
+        description : 'Plain Text',
+        type        : 'checkbox',
+        defaultValue: 'true'
     }],
     style: [
     {
@@ -90,6 +141,51 @@ WAF.addWidget({
         name       : 'click',
         description: 'On Click',
         category   : 'Mouse Events'
+    },
+    {
+        name       : 'dblclick',
+        description: 'On Double Click',
+        category   : 'Mouse Events'
+    },
+    {
+        name       : 'mousedown',
+        description: 'On Mouse Down',
+        category   : 'Mouse Events'
+    },
+    {
+        name       : 'mousemove',
+        description: 'On Mouse Move',
+        category   : 'Mouse Events'
+    },
+    {
+        name       : 'mouseout',
+        description: 'On Mouse Out',
+        category   : 'Mouse Events'
+    },
+    {
+        name       : 'mouseover',
+        description: 'On Mouse Over',
+        category   : 'Mouse Events'
+    },
+    {
+        name       : 'mouseup',
+        description: 'On Mouse Up',
+        category   : 'Mouse Events'
+    },
+    {
+        name       : 'touchstart',
+        description: 'On Touch Start',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchend',
+        description: 'On Touch End',
+        category   : 'Touch Events'
+    },
+    {
+        name       : 'touchcancel',
+        description: 'On Touch Cancel',
+        category   : 'Touch Events'
     }],
     properties: {
         style: {
@@ -118,30 +214,30 @@ WAF.addWidget({
         tagWidth,
         tagHeight,
         split,
+        attrText,
         tmpHtmlObject;
         
         htmlObject      = tag.getHtmlObject();
         
         tagWidth        = tag.getWidth();
-        tagHeight       = tag.getHeight();         
+        tagHeight       = tag.getHeight();    
+
+        attrText = tag.getAttribute('data-text').getValue();
         
         /*
          * Get the source as text value
          */
         if (tag.getSource()) {
-            text    = '[' + tag.getSource() + ']';                  
+            text    = '[' + tag.getSource() + ']';      
+            if (attrText) {
+                text = attrText;
+            }
             
             /*
              * if a text exist set the old text as the label
              */
             if (tag._oldTextValue) {     
                 tag.getAttribute('data-label').setValue(tag._oldTextValue);
-            }
-            
-
-            if (!tag.getAttribute('data-label').getValue() && tag.getLabel() && tag.getLabel().getAttribute('data-text').getValue()) {  
-                split = tag.getSource().split('.');
-                tag.getAttribute('data-label').setValue(split[split.length-1]);
             }
             
             tag._oldTextValue = null;
@@ -171,7 +267,7 @@ WAF.addWidget({
             tag._oldTextValue = text;
         }
         
-        tag.getAttribute('data-text').setValue(text);
+        //tag.getAttribute('data-text').setValue(text);
         
         if (tag.getAttribute('data-link').getValue()) {
             htmlObject.addClass('link');
@@ -264,7 +360,7 @@ WAF.addWidget({
             Designer.api.setListenerMode(false);
             tag.resize.lock(true);
             YAHOO.util.Event.stopEvent(e);
-            $(this).attr('disabled', 'disabled');
+            $(this).prop('disabled', 'disabled');
             
             /*
              * Lock d&d
@@ -285,29 +381,31 @@ WAF.addWidget({
             /*
              * Create edit box with the same css as the tag
              */
-            editBox = $('<textarea>');
+            if (tag.getParent().getType() == 'menuItem') {
+                editBox = $('<input>')      
+                    .attr('value', text);
+            } else {
+                editBox = $('<textarea>')     
+                    .html(text);            
+            }
+                   
             editBox.css({
                 /*
                  * Keep the same css as the tag
                  */    
-                'font-size'         : tag.getComputedStyle('font-size'),
-                'font-family'       : tag.getComputedStyle('font-family'),
-                'font-style'        : tag.getComputedStyle('font-style'),
-                'font-weight'       : tag.getComputedStyle('font-weight'),
-                'text-decoration'   : tag.getComputedStyle('text-decoration'),
-                'text-align'        : tag.getComputedStyle('text-align'),
-                'background-color'  : tag.getComputedStyle('background-color'),
-                'background-image'  : tag.getComputedStyle('background-image'),
-                'text-shadow'       : tag.getComputedStyle('text-shadow'),
-                'letter-spacing'    : tag.getComputedStyle('letter-spacing'),
+                'font-size'         : 'inherit',
+                'font-family'       : 'inherit',
+                'font-style'        : 'inherit',
+                'font-weight'       : 'inherit',
+                'text-decoration'   : 'inherit',
+                'text-align'        : 'inherit',
+                'background-color'  : 'transparent',
                 'border'            : 'none',
                 'width'             : '100%',
                 'height'            : '100%',
                 'resize'            : 'none'
             });
-            
-            editBox.html(text);
-            
+
             htmlObject.html(editBox);
             
             

@@ -1,416 +1,644 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
-*/
-WAF.Widget.provide(
+ * This file is part of Wakanda software, licensed by 4D under
+ *  (i) the GNU General Public License version 3 (GNU GPL v3), or
+ *  (ii) the Affero General Public License version 3 (AGPL v3) or
+ *  (iii) a commercial license.
+ * This file remains the exclusive property of 4D and/or its licensors
+ * and is protected by national and international legislations.
+ * In any event, Licensee's compliance with the terms and conditions
+ * of the applicable license constitutes a prerequisite to any use of this file.
+ * Except as otherwise expressly stated in the applicable license,
+ * such license does not include any other license or rights on this file,
+ * 4D's and/or its licensors' trademarks and/or other proprietary rights.
+ * Consequently, no title, copyright or other proprietary rights
+ * other than those specified in the applicable license is granted.
+ */
+WAF.Widget.provide(/**
+ *
+ * @class TODO: give a name to this class (ex: WAF.widget.DataGrid)
+ * @extends WAF.Widget
+ */
+'TextField', {}, /**
+ * @constructor
+ * @param {Object} inConfig configuration of the widget
+ */
+/**
+ * The constructor of the widget
+ *
+ * @shared
+ * @property constructor
+ * @type Function
+ **/
+function WAFWidget(config, data, shared){
+	var that, htmlObject;
+	
+	that = this;
+	htmlObject = $(this.containerNode);
+	
+	/*
+	 * To prevent browser input autofill
+	 */
+	htmlObject.prop("name", that.id + parseInt(Math.random() * 100000));
 
-    /**
-     *      
-     * @class TODO: give a name to this class (ex: WAF.widget.DataGrid)
-     * @extends WAF.Widget
-     */
-    'TextField',   
-    {        
-    },
-    /**
-     * @constructor
-     * @param {Object} inConfig configuration of the widget
-     */
 
-    /**
-     * The constructor of the widget
-     *
-     * @shared
-     * @property constructor
-     * @type Function
-     **/
-    function WAFWidget(config, data, shared) {   
-        var
-        that,
-        htmlObject;
+	/*
+	 * Add placeholder if specified (simultating it if needed
+	 */
+	if (config['placeholder'] !== undefined) {
+		htmlObject.attr('placeholder', config['placeholder']);
 
-        that        = this;
-        htmlObject  = $(this.containerNode);    
-        
-        /*
-         * To prevent browser input autofill
-         */
-        htmlObject.attr("name", that.id + parseInt(Math.random()*100));
-        
-        /*
-         * Transform somes value into boolean
-         */
-        data['datapicker-on']          = WAF.utils.getBoolValue(data['datapicker-on']);
-        data['datapicker-icon-only']   = WAF.utils.getBoolValue(data['datapicker-icon-only']);
-        data['password']               = WAF.utils.getBoolValue(data['password']);
+		// simulates placeholder if needed
+		if (WAF.PLATFORM.html5Support[this.domNode.tagName.toLowerCase()]['placeholder'] === false) {
 
-        /*
-         * ------------ <MOUSE EVENTS> ------------
-         * To change status
-         */
-        htmlObject.hover(
-            function () {
-                $(this).addClass("waf-state-hover");
-            },
-            function () {
-                $(this).removeClass("waf-state-hover");
-            }
-            );
+			// html5 schim for feature-less browsers (ie: IE9)
+			htmlObject.focus(function() {
+				  var input = $(this);
 
-        htmlObject.unbind('focusin');
-        htmlObject.unbind('focusout');
-    
-        htmlObject.bind('focusin', {}, function(e) {
-            $(this).addClass("waf-state-focus");
-        });
-    
-        htmlObject.bind('focusout', {}, function(e) {
-            $(this).removeClass("waf-state-focus");
-        });   
-        /*
-         * ------------ </MOUSE EVENTS> ------------
-         */        
-        
-        /*
-         * Set input as password field if defined
-         */
-        if (data.password) {
-            document.getElementById(config.id).setAttribute('type', 'password');
-        }   
-        
-        /*
-         * If widget is binded
-         */
-        if (this.sourceAtt) {
-            this.sourceAtt.addListener(function(e) {          
-                var
-                text,
-                widget,
-                widgetID,
-                items,
-                enumValueList,
-                mustAutoComplete,
-                dateOptions,
-                autoCompleteWidget,
-                dateIcon,
-                htmlObject,
-                isParentMatrix,
-                dateIconLeft;
-                
-                widget          = e.data.widget;
-                widgetID        = widget.id;
-                enumValueList   = [];                
-                htmlObject      = $('#' + widgetID)
-                
-                widget.clearErrorMessage();        
-    
-                /*
-                 * Set the value
-                 */
+				  if (input.val() == input.attr('placeholder')) {
+					input.val('');
+				  }
+			}).blur(function() {
+				  var input = $(this);
+				  if (input.val() == '' || input.val() == input.attr('placeholder')) {
+					input.val(input.attr('placeholder'));
+				  }
+			}).blur();
+			
+			$('[placeholder]').parents('form').submit(function() {
+				  $(this).find('[placeholder]').each(function() {
+					var input = $(this);
+					if (input.val() == input.attr('placeholder')) {
+					  input.val('');
+					}
+				  })
+			});
+		}	// /placeholder
+	}
 
-                if (!widget.att.simple) {
-                    text = "";
-                    
-                    // case of dataSource var/array/object
+	/*
+	 * Transform somes value into boolean
+	 */
+	data['datapicker-on'] = WAF.utils.getBoolValue(data['datapicker-on']);
+	data['datapicker-icon-only'] = WAF.utils.getBoolValue(data['datapicker-icon-only']);
+	data['password'] = WAF.utils.getBoolValue(data['password']);
+	
+	var dataTheme = htmlObject.data("theme");
+	if (dataTheme == null || dataTheme == "") {
+		dataTheme = "";
+		var existingClasses = htmlObject.prop('class');
+		existingClasses.split(" ").forEach(function(className){
+			if (className != "inherit" && className.substr(0, 4) != "waf-") {
+				dataTheme += className + " ";
+			}
+		});
+	}
+	/*
+	 * ------------ <MOUSE EVENTS> ------------
+	 * To change status
+	 */
+	htmlObject.hover(function(){
+		if (that.getState() != 'focus') {
+            that.setState('hover');
+        }
 
-                    if (widget && widget.source && widget.source._private && widget.source._private.sourceType && 
-                        (widget.source._private.sourceType == 'scalar' || widget.source._private.sourceType == 'array' || widget.source._private.sourceType == 'object')) {
-                        if (widget.isInFocus) {
-                            text = widget.sourceAtt.getValue(); 
-                        } else {
-                            text = widget.getFormattedValue();
-                        }
-                    }
-                    
-                } else {
-                    if (widget.isInFocus) {
-                        text = widget.sourceAtt.getValue(); 
-                    } else {
-                        text = widget.getFormattedValue();
-                    }
-                }
-                
-                htmlObject.val(text);
-                isParentMatrix = htmlObject.parents('.waf-matrix');
-                
-                if (widget.att.enumeration != null && !widget.att.readOnly && !widget.sourceAtt.readOnly) {
-                    items = widget.att.enumeration.item;
-                    
-                    for (var i = 0, nb = items.length; i < nb; i++) {
-                        enumValueList.push(items[i].name);
-                    }
-                }
-		
-                mustAutoComplete = false;
-                
-                if (widget.att.autoComplete) {
-                    mustAutoComplete = true;
-                }
-                
-                if (data.autocomplete != null && !data.autocomplete){
-                    mustAutoComplete = false;
-                }
-                
-		
-                if (enumValueList.length > 0) {
-                    if (isParentMatrix.length == 0 || (e.subID && isParentMatrix.length != 0)) {
-                        htmlObject
-                        .data('enumValueList', enumValueList)
-                        .autocomplete({
-                            source: function(request, response) {
-                                response($.grep($(this.element.context).data('enumValueList'), function(item, index) {
-                                    return item.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
-                                }));
-                            }
-                        });                        
-
-                        autoCompleteWidget = htmlObject.autocomplete('widget');
-                        
-                        if (isParentMatrix.length == 0) {
-                            htmlObject.blur(that.autocompleteBlur);
-                        }
-                    }
-                    
-                } else if (mustAutoComplete) {  
-                    if (isParentMatrix.length == 0 || (e.subID && isParentMatrix.length != 0)) {
-                        htmlObject.autocomplete({
-                            source: function(request, response) {
-                                $.ajax({
-                                    url: '/rest/' + widget.source.getDataClass().getName() + '/' + widget.att.name + '?$distinct=true&$top=20',
-                                    data: {
-                                        '$filter': '"' + widget.att.name + '=\'' + request.term + '@\'"'
-                                    },
-                                    success: function(data) {
-                                        response($.map(data, function(item) {
-                                            return {
-                                                value: item
-                                            }
-                                        }));
-                                    }
-                                });
-                            }
-                        });
-
-                        autoCompleteWidget = htmlObject.autocomplete('widget'); 
-                        
-                        if (isParentMatrix.length == 0) {
-                            htmlObject.blur(that.autocompleteBlur);
-                        }
-                    }                
-
-                    
-                /*
-                 * case of calendar
-                 */
-                } else {
-                    if (widget.att.type == 'date') {
-                        dateOptions = {
-                            changeMonth: true,
-                            changeYear: true
-                        };
-                        
-                        if (data['datapicker-on']) {
-                            /*
-                             * If icon only active => add calendar button
-                             */
-                            if (data['datapicker-icon-only']) {
-                                dateOptions.showOn          =  "button";
-                                dateOptions.buttonImage     = "/waLib/WAF/widget/png/date-picker-trigger.png?id=" + widgetID;
-                                dateOptions.buttonImageOnly = true;   
-                            }
-                            
-                            /*
-                             * Fix bug on calendar on textfield into a matrix
-                             */
-                            if (isParentMatrix.length == 0 || (e.subID && isParentMatrix.length != 0)) {
-                                htmlObject.datepicker(dateOptions);
-                            }
-                            
-                            /*
-                             * Get linked calendar button
-                             */
-                            if (data['datapicker-icon-only'] && htmlObject[0]) {
-                                dateIcon        = $('img[src="/waLib/WAF/widget/png/date-picker-trigger.png?id=' + widgetID + '"]');
-                                
-                                dateIconLeft    = (parseInt(htmlObject.css('left')) + htmlObject[0].offsetWidth);
-                                
-                                //console.log(htmlObject, config.id, dateIconLeft)
-                                dateIcon.css({
-                                    'position'  : 'absolute',
-                                    'left'      : dateIconLeft + 'px',
-                                    'top'       : htmlObject.css('top'),
-                                    'cursor'    : 'pointer'
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                /*
-                 * Set the same as the htmlobject css to the autocomplete
-                 */
-                if (autoCompleteWidget != null) {
-                    ["font-family","font-size","font-style","font-variant","font-weight","text-align","letter-spacing","background-color","color"].forEach(function(elem) {
-                        autoCompleteWidget.css(elem, htmlObject.css(elem));
-                    });
-                }
-                 
-                /*
-                 * Change datasource value on change event
-                 */
-                htmlObject.bind('change', {}, that.change);
-                
-                
-                /*
-                 * Remove formatted value on focus
-                 */
-                htmlObject.bind('focus',function(event) {
-                    var 
-                    widget,
-                    sourceAtt;
-                    
-                    widget = WAF.widgets[this.id];
-                    widget.isInFocus = true;
-                    
-                    if (widget.format != null && widget.format.format != null) {
-                        sourceAtt = widget.sourceAtt;
-                        
-                        if (sourceAtt != null) {
-                            this.value = sourceAtt.getValueForInput();
-                        }
-                    }
-                });
-                
-                /*
-                 * Reset formatted value on blur
-                 */
-                htmlObject.bind('blur',function(event) {
-                    var 
-                    widget,
-                    value,
-                    sourceAtt;
-                    
-                    widget  = WAF.widgets[this.id];
-                    value   = '';
-                    
-                    widget.isInFocus = false;
-                    
-                    if (widget.format != null && widget.format.format != null) {
-                        sourceAtt = widget.sourceAtt;
-                        if (sourceAtt != null){
-                            value = sourceAtt.getValue();
-                        }
-                        this.value = widget.getFormattedValue(value);
-                    }
-                });
-                
-                /*
-                 * Active/Desactive input depending on readOnly attribute
-                 */
-                if (widget.att.readOnly || widget.sourceAtt.readOnly){
-                    htmlObject.disabled = true;
-                } else {
-                    htmlObject.disabled = false;
-                }
-
-            },{
-                listenerID      : config.id,
-                listenerType    : 'textInput',
-                subID           : config.subID ? config.subID : null
-            }, {
-                widget:this
-            });
+	}, function(){
+        if (that.getState() == 'focus') {
+            that.setState('focus');
         } else {
-            this._tmpVal = htmlObject.attr('value');
-            if (this._tmpVal && this._tmpVal.replace()) {
-                this._tmpVal = this._tmpVal.replace(/&quot;/g, '"');  
-            }
-            text = this.getFormattedValue(htmlObject.val()); 
-            if (text && text.replace()) {
-                text = text.replace(/&quot;/g, '"');  
-            }
-            htmlObject.val(text);
-            
-            htmlObject.focusin(function() {
-                if (that._tmpVal) { 
-                    $(this).val(that._tmpVal);
-                }
-            });
-            
-            htmlObject.focusout(function() {
-                that._tmpVal = $(this).val();
-                if (that._tmpVal) { 
-                    $(this).val(that.getFormattedValue(that._tmpVal));
-                }
-            });
+            that.setState('default');
         }
-    }, {
-        /*
-         * TextField widget change event function
-         */
-        change : function() { 
-            var 
-            widget,
-            value,
-            sourceAtt,
-            validation;
+	});
+	
+	htmlObject.unbind('focusin');
+	htmlObject.unbind('focusout');
+	
+	htmlObject.bind('focusin', {}, function(e){
+		that.setState('focus');
+	});
+	
+	htmlObject.bind('focusout', {}, function(e){
+        that.removeState('focus');
+	});
+	/*
+	 * ------------ </MOUSE EVENTS> ------------
+	 */
+	/*
+	 * Set input as password field if defined
+	 */
+	if (data.password) {
+		document.getElementById(config.id).setAttribute('type', 'password');
+	}
 
-            widget  = WAF.widgets[this.id];
-            
-            if (widget != null) {
-                if (widget.doNotUpdate){
-                    widget.doNotUpdate = false;
-                } else {                          
-                    sourceAtt   = widget.sourceAtt;
-                    value       = sourceAtt.normalize(this.value);
-                    validation  = sourceAtt.validate(value);
+	/*
+	 * If widget is binded
+	 */
+	var text, widget, widgetID, items, enumValueList, mustAutoComplete, dateOptions, autoCompleteWidget, dateIcon, htmlObject, isParentMatrix, dateIconLeft;
+	
+	widget = that;
+	widgetID = widget.id;
+	enumValueList = [];
+	htmlObject = $('#' + widgetID);
+	
+	if (this.sourceAtt) {
+	
+	
+		this.sourceAtt.addListener(function(e){
+			var widget = e.data.widget;
+			var widgetID = widget.id;
+			var htmlObject = $('#' + widgetID);
+			
+			widget.clearErrorMessage();
+			
+			/*
+			 * change input type for mobile depending on attribute's type
+			 */
+			if (WAF.PLATFORM.isTouch) {
+				switch (widget.att.type) {
+					case "date":
+						if (WAF.PLATFORM.OS === "iOs" && WAF.PLATFORM.OSVersion >= 5) {
+							htmlObject.get()[0].type = "date";
+						}
+						else {
+							htmlObject.scroller();
+						}
+						break;
+					default:
+				}
+			}
+			
+			/*
+			 * Set the value
+			 */
+			if (!widget.att.simple) {
+				text = "";
+				
+				// case of dataSource var/array/object
+				
+				if (widget && widget.source && widget.source._private && widget.source._private.sourceType &&
+				(widget.source._private.sourceType == 'scalar' || widget.source._private.sourceType == 'array' || widget.source._private.sourceType == 'object')) {
+					if (widget.isInFocus) {
+						text = widget.sourceAtt.getValueForInput();
+					}
+					else {
+						text = widget.getFormattedValue();
+					}
+				}
+				
+			}
+			else {
+				if (widget.isInFocus) {
+					text = widget.sourceAtt.getValueForInput();
+				}
+				else {
+					text = widget.getFormattedValue();
+				}
+			}
+			
+			/*
+			 *  specific task if mobile & date
+			 */
+			if (widget.att.type === 'date' && WAF.PLATFORM.isTouch && WAF.PLATFORM.OS === "iOs" && WAF.PLATFORM.OSVersion >= 5) {
+				var date = new Date(text), y = date.getFullYear(), d = date.getDate(), m = date.getMonth() + 1;
+				
+				if (d < 10) {
+					d = "0" + d;
+				}
+				
+				if (m < 10) {
+					m = "0" + m;
+				}
+				
+				text = y + "-" + m + "-" + d;
+			}
+			
+			htmlObject.val(text);
+			
+		}, {
+			listenerID: config.id,
+			listenerType: 'textInput',
+			subID: config.subID ? config.subID : null
+		}, {
+			widget: this
+		});
+	
+		// end of onAttributeChange
+		
+		
+		
+		
+		isParentMatrix = htmlObject.parents('.waf-matrix');
+		
+		if (widget.att.enumeration != null && !widget.att.readOnly && !widget.sourceAtt.readOnly) {
+			items = widget.att.enumeration.item;
+			
+			for (var i = 0, nb = items.length; i < nb; i++) {
+				enumValueList.push(items[i].name);
+			}
+		}
+		
+		mustAutoComplete = false;
+		
+		
+		if (widget.att.autoComplete) {
+			mustAutoComplete = true;
+		}
+		
+		if (data.autocomplete != null && !data.autocomplete) {
+			mustAutoComplete = false;
+		}
+		
+		
+		if (enumValueList.length > 0) {
+			if (isParentMatrix.length == 0 || (typeof e != 'undefined' && e.subID && isParentMatrix.length != 0)) {
+				htmlObject.data('enumValueList', enumValueList).autocomplete({
+					source: function(request, response){
+						response($.grep($(this.element.context).data('enumValueList'), function(item, index){
+							return item.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
+						}));
+					}
+					
+				});
+				
+				autoCompleteWidget = htmlObject.autocomplete('widget');
+				
+				if (isParentMatrix.length == 0) {
+					htmlObject.blur(that.autocompleteBlur);
+				}
+			}
+			
+		}
+		else if (mustAutoComplete) {
+			if (isParentMatrix.length == 0 || (typeof e != 'undefined' && e.subID && isParentMatrix.length != 0)) {
+				htmlObject.autocomplete({
+					source: function(request, response){
+						$.ajax({
+							url: '/rest/' + widget.source.getDataClass().getName() + '/' + widget.att.name + '?$distinct=true&$top=20',
+							data: {
+								'$filter': '"' + widget.att.name + '=\'' + request.term + WAF.wildchar + '\'"'
+							},
+							success: function(data){
+								response($.map(data, function(item){
+									return {
+										value: item
+									}
+								}));
+							}
+							
+						});
+					}
+					
+				});
+				
+				autoCompleteWidget = htmlObject.autocomplete('widget');
+				autoCompleteWidget.addClass(dataTheme);
+				
+				if (isParentMatrix.length == 0) {
+					htmlObject.blur(that.autocompleteBlur);
+				}
+			}
+			
+			/*
+			 * case of calendar
+			 */
+		}
+		else {
+			if (widget.att.type == 'date') {
+				var lang = WAF.utils.getBrowserLang();
+				dateOptions = $.datepicker.regional[lang] || {};
+				$.datepicker.setDefaults(dateOptions);
+				var dateInputFormat = dateOptions.dateFormat || "m/d/yy";
+				
+				dateOptions.changeMonth = true;
+				dateOptions.changeYear = true;
+				
+				if (data['datapicker-on']) {
+				
+					if (!WAF.PLATFORM.isTouch || WAF.PLATFORM.OS != "iOs") {
+						/*
+						 * If icon only active => add calendar button
+						 */
+						if (data['datapicker-icon-only']) {
+							dateOptions.showOn = "button";
+							dateOptions.buttonImage = "/waLib/WAF/widget/png/date-picker-trigger.png?id=" + widgetID;
+							dateOptions.buttonImageOnly = true;
+						}
+						else {
+							dateOptions.buttonImageOnly = false;
+							dateOptions.showOn = "focus";
+						}
+						
+						dateOptions.onClose = function(dateText, inst){
+							var value, sourceAtt;
+							
+							if (widget.format != null && widget.format.format != null) {
+								sourceAtt = widget.sourceAtt;
+								if (sourceAtt != null) {
+									value = sourceAtt.getValue();
+								}
+								
+								this.value = widget.getFormattedValue(value);
+							}
+						}
+						
+						/*
+						 * Fix bug on calendar on textfield into a matrix
+						 */
+						if (isParentMatrix.length == 0 || (e.subID && isParentMatrix.length != 0)) {
+							htmlObject.datepicker(dateOptions);
+							htmlObject.datepicker("widget").addClass(dataTheme);
+							if (false) {
+								var dateVal;
+								if (widget.sourceAtt != null) 
+									dateVal = widget.sourceAtt.getValue() || new Date();
+								else 
+									dateVal = new Date();
+								
+								htmlObject.bind('blur', function(event){
+									setTimeout(function(evv){
+										htmlObject.DatePickerHide();
+									}, 500);
+								});
+								
+								htmlObject.bind('keyup', function(event){
+									var val = htmlObject.val();
+									var tempDate = $.fn.DatePickerParse(val, dateInputFormat);
+									if (tempDate.isValid()) 
+										htmlObject.DatePickerSetDate(tempDate, true);
+								});
+								
+								htmlObject.DatePicker({
+									format: 'm/d/yy',
+									date: dateVal,
+									current: dateVal,
+									starts: 1,
+									position: 'bottom',
+									onBeforeShow: function(){
+										var dateVal;
+										if (widget.sourceAtt != null) 
+											dateVal = widget.sourceAtt.getValue() || new Date();
+										else 
+											dateVal = new Date();
+										htmlObject.DatePickerSetDate(dateVal, true);
+									},
+									onChange: function(formated, dates){
+										if (widget.sourceAtt != null) 
+											widget.sourceAtt.setValue(dates);
+										htmlObject.DatePickerHide();
+									}
+									
+								});
+								var datapickerid = htmlObject.data("datepickerId");
+								var datepickobj = $("#" + datapickerid);
+								datepickobj.addClass("waf-calendar");
+							}
+							
+						}
+						
+						/*
+						 * Get linked calendar button
+						 */
+						if (data['datapicker-icon-only'] && htmlObject[0]) {
+							dateIcon = $('img[src="/waLib/WAF/widget/png/date-picker-trigger.png?id=' + widgetID + '"]');
+							
+							dateIconLeft = (parseInt(htmlObject.css('left')) + htmlObject[0].offsetWidth);
+							
+							dateIcon.css({
+								'position': 'absolute',
+								'left': dateIconLeft + 'px',
+								'top': htmlObject.css('top'),
+								'cursor': 'pointer'
+							});
+						}
+					}
+				}
+			}
+		}
+		
+		/*
+		 * Set the same as the htmlobject css to the autocomplete
+		 */
+		if (autoCompleteWidget != null) {
+			["font-family", "font-size", "font-style", "font-variant", "font-weight", "text-align", "letter-spacing", "background-color", "color"].forEach(function(elem){
+				autoCompleteWidget.css(elem, htmlObject.css(elem));
+			});
+		}
+		
+		/*
+		 * Change datasource value on change event
+		 */
+		htmlObject.unbind('change', that.change)
+		htmlObject.bind('change', {}, that.change);
+		if (WAF.PLATFORM.isTouch && widget.att.type === 'date') {
+			htmlObject.unbind('blur', that.blur)
+			htmlObject.bind('blur', {}, that.blur);
+		}
+		
+		/*
+		 * Remove formatted value on focus
+		 */
+		htmlObject.bind('focus', function(event){
+			var widget, sourceAtt;
+			
+			widget = WAF.widgets[this.id];
+			widget.isInFocus = true;
+			
+			if (widget.format != null && widget.format.format != null) {
+				sourceAtt = widget.sourceAtt;
+				
+				if (sourceAtt != null) {
 
-                    if (validation.valid) {
-                        sourceAtt.setValue(value, {
-                            dispatcherID:widget.divID
-                        });
-                        widget.clearErrorMessage();
-                    } else {
-                        sourceAtt.setValue(value, {
-                            dispatcherID:widget.divID
-                        });
-                        widget.setErrorMessage(validation.messages.join(", "));
-                    }
-                }
-            }
-        },
-        /*
-         * TextField autocomplete widget blur event function
-         */
-        autocompleteBlur : function(event) { 
-            var
-            widget,
-            sourceAtt;
+					/*
+					 * change input type for mobile depending on attribute's type just before editing
+					 */
+					if (WAF.PLATFORM.isTouch) {
+						switch (widget.att.type) {
+							case "number":
+								htmlObject.get()[0].type = "number";
+								break;
+							default:
+						}
+					}
 
-            widget      = WAF.widgets[this.id];                        
-            sourceAtt   = widget.sourceAtt;
 
-            if (this.value !== sourceAtt.getValue())
-            {
-                sourceAtt.setValue(this.value, {
-                    dispatcherID    : this.id
-                });
-            }
-        }
-    }
-    );
+					this.value = sourceAtt.getValueForInput();
+				}
+			}
+		});
+		
+		/*
+		 * Reset formatted value on blur
+		 */ 
+		htmlObject.bind('blur', function(event){   
+			var widget, value, sourceAtt;
+			
+			widget = WAF.widgets[this.id];
+			value = '';
+			
+			widget.isInFocus = false;
+			
+			if (widget.format != null && widget.format.format != null) {
+				sourceAtt = widget.sourceAtt;
+				if (sourceAtt != null) {
+					value = sourceAtt.getValue();
+				}
+
+				/*
+				 * change back input type for mobile depending on attribute's type after edition
+				 */
+				if (WAF.PLATFORM.isTouch) {
+					switch (widget.att.type) {
+						case "number":
+							htmlObject.get()[0].type = "text";
+							break;
+						default:
+					}
+				}
+
+				this.value = widget.getFormattedValue(value);
+			}
+		});
+		
+		/*
+		 * Active/Desactive input depending on readOnly attribute
+		 */
+		if (widget.att.readOnly || widget.sourceAtt.readOnly) {
+			htmlObject.disabled = true;
+		}
+		else {
+			htmlObject.disabled = false;
+		}
+		
+	}
+	else {
+		this._tmpVal = htmlObject.prop('value');
+		if (this._tmpVal && this._tmpVal.replace()) {
+			this._tmpVal = this._tmpVal.replace(/&quot;/g, '"');
+		}
+		text = this.getFormattedValue(htmlObject.val());
+		if (text && text.replace()) {
+			text = text.replace(/&quot;/g, '"');
+		}
+		htmlObject.val(text);
+		
+		htmlObject.focusin(function(){
+			if (that._tmpVal) {
+				$(this).val(that._tmpVal);
+			}
+		});
+		
+		htmlObject.focusout(function(){
+			that._tmpVal = $(this).val();
+			if (that._tmpVal) {
+				$(this).val(that.getFormattedValue(that._tmpVal));
+			}
+		});
+	}
+}, {
+	/*
+	 * TextField widget blur event function for Mobile
+	 */
+	blur: function(){
+
+		WAF.widgets[this.id].change();
+			
+	},
+	
+	/*
+	 * TextField widget change event function
+	 */
+	change: function(){ 
+
+		var widget, value, sourceAtt, validation;
+
+		widget = WAF.widgets[this.id];
+		
+		if (widget != null) {
+			if (widget.doNotUpdate) {
+				widget.doNotUpdate = false;
+			}
+			else {
+				sourceAtt = widget.sourceAtt;
+				
+				if (WAF.PLATFORM.isTouch && widget.att.type === "date") {
+
+					var date = new Date(document.getElementById(this.id).value.replace(/-/gi, "/"));
+					value = sourceAtt.normalize(date);
+
+
+				} else {
+					value = sourceAtt.normalize(this.value);
+				}
+				
+				validation = sourceAtt.validate(value);
+
+				if (validation.valid) { 
+
+					if (WAF.PLATFORM.isTouch) {
+						
+						window.setTimeout(function(){
+
+							sourceAtt.setValue(value, {
+								dispatcherID: widget.divID
+							});
+							widget.clearErrorMessage();
+
+						},0);
+
+					} else {
+
+						sourceAtt.setValue(value, {
+							dispatcherID: widget.divID
+						});
+						widget.clearErrorMessage();
+
+					}
+
+				}
+				else {
+					sourceAtt.setValue(value, {
+						dispatcherID: widget.divID
+					});
+					widget.setErrorMessage({
+						message: validation.messages.join(", "),
+						tooltip: false
+					});
+				}
+			}
+
+			
+		}
+	},
+	
+	/*
+	 * TextField autocomplete widget blur event function
+	 */
+	autocompleteBlur: function(event){
+		var widget, sourceAtt;
+		
+		widget = WAF.widgets[this.id];
+		sourceAtt = widget.sourceAtt;
+		
+		if (this.value !== sourceAtt.getValue()) {
+			sourceAtt.setValue(this.value, {
+				dispatcherID: this.id
+			});
+		}
+	},
+
+	/**
+	 * Custom setValue
+	 * @param {string} value new value
+	 */
+	setValue : function (value) {
+    	if (!this.isDisabled()) {  
+            this.$domNode.val(value);
+            this._tmpVal = value;
+		}
+
+	    /*
+	     * Trigger change event
+	     */
+	    this.$domNode.trigger('change');
+	}
+	
+});

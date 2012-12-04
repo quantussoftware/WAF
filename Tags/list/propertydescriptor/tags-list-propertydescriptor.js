@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 /**
  * Tag Property Descriptor Management
@@ -128,19 +124,24 @@ WAF.tags.list.PropertyDescriptor.prototype.getBySelector = function (selector) {
  * Remove a property
  * @namespace WAF.tags.list.PropertyDescriptor
  * @method remove
- * @param {String} name name of the property to remove
+ * @param {String} description description of the property to remove
+ * @param {Boolean} byName true if we want to remove the property by name
  */
-WAF.tags.list.PropertyDescriptor.prototype.remove = function (name) {
+WAF.tags.list.PropertyDescriptor.prototype.remove = function (description , byName) {
     var i = 0,
     position = -1,
-    desc = null,
     length = 0;
 
     length = this.count();
 
     for (i = 0; i < length; i++) {
-        desc = this.get(i);
-        if (desc.getName() == name) {
+        if(byName){
+            if (this.get(i).getName() == description) {
+                position = i;
+                break;
+            }
+        }
+        else if (this.get(i).getDescription() == description) {
             position = i;
             break;
         }

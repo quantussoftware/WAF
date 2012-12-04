@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.Widget.provide(
 
@@ -40,71 +36,55 @@ WAF.Widget.provide(
      * @type Function
      **/
     function WAFWidget(config, data, shared) {   
-        var
-        that,
-        htmlObject,
-        widget,
+        var htmlObject,
         dontdisplayempty,
         ss,
         clone,
         cloneMsg;
 
-        that        = this;
         htmlObject  = $(this.containerNode); 
         
-        widget                  = {};
         dontdisplayempty        = false;
         ss                      = data['no-empty-display'];
         
-        widget                  = {};
-        widget.kind             = 'progressBar';
-        widget.id               = config.id;
-        widget.divID            = config.id;
-        widget.renderId         = config.id;
-        widget.progressInfo     = data['progressinfo'];
-        widget.toph             = 25;
-        widget.barh             = 20;
-        widget.spaceh           = 5;
-        widget.nblevel          = 0;
-        widget.stillWaiting     = false;
-        widget.updateWithInfo   = that.updateWithInfo;
-        widget.startListening	= that.startListening;
-        widget.stopListening	= that.stopListening;
-        widget.setProgressInfo  = that.setProgressInfo;
-        widget.userBreak        = that.userBreak;
-        widget.parent           = htmlObject.parent();
-        widget.top              = htmlObject.css('top');
+        this.progressInfo     = data['progressinfo'];
+        this.toph             = 25;
+        this.barh             = 20;
+        this.spaceh           = 5;
+        this.nblevel          = 0;
+        this.stillWaiting     = false;
+
+        this.parent           = htmlObject.parent();
+        this.top              = htmlObject.css('top');
 
         clone                   = htmlObject.clone();
-        cloneMsg                = $('[data-linked=' + widget.id + ']').clone();
+        cloneMsg                = $('[data-linked=' + this.id + ']').clone();
 
         /*
          * Remove original progressBar
          */
         htmlObject.hide();
-        $('[for=' + widget.id + ']').hide();
+        $('[for=' + this.id + ']').hide();
 
-        widget.clone = {
+        this.clone = {
             progress : clone,
             msg : cloneMsg
         }
 
         if (ss != null) {
             if (typeof(ss) == 'string') {
-                dontdisplayempty = ss.toLowerCase == 'true';
+                dontdisplayempty = ss.toLowerCase() == 'true';
             } else {
                 dontdisplayempty = ss;
             }
         }
 
-        widget.atLeastOne = !dontdisplayempty;
+        this.atLeastOne = !dontdisplayempty;
 
-        widget.timerStarted = false;
+        this.timerStarted = false;
 
-        WAF.widgets[config['id']] = widget;
-
-        if (widget.atLeastOne) {
-            widget.updateWithInfo({
+        if (this.atLeastOne) {
+            this.updateWithInfo({
                 SessionInfo: [{
                     fMessage    : "",
                     fValue      : 0,
@@ -162,9 +142,13 @@ WAF.Widget.provide(
                     newMsg = $('.' + widget.id + '-msg-' + i);
 
                     if (session.stop) {
-                        newProgress.remove();
-                        newMsg.remove();
-                        return false;
+                        if (widget.atLeastOne && i === 0) {
+                        }
+                        else {
+                            newProgress.remove();
+                            newMsg.remove();
+                            return false;
+                        }
                     }
                 }
         
@@ -211,7 +195,7 @@ WAF.Widget.provide(
         startListening  : function (interval) {
             var 
             widget;
-            
+
             widget = this;
             
             if (interval == null) {
@@ -223,6 +207,8 @@ WAF.Widget.provide(
             widget.timeOutId = setInterval(function() {
                 var
                 xhr;
+
+
                 
                 if (!widget.requestStarted) {
                     xhr = new XMLHttpRequest();
@@ -249,7 +235,7 @@ WAF.Widget.provide(
                     };
 
                     widget.requestStarted = true;
-                    xhr.open("GET", "rest/$info/progressinfo/" + widget.progressInfo, true);
+                    xhr.open("GET", window.location.origin+"/rest/$info/progressinfo/" + widget.progressInfo, true);
                     xhr.send();
                 }
 
@@ -304,4 +290,4 @@ WAF.Widget.provide(
             xhr.send();
         }
     }
-);
+    );

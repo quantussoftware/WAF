@@ -1,21 +1,17 @@
 /*
-* Copyright (c) 4D, 2011
-*
-* This file is part of Wakanda Application Framework (WAF).
-* Wakanda is an open source platform for building business web applications
-* with nothing but JavaScript.
-*
-* Wakanda Application Framework is free software. You can redistribute it and/or
-* modify since you respect the terms of the GNU General Public License Version 3,
-* as published by the Free Software Foundation.
-*
-* Wakanda is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* Licenses for more details.
-*
-* You should have received a copy of the GNU General Public License version 3
-* along with Wakanda. If not see : http://www.gnu.org/licenses/
+* This file is part of Wakanda software, licensed by 4D under
+*  (i) the GNU General Public License version 3 (GNU GPL v3), or
+*  (ii) the Affero General Public License version 3 (AGPL v3) or
+*  (iii) a commercial license.
+* This file remains the exclusive property of 4D and/or its licensors
+* and is protected by national and international legislations.
+* In any event, Licensee's compliance with the terms and conditions
+* of the applicable license constitutes a prerequisite to any use of this file.
+* Except as otherwise expressly stated in the applicable license,
+* such license does not include any other license or rights on this file,
+* 4D's and/or its licensors' trademarks and/or other proprietary rights.
+* Consequently, no title, copyright or other proprietary rights
+* other than those specified in the applicable license is granted.
 */
 WAF.addWidget({
     type        : 'matrix',
@@ -43,7 +39,16 @@ WAF.addWidget({
         name        : 'data-fit',
         description : 'Auto Fit',
         type        : 'checkbox',
-        defaultValue: 'false'
+        defaultValue: 'false',
+        onclick   : function (argument) {
+            if (this.getValue() == true) {
+                this.data.tag.getAttribute('data-fit').setValue('true');
+            } else {
+                this.data.tag.getAttribute('data-fit').setValue('false');
+            }
+
+            this.data.tag.rebuild();            
+        }
     },
     {
         name        : 'data-scrolling',
@@ -67,12 +72,14 @@ WAF.addWidget({
     {
         name        : 'data-draggable',
         description : 'Draggable',
-        type        : 'checkbox'
+        type        : 'checkbox',
+        platform    : 'desktop'
     },
     {
         name        : 'data-resizable',
         description : 'Resizable',
-        type        : 'checkbox'
+        type        : 'checkbox',
+        platform    : 'desktop'
     }],
     style: [
     {
@@ -151,17 +158,25 @@ WAF.addWidget({
             disabled    : []
         }
     },
+    structure: [],
     onInit: function (config) {
         return new WAF.widget.Matrix(config);  
     },
     
     onDesign: function (config, designer, tag, catalog, isResize) {
+    },
+
+    onCreate : function (tag, param) {
+        /**
+         * Clean the matrix content
+         * @function clean
+         */
         tag.clean = function () {
             var
             child,
             except;
             
-            child   = tag._childTag;
+            child   = this._childTag;
             
             if (child) {
                 except  = '[id!="' + child.getOverlayId() + '"]';
@@ -170,65 +185,70 @@ WAF.addWidget({
                     except += '[id!="' + child.getLinkedTag().getOverlayId() + '"]';
                 }
                 
-                $('#' + tag.getId()).children( except ).remove();
+                this.getHtmlObject().children( except ).remove();
 
-                if(tag._childTag) {
-                    tag._childTag._matrix = null;
-                    tag._childTag = null;
+                if(this._childTag) {
+                    this._childTag._matrix = null;
+                    this._childTag = null;
                 }
             }
         }
         
+        /**
+         * Rebuild the matrix and create clones
+         * @function rebuild
+         */
         tag.rebuild = function() {
-            if (tag._childTag && !tag._childTag.isLabel()) {
+            if (this._childTag && !this._childTag.isLabel()) {
                 var
-                child,
-                except,
-                margin,
-                initMarginLeft,
-                initMarginTop,
-                marginLeft,
-                marginTop,
-                width,
-                height,
-                left,
-                top,
-                matrixHeight,
-                matrixWidth,
-                rows,
-                columns,
-                initHeight,
-                initWidth,
                 i,
                 j,
+                top,
+                left,
+                rows,
+                child,
+                width,
+                label,
+                height,
+                except,
+                margin,
+                calcul,
+                columns,
+                autoFit,
                 cloneId,
                 topLabel,
-                leftLabel,
-                initTopLabel,
-                initLeftLabel,
                 matrixId,
+                initWidth,
+                marginTop,
+                leftLabel,
                 idToClone,
+                marginLeft,
+                initHeight,
+                overlayHtml,
+                matrixWidth,
                 resizeWidth,
+                matrixHeight,
+                initTopLabel,
                 resizeHeight,
-                label,
-                calcul,
-                autoFit;                
+                initMarginTop,
+                initLeftLabel,
+                initMarginLeft;                
                 
-                tag.isRebuild = true;
+                this.isRebuild  = true;
                 
-                autoFit         =tag.getAttribute('data-fit').getValue() === true || tag.getAttribute('data-fit').getValue() === 'true' ? true : false;
+                autoFit         = this.getAttribute('data-fit').getValue() === true || this.getAttribute('data-fit').getValue() === 'true' ? true : false;
                 
-                child   = tag._childTag;
+                child   = this._childTag;
                 except  = '[id!="' + child.getOverlayId() + '"]';
                 if (child.getLinkedTag()) {
                     except += '[id!="' + child.getLinkedTag().getOverlayId() + '"]';
                 }
 
                 // clean the matrix
-                $('#' + tag.getId()).children( except ).remove();
+                $('#' + this.getId()).children( except ).remove();
 
                 // set the element position
-                margin          = tag.getAttribute('data-margin') ? parseInt(tag.getAttribute('data-margin').getValue()) : 0;
+                margin          = tag.getAttribute('data-margin') ? parseInt(this.getAttribute('data-margin').getValue()) : 0;
                 initMarginLeft  = margin;
                 initMarginTop   = margin;
                 marginLeft      = 0;
@@ -258,10 +278,10 @@ WAF.addWidget({
                 
 
                 // Link the tag to the current matrix
-                child._matrix = tag;
+                child._matrix = this;
 
                 if (label) {
-                    label._matrix = tag;
+                    label._matrix = this;
 
                     switch (child.getAttribute('data-label-position').getValue()) {
                         case 'top':
@@ -325,8 +345,8 @@ WAF.addWidget({
                     resizeWidth     = (initWidth*columns) + parseInt(initMarginLeft);
                     resizeHeight    = (initHeight*rows) + parseInt(initMarginTop);
 
-                    if (tag.getAttribute('data-scrollbar').getValue() !== 'false') {
-                        if (tag.getAttribute('data-scrolling').getValue() === 'vertical') {
+                    if (this.getAttribute('data-scrollbar').getValue() !== 'false') {
+                        if (this.getAttribute('data-scrolling').getValue() === 'vertical') {
                             resizeWidth += 15;
                         } else {
                             resizeHeight += 15;
@@ -336,18 +356,25 @@ WAF.addWidget({
                     resizeWidth     += 'px';
                     resizeHeight    += 'px';
 
-                    $('#' + tag.overlay.id).css('width', resizeWidth);
-                    $('#' + tag.overlay.id).css('height', resizeHeight);
+                    overlayHtml = $('#' + this.getOverlayId());
 
-                    tag.setStyle('width', resizeWidth);
-                    tag.setStyle('height', resizeHeight);
+                    overlayHtml.css('width', resizeWidth);
+                    overlayHtml.css('height', resizeHeight);
 
-                    tag.domUpdate();
+                    this.setStyle('width', resizeWidth);
+                    this.setStyle('height', resizeHeight);
+
+                    this.domUpdate();
                 }
 
                 // Add clone class for WYSIWYG
                 $('#' + idToClone + ' .waf-widget').each(function(e) {
-                    $(this).addClass('waf-clone-' + $(this).attr('id'));
+                    var
+                    thisHtml;
+
+                    thisHtml = $(this);
+                    
+                    thisHtml.addClass('waf-matrix-element waf-clone-' + thisHtml.prop('id'));
                 });
 
                 var createClone = function( matrixId, idToClone, cloneId, newTop, newLeft ) {
@@ -356,7 +383,7 @@ WAF.addWidget({
                     clone;
                     
                     elt     = $('#' + idToClone);
-                    elt.clone(false, true).attr('id', cloneId).appendTo('#' + matrixId);
+                    elt.clone(false, true).prop('id', cloneId).appendTo('#' + matrixId);
                     clone   = $('#' + cloneId);
                     
                     clone.unbind('click');
@@ -381,7 +408,7 @@ WAF.addWidget({
                         $that.removeClass('waf-focus');
                         
                         $all.addClass('waf-matrix-clone');
-                        $all.removeAttr('id');                        
+                        $all.removeProp('id');                        
                         
                         $that.css({
                             'top'       : newTop + 'px',
@@ -438,13 +465,15 @@ WAF.addWidget({
                     }
                 }
 
-                tag.isRebuild =  false;
+                this.isRebuild =  false;
             }
         }
 
-        if (isResize) {
-            tag.rebuild();
-        }
-
+        /*
+         * Custom on resize event
+         */
+        $(tag).bind('onResize', function () {            
+            this.rebuild();
+        })
     }
 });
