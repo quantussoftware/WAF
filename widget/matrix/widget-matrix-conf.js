@@ -37,11 +37,11 @@ WAF.addWidget({
     },
     {
         name        : 'data-fit',
-        description : 'Auto Fit',
+        description : 'Auto fit',
         type        : 'checkbox',
         defaultValue: 'false',
         onclick   : function (argument) {
-            if (this.getValue() == true) {
+            if (this.getValue() === true) {
                 this.data.tag.getAttribute('data-fit').setValue('true');
             } else {
                 this.data.tag.getAttribute('data-fit').setValue('false');
@@ -143,7 +143,12 @@ WAF.addWidget({
         description : 'On Stop Resize',
         category    : 'Resize'
         
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties: {
         style: {
             theme       : false,
@@ -192,7 +197,7 @@ WAF.addWidget({
                     this._childTag = null;
                 }
             }
-        }
+        };
         
         /**
          * Rebuild the matrix and create clones
@@ -317,7 +322,7 @@ WAF.addWidget({
                 calcul      = matrixHeight / initHeight;
                 rows        = Math.ceil(calcul) - 1;
                 
-                if (calcul%1==0) {
+                if (calcul%1===0) {
                     rows += 1;
                 }
                 
@@ -325,9 +330,12 @@ WAF.addWidget({
                  * Calcul number of elements for the width
                  */ 
                 calcul      = matrixWidth / initWidth;
-                columns     = Math.ceil(matrixWidth / initWidth) - 1;
                 
-                if (calcul%1==0) {
+                if (initWidth !== 0) { // "To infinity and beyond" (but not here)
+                    columns     = Math.ceil(matrixWidth / initWidth) - 1;
+                }
+                
+                if (calcul%1===0) {
                     columns += 1;
                 }
                 
@@ -408,7 +416,9 @@ WAF.addWidget({
                         $that.removeClass('waf-focus');
                         
                         $all.addClass('waf-matrix-clone');
-                        $all.removeProp('id');                        
+                        // for some odd reason, removeProp('id') sets the id to 'undefined'
+                        // this causes some errors later so we use removeAttr instead
+                        $all.removeAttr('id');                        
                         
                         $that.css({
                             'top'       : newTop + 'px',
@@ -430,7 +440,7 @@ WAF.addWidget({
                             ctx.fillRect(width / 2 - width / 6, height / 2 - height / 6, width / 2 + width / 6, height / 2 + height / 6);
                         }
                     });
-                }                
+                };                
 
                 if (child.getLabel()) {
                     initTopLabel    = child.getLabel().getY();
@@ -444,7 +454,7 @@ WAF.addWidget({
 
                     topLabel    = initTopLabel + (initHeight * i);
 
-                    if ( i != 0) {
+                    if ( i !== 0) {
                         createClone( matrixId, idToClone, cloneId, newTop, newLeft );
 
                         if (child.getLabel()) {
@@ -467,13 +477,17 @@ WAF.addWidget({
 
                 this.isRebuild =  false;
             }
-        }
+        };
 
         /*
          * Custom on resize event
          */
+
         $(tag).bind('onResize', function () {            
-            this.rebuild();
-        })
+            if (!D.getHistory().isUndoing()) {
+                this.rebuild(); 
+            }   
+        });    
+
     }
 });

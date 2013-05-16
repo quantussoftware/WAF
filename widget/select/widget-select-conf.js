@@ -13,6 +13,7 @@
 * Consequently, no title, copyright or other proprietary rights
 * other than those specified in the applicable license is granted.
 */
+
 WAF.addWidget({    
     type        : 'select',
     lib         : 'WAF',
@@ -27,11 +28,11 @@ WAF.addWidget({
     },
     {
         name       : 'data-binding',
-        description: 'Choice Source'
+        description: 'Choice source'
     },
     {
         name       : 'data-binding-out',
-        description: 'Value Source',
+        description: 'Value source',
         typeValue  : 'datasource'
     },
     {
@@ -46,7 +47,7 @@ WAF.addWidget({
     },
     {
         name       : 'data-errorDiv',
-        description: 'Display Error'
+        description: 'Error ID'
     },
     {
         name       : 'data-format',
@@ -64,13 +65,13 @@ WAF.addWidget({
     },
     {
         name        : 'data-autoDispatch',
-        description : 'Auto Dispatch',
+        description : 'Auto-dispatch',
         type        : 'checkbox',
         defaultValue: 'true'
     },
     {
         name        : 'data-limit',
-        description : 'Display Limit',
+        description : 'Display limit',
         type        : 'textField',
         defaultValue: '20'
     }/*,
@@ -170,7 +171,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [
     {
         name        : 'width',

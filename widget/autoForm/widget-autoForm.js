@@ -1098,6 +1098,8 @@ WAF.Widget.provide(
                 queryString = "";
                 attList     = this.attList;
 
+				var params = [];
+				var curparam = 1;
                 for (i = 0; i < attList.length; i++) {
                     val = document.getElementById(this.id + "_" + idName(attList[i])).value;
 
@@ -1106,12 +1108,16 @@ WAF.Widget.provide(
                             queryString += " and ";
                         }
 
-                        queryString += attList[i] + ' = ' + '"' + val + '"';
+                        queryString += attList[i] + ' = :' + curparam;
+						params.push(val);
+						curparam++;
+						
                     }
                 }
 
                 this.dataClass.query(queryString, {
-                    onSuccess: this.gotEntityCollection
+                    onSuccess: this.gotEntityCollection,
+					params: params
                 }, {
                     idval: this.id
                 });
@@ -1222,6 +1228,8 @@ WAF.Widget.provide(
 
             queryString = "";
             attList     = widget.attList;
+			var params = [];
+			var curparam = 1;
 
             for (i = 0; i < attList.length; i++) {
                 attName = attList[i];
@@ -1234,11 +1242,14 @@ WAF.Widget.provide(
                         queryString += " and ";
                     }
 
-                    queryString += attName + ' = ' + '"' + val + '"';
+                    queryString += attName + ' = :' + curparam;
+					params.push(val);
+					curparam++;
                 }
             }
 
             widget.dataClass.query(queryString, {
+				params: params,
                 onSuccess: function(event) {
                     entityCollection = event.entityCollection;
 
@@ -1880,8 +1891,14 @@ WAF.AF.buildForm = function(divID, dataSource, attrList, nameList, options, cata
                     html += '</textarea>';
 
                 } else {
+					html += '<div data-lib="WAF" type="checkbox" class="'+dataTheme+'waf-form-att-value-checkbox waf-widget waf-checkbox" data-type="checkbox" style="width:16px;height:16px;position:relative;top:3px;" ';
+                    html += 'data-binding="'+binding+'" id="' + divID + "_" + htmlIDName + '"></div>';
+					/*
+					  "waf-checkbox-level-0 waf-level-0"
+					 
                     html += '<input type="checkbox" class="'+dataTheme+'waf-form-att-value-checkbox waf-widget waf-checkbox" datatype="checkbox" ';
                     html += 'data-binding="'+binding+'" id="' + divID + "_" + htmlIDName + '"/>';
+                    */
                 }
 
                 html += '<div class="errormess-div" id="' + divID + '_' + htmlIDName + '__mess"></div>';

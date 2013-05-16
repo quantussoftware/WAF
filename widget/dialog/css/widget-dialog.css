@@ -127,10 +127,10 @@
     border-width: 1px;
 }
 
-#waf-dialog-fade {
+.waf-dialog-fade {
     display: none;
     background: #000; 
-    position: fixed; left: 0; top: 0; 
+    position: absolute; left: 0; top: 0; 
     z-index: 10;
     width: 100%; height: 100%;
     opacity: .50;

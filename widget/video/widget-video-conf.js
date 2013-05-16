@@ -44,7 +44,7 @@ WAF.addWidget({
         options     : [
         {
             key     : 'local',
-            value   : 'Local Source'
+            value   : 'Local source'
         },
         {
             key     : 'youtube',
@@ -136,7 +136,11 @@ WAF.addWidget({
         defaultValue: '280px'
     }],
     events: [
-        
+        {
+            name       : 'onReady',
+            description: 'On Ready',
+            category   : 'UI Events'
+        }
     ],
     properties: {
         style: {                                                

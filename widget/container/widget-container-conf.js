@@ -45,7 +45,7 @@ WAF.addWidget({
     },
     {
         name        : 'data-hideSplitter',
-        description : 'Hide Splitters',
+        description : 'Hide splitters',
         type        : 'checkbox',
         category    : 'Splitter Options',
         ready       : function(){ // Check if widget is splitted to display this category
@@ -61,8 +61,24 @@ WAF.addWidget({
     },
     {
         name        : 'data-popup-display-button',
-        description : 'Left Splitter Button',
+        description : 'Left splitter button',
         category    : 'Splitter Options'
+    },
+    {
+        name        : 'data-label',
+        description : 'Label',
+        defaultValue: ''
+    },
+    {
+        name        : 'data-label-position',
+        description : 'Label position',
+        defaultValue: 'top'
+    },
+    {
+        name        : 'data-label-valign',
+        description : 'Label position',
+        defaultValue: 'top',
+        visibility : 'hidden'
     }],
     style: [
     {
@@ -141,7 +157,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties: {
         style: {
             theme       : {
@@ -810,7 +831,7 @@ WAF.addWidget({
          * Widget custom on file drop event
          * Same as body
          */
-        $(tag).bind('onFileDrop', $(D.doc.tag).data('events').onFileDrop[0].handler);
+        $(tag).bind('onFileDrop', $._data(D.doc.tag, 'events').onFileDrop[0].handler);
 
         /*
          * Widget custom on copy event

@@ -101,7 +101,11 @@ WAF.tools.optionMatchers = [
 		"forceReload",
 		"doNotAlterElemPos",
 		"overrideStamp",
-		"queryParams"
+		"queryParams",
+		"createEmptyCollection",
+		"forceCollectionRefresh",
+		"refreshCollectionFrom",
+		"removeReferenceOnly"
 	];
 
 WAF.tools.isOptionParam = function(param)
@@ -442,7 +446,8 @@ WAF.DataStore.resolveRelatedAttribute = function()
 	{
 		var dataStore = this.owner.getDataStore();
 		this.relatedClass = dataStore.getDataClass(this.type);
-		this.resolved = true;
+		if (this.relatedClass != null)
+			this.resolved = true;
 	}
 }
 
@@ -462,7 +467,7 @@ WAF.DataStore.handleFuncResult = function(request, methodref, dataClass)
 		{
 			dataClass = dataClass.getDataStore().getDataClass(fullResult.__entityModel);
 		}	
-		if (fullResult.__KEY != null)
+		if (fullResult.__KEY != null || fullResult.__STAMP != null)
 		{
 			var entity = new WAF.Entity(dataClass, fullResult);
 			fullResult = { result: entity};
@@ -761,7 +766,12 @@ WAF.DataStore.getCatalog = function(options, userData)
 
 WAF.DataClass = function(dataClassInfo, dataStore)
 {
-	var dataClass = this;
+	var dataClass = this,
+        primaryKey = '';
+        
+        if (dataClassInfo.key) {
+            primaryKey = dataClassInfo.key[0].name;
+        }
 	
 	/*
 	if (dataClassInfo.singleEntityName)
@@ -769,6 +779,7 @@ WAF.DataClass = function(dataClassInfo, dataStore)
 		*/
 	
 	dataClass._private = {
+        primaryKey : primaryKey,
 		className: dataClassInfo.name,
 		collectionName: dataClassInfo.collectionName,
 		attributesByName: {},
@@ -1310,6 +1321,7 @@ WAF.EntityCollection = function(dataClass, queryString, options, userData)
 		pages: [], // an array of EntityCollectionPage
 		
 		
+		clearCache: WAF.EntityCollection.clearCache,
 		insertPage: WAF.EntityCollection.insertPage,
 		findPage: WAF.EntityCollection.findPage,
 		invalidPage: WAF.EntityCollection.invalidPage,
@@ -1318,6 +1330,7 @@ WAF.EntityCollection = function(dataClass, queryString, options, userData)
 		fetchData: WAF.EntityCollection.fetchData,
 		addPendingRequest: WAF.EntityCollection.addPendingRequest,
 		clearPendingRequest: WAF.EntityCollection.clearPendingRequest,
+		clearAllPendingRequest: WAF.EntityCollection.clearAllPendingRequest,
 		isPagePending: WAF.EntityCollection.isPagePending,
 		gotEntity: WAF.EntityCollection.gotEntity,
 		updateOptions: WAF.EntityCollection.updateOptions
@@ -1360,6 +1373,13 @@ WAF.EntityCollection = function(dataClass, queryString, options, userData)
 }
 
 					// EntityCollection Pages
+
+WAF.EntityCollection.clearCache = function()
+{
+	var priv = this;
+	priv.pages = [];
+}
+
 
 WAF.EntityCollection.insertPage = function(page)
 {
@@ -1457,6 +1477,15 @@ WAF.EntityCollection.clearPendingRequest = function(pendingStamp)
 }
 
 
+WAF.EntityCollection.clearAllPendingRequest = function()
+{
+	var priv = this;
+	for (var e in priv.pendingRequests)
+	{
+		priv.pendingRequests[e];
+	}
+}
+
 WAF.EntityCollection.isPagePending = function(pos)
 {
 	var priv = this;
@@ -1470,42 +1499,48 @@ WAF.EntityCollection.isPagePending = function(pos)
 }
 
 				// fetching Data
-				
-WAF.EntityCollection.manageData = function(rawResult, init)
-{
-	var priv = this;
-	var entityCollection = this.owner;
-	var dataClass = entityCollection.getDataClass();
-	var cache = dataClass.getCache();
-	init = init || false;
-	
-	if (init)
-	{
-		entityCollection.length = rawResult.__COUNT;
-		priv.ready = true;
-		priv.loadedElemsLength = entityCollection.length;
-		priv.dataURI = rawResult.__ENTITYSET;
-		if (priv.autoSubExpand != null)
-		{
-			priv.autoExpand = priv.autoSubExpand;
-			priv.autoSubExpand = null;
-		}
-		
-	}
-	
-	var nbEnts = rawResult.__SENT;
-	var first = rawResult.__FIRST;
-	cache.makeRoomFor(nbEnts);
-	var arr = rawResult.__ENTITIES;
-	var timeStamp = new Date();
-	var page = new WAF.EntityCollectionPage(first, nbEnts);
-	for (var i = 0; i < nbEnts; i++)
-	{
-		var rawEntity = arr[i];
-		var stamp = cache.setEntry(rawEntity.__KEY, rawEntity, timeStamp);
-		page.entityKeys.push({key:rawEntity.__KEY, stamp:stamp});
-	}
-	priv.insertPage(page);	
+
+WAF.EntityCollection.manageData = function(rawResult, init) {
+    var priv = this;
+    var entityCollection = this.owner;
+    var dataClass = entityCollection.getDataClass();
+    var cache = dataClass.getCache();
+    init = init || false;
+
+    if (init) {
+        entityCollection.length = rawResult.__COUNT;
+        priv.ready = true;
+        priv.loadedElemsLength = entityCollection.length;
+        priv.dataURI = rawResult.__ENTITYSET;
+        if (priv.autoSubExpand != null) {
+            priv.autoExpand = priv.autoSubExpand;
+            priv.autoSubExpand = null;
+        }
+
+    }
+
+    var nbEnts = rawResult.__SENT;
+    var first = rawResult.__FIRST;
+    cache.makeRoomFor(nbEnts);
+    var arr = rawResult.__ENTITIES;
+    var timeStamp = new Date();
+    var page = new WAF.EntityCollectionPage(first, nbEnts);
+    for (var i = 0; i < nbEnts; i++) {
+        var rawEntity = arr[i];
+        var xkey;
+        if (rawEntity == null) {
+            cache.setEntry("", { __STAMP: 0 }, timeStamp);
+            xkey = "";
+        }
+        else {
+            xkey = rawEntity.__KEY;
+            if (xkey == null)
+                xkey = "";
+            var stamp = cache.setEntry(xkey, rawEntity, timeStamp);
+        }
+        page.entityKeys.push({ key: rawEntity.__KEY, stamp: stamp });
+    }
+    priv.insertPage(page);
 }
 
 				
@@ -1561,6 +1596,7 @@ WAF.EntityCollection.fetchData = function(skip, top, options, userData)
 	if (init)
 	{
 		request.removeAtPos = options.removeAtPos;
+		request.removeReferenceOnly = options.removeReferenceOnly;
 		request.addToSet = options.addToSet;
 		var sel = request.fromSelection;
 		if (sel != null)
@@ -1729,17 +1765,27 @@ WAF.EntityCollection.orderBy = function(orderByString, options, userData)
 	options = resOp.options;
 	
 	var entityCollection = this;
-	options.orderby = orderByString;
-	var priv = entityCollection._private;
-	options.dataURI = priv.dataURI;
-	var dataClass = entityCollection.getDataClass();
-	options.pageSize = options.pageSize || priv.pageSize;
-	options.autoExpand = options.autoExpand || priv.autoExpand;
-	priv.updateOptions(options);
-	options.savedQuery = priv.savedQuery || null;
-	
-	var subEntityCollection = new WAF.EntityCollection(dataClass, null, options, userData)
-	return subEntityCollection;
+	if (this.length == 0) {
+		var event = {
+			entityCollection: entityCollection,
+			result: entityCollection
+		};
+		WAF.callHandler(false, null, event, options, userData);	
+		return entityCollection;
+	}
+	else {
+		options.orderby = orderByString;
+		var priv = entityCollection._private;
+		options.dataURI = priv.dataURI;
+		var dataClass = entityCollection.getDataClass();
+		options.pageSize = options.pageSize || priv.pageSize;
+		options.autoExpand = options.autoExpand || priv.autoExpand;
+		priv.updateOptions(options);
+		options.savedQuery = priv.savedQuery || null;
+		
+		var subEntityCollection = new WAF.EntityCollection(dataClass, null, options, userData)
+		return subEntityCollection;
+	}
 }
 
 
@@ -1749,6 +1795,7 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 	var resOp = WAF.tools.handleArgs(arguments, 1);
 	userData = resOp.userData;
 	options = resOp.options;
+	var forceCollectionRefresh = (options != null) && (options.forceCollectionRefresh || false);
 	if (resOp.nextParam < arguments.length)
 	{
 		doNotFetch = arguments[resOp.nextParam] || false;
@@ -1757,9 +1804,18 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 		doNotFetch = false;
 	var entityCollection = this;
 	var priv = entityCollection._private;
+
+	var lenToCheck = priv.loadedElemsLength;
+	
+	if (forceCollectionRefresh)
+	{
+		priv.clearAllPendingRequest();
+		priv.clearCache();
+		lenToCheck = entityCollection.length;
+	}
 	var dataClass = entityCollection.getDataClass();
 		
-	if (pos >= priv.loadedElemsLength )
+	if (pos >= lenToCheck )
 	{
 		var newevent = {entityCollection: entityCollection, position:pos};
 		var subpos = pos - priv.loadedElemsLength;
@@ -1769,7 +1825,12 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 			WAF.callHandler(false, null, newevent, options, userData);
 		}
 		else
-			WAF.callHandler(true, [{error : 501, message:"wrong position in entityCollection"}], newevent, options, userData);
+		{
+			if (forceCollectionRefresh)
+				WAF.callHandler(false, null, newevent, options, userData);
+			else
+				WAF.callHandler(true, [{error : 501, message:"wrong position in entityCollection"}], newevent, options, userData);
+		}
 	}
 	else
 	{
@@ -1838,9 +1899,15 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 						if (delayReq.matchRange(delayInfo.top,delayInfo.bottom))
 						{
 							//console.log("matched range: fetching data ");
+							var newOptions = {};
+							if (forceCollectionRefresh) {
+								priv.updateOptions(newOptions);
+							}
 							priv.fetchData(delayReq.top, (delayReq.bottom-delayReq.top)+1, {
 								onSuccess: function(event)
 								{
+									if (forceCollectionRefresh)
+										priv.addedElems = [];
 									delayReq.pendingFetch.forEach(function(fetchItem)
 									{
 										if (fetchItem.pos >= delayInfo.top && fetchItem.pos <= delayInfo.bottom)
@@ -1871,7 +1938,9 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 										}
 									});
 									delayInfo.removePendingRequest(delayReq);
-								}
+								},
+								init: forceCollectionRefresh,
+								addToSet: newOptions.addToSet || null
 							});		
 						}
 						else
@@ -1889,9 +1958,15 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 			}
 			else
 			{
+				var newOptions = {};
+				if (forceCollectionRefresh) {
+					priv.updateOptions(newOptions);
+				}
 				priv.fetchData(pos, priv.pageSize, {
 					onSuccess: function(event)
 					{
+						if (forceCollectionRefresh)
+							priv.addedElems = [];
 						key = priv.getKeyByPos(pos);
 						cache = dataClass.getCache();
 						var cacheInfo = cache.getCacheInfo(key);
@@ -1908,7 +1983,9 @@ WAF.EntityCollection.getEntity = function(pos, options, userData, doNotFetch)
 					{
 						var newevent = {entityCollection: entityCollection, position:pos, entity:null};
 						WAF.callHandler(true, event.error, newevent, options, userData);
-					}
+					},
+					init: forceCollectionRefresh,
+					addToSet: newOptions.addToSet || null
 				});
 			}
 		}
@@ -2037,6 +2114,18 @@ WAF.EntityCollection.add = function(entity)
 }
 
 
+WAF.EntityCollection.refresh = function(options, userData)
+{
+	options = options || {};
+	options.forceCollectionRefresh = true;
+	var from = 0;
+	if (options.refreshCollectionFrom != null)
+		from = options.refreshCollectionFrom;
+	userData = userData;
+	this.getEntity(from, options, userData);
+}
+
+
 WAF.EntityCollection.toArray = function(attributeList, options, userData)
 {
 	var resOp = WAF.tools.handleArgs(arguments, 1);
@@ -2126,7 +2215,7 @@ WAF.EntityCollection.distinctValues = function(attributeName, options, userData)
         
 	    var rawResult = WAF.getRequestResult(request);
 	    
-	    var event = { entityCollection: entityCollection, distincValues:rawResult, result:rawResult, XHR: request.http_request };
+	    var event = { entityCollection: entityCollection, distinctValues:rawResult, result:rawResult, XHR: request.http_request };
 		
 		var withError = rawResult.__ERROR != null;
 		
@@ -2189,6 +2278,14 @@ WAF.EntityCollection.findKey = function(key, options, userData)
 }
 
 
+WAF.EntityCollection.removeEntityReference = function(posInSet, options, userData){
+	var resOp = WAF.tools.handleArgs(arguments, 1);
+	userData = resOp.userData;
+	options = resOp.options;
+	options.removeReferenceOnly = true;
+	this.removeEntity(posInSet, options, userData);
+}
+
 
 WAF.EntityCollection.removeEntity = function(posInSet, options, userData)
 {
@@ -2205,15 +2302,24 @@ WAF.EntityCollection.removeEntity = function(posInSet, options, userData)
 		var subpos = posInSet - priv.loadedElemsLength;
 		var entity = priv.addedElems[subpos];
 		var resev = { entityCollection: entityCollection, result:entityCollection};
-		entity.remove({
-			onSuccess: function(ev){
-				priv.addedElems.splice(subpos,1);
-				WAF.callHandler(false, null, resev, options, userData);
-			},
-			onError: function(ev){
-				WAF.callHandler(true, ev.error, resev, options, userData);
-			}
-		});
+		if (entity == null || entity.getKey() == null) {
+			priv.addedElems.splice(subpos, 1);
+			entityCollection.length--;
+			WAF.callHandler(false, null, resev, options, userData);			
+		}
+		else {
+			entity.remove({
+				onSuccess: function(ev){
+					priv.addedElems.splice(subpos, 1);
+					entityCollection.length--;
+					WAF.callHandler(false, null, resev, options, userData);
+				},
+				onError: function(ev){
+					WAF.callHandler(true, ev.error, resev, options, userData);
+				}
+				
+			});
+		}
 	}
 	else {
 		options.pageSize = options.pageSize || priv.pageSize;
@@ -2316,7 +2422,12 @@ WAF.EntityAttributeSimple = function(entity, rawVal, att)
 {
 	this.owner = entity;
 	if (att.type == "date" && typeof(rawVal) == "string")
-		this.value = ISOToDate(rawVal);
+	{
+		if (att.simpleDate)
+			this.value = stringToSimpleDate(rawVal);
+		else
+			this.value = ISOToDate(rawVal);
+	}
 	else
 		this.value = rawVal;
 	this.touched = false;
@@ -2372,8 +2483,13 @@ WAF.EntityAttributeSimple.getOldValue = function()
 
 WAF.EntityAttributeSimple.setRawValue = function(rawVal)
 {
-	if (this.att.type == "date" && typeof(rawVal) == "string")
-		this.value = ISOToDate(rawVal);
+	if (this.att.type === "date" && typeof(rawVal) === "string")
+	{
+		if (this.att.simpleDate)
+			this.value = stringToSimpleDate(rawVal);
+		else
+			this.value = ISOToDate(rawVal);
+	}
 	else
 		this.value = rawVal;
 	delete this.oldValue;
@@ -2384,7 +2500,10 @@ WAF.EntityAttributeSimple.getRawValue = function()
 	var result = this.value;
 	if (result != null && this.att.type == "date")
 	{
-		result = result.toISO();
+		if (this.att.simpleDate)
+			result = result.toSimpleDateString();
+		else
+			result = result.toISO();
 	}
 	return result;
 }
@@ -2765,11 +2884,15 @@ WAF.Entity = function(dataClass, rawData, options)
 	this.remove = WAF.Entity.remove;
 	this.serverRefresh = WAF.Entity.serverRefresh;
 	
-	if (rawData == null)
+	var isnew = false;
+	if (rawData == null || rawData.__KEY == null)
 	{
 		this._private.key = null;
 		this._private.stamp = 0;
 		this._private.isNew = true;
+		isnew = true;
+		if (rawData != null)
+			this._private.touched = true;
 	}
 	else
 	{
@@ -2798,6 +2921,9 @@ WAF.Entity = function(dataClass, rawData, options)
 				valAtt = new WAF.EntityAttributeRelated(entity, val, att);
 			else
 				valAtt = new WAF.EntityAttributeRelatedSet(entity, val, att);
+		}
+		if (isnew && val != null) {
+			valAtt.touched = true;
 		}
 		values[e] = valAtt;
 		entity[e] = valAtt;
@@ -3047,7 +3173,9 @@ WAF.Entity.save = function(options, userData)
 						for (var e in attsByName)
 						{
 							var att = attsByName[e];
-							var val =  rawResultRec[e] || null;
+							var val =  rawResultRec[e];
+							if (val === undefined)
+								val = null;
 							var valAtt = entity[e];
 							if (valAtt == null)
 							{
@@ -3110,9 +3238,11 @@ WAF.EntityCollection.prototype.toArray = WAF.EntityCollection.toArray;
 WAF.EntityCollection.prototype.distinctValues = WAF.EntityCollection.distinctValues;
 WAF.EntityCollection.prototype.findKey = WAF.EntityCollection.findKey;
 WAF.EntityCollection.prototype.removeEntity = WAF.EntityCollection.removeEntity;
+WAF.EntityCollection.prototype.removeEntityReference = WAF.EntityCollection.removeEntityReference;
 WAF.EntityCollection.prototype.removeAllEntities = WAF.EntityCollection.removeAllEntities;
 WAF.EntityCollection.prototype.buildFromSelection = WAF.EntityCollection.buildFromSelection;
 WAF.EntityCollection.prototype.getReference = WAF.EntityCollection.getReference;
+WAF.EntityCollection.prototype.refresh = WAF.EntityCollection.refresh;
 
 // DataClass
 WAF.DataClass.prototype.distinctValues = WAF.DataClass.distinctValues;

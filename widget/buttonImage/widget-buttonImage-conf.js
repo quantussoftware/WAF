@@ -106,7 +106,10 @@ WAF.addWidget({
                 data    = this.data;
                 tag     = data.tag;
                 icon    = tag.getLinks()[0];
-                label   = icon.getLabel();
+				
+				if (typeof icon !== 'undefined') {
+					label   = icon.getLabel();
+				}
                 
                 if (label && label.status != 'destroy') {
                     this.setValue(label.getAttribute('data-text').getValue());
@@ -119,8 +122,13 @@ WAF.addWidget({
                 for (i = 0; i < selectionL; i += 1) {
                     tag     = selection.get(i);
                     icon    = tag.getLinks()[0];
-                    label   = icon.getLabel();
+                    
+                    if (!icon) {
+                        continue;
+                    }
 
+                    label   = icon.getLabel();                    
+                    
                     if (labelValue && labelValue != label.getAttribute('data-text').getValue()) {
                         diffLabel = true;
                         break;
@@ -128,7 +136,7 @@ WAF.addWidget({
 
                     labelValue = label.getAttribute('data-text').getValue();
                 }
-                if (!diffLabel) {
+                if (!diffLabel && labelValue) {
                     this.setValue(labelValue);
                 } else {
                     this.setValue('');
@@ -164,7 +172,7 @@ WAF.addWidget({
     },
     {
         name        : 'data-link',
-        description : 'Link',
+        description : 'URL',
         onchange    : function(){
             if (!this.getValue()) {
                 $('#dropdown-data-target').parent().parent().hide();
@@ -180,15 +188,14 @@ WAF.addWidget({
         options     : ['_blank', '_self'],
         defaultValue: '_blank',
         ready     : function(){
-            if (!this.data.tag.getAttribute('data-link').getValue()) {
+            if (this.data.tag.getAttribute('data-link') && !this.data.tag.getAttribute('data-link').getValue()) {
                 this.getHtmlObject().parent().parent().hide();
             }
         }
     },
     {
         name        : 'tabindex',
-        description : 'Tabindex',
-        typeValue   : 'integer'
+        description : 'Tabindex'
     }],
     events: [{
         name       : 'click',
@@ -234,7 +241,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [,
     {
         name        : 'width',
@@ -305,8 +317,7 @@ WAF.addWidget({
     },
     onCreate: function (tag, param) {
         
-        var
-        icon,
+        var icon,
         group,
         iconLabel;
         
@@ -316,10 +327,7 @@ WAF.addWidget({
          * @return {object}
          */
         tag.getWidgetIcon = function buttonImage_get_widget_label() {
-            var
-            icon;
-            
-            icon = this.getLinks()[0] || null; 
+            var icon = this.getLinks()[0] || null; 
             
             return icon;
         }
@@ -330,8 +338,7 @@ WAF.addWidget({
          * @return {object}
          */
         tag.getWidgetLabel = function buttonImage_get_widget_label() {
-            var
-            icon,
+            var icon,
             label;
             
             icon    = this.getWidgetIcon();
@@ -351,8 +358,7 @@ WAF.addWidget({
          * @param {boolean} force : force label change
          */
         tag._changeLabel = function buttonImage_change_label(newValue, force) {
-            var
-            icon,
+            var icon,
             label,
             value,
             attribute;
@@ -395,17 +401,8 @@ WAF.addWidget({
             }
         }
         
-        /**
-         * Init widget : bind custom events
-         * @method _init
-         */
-        tag._init = function buttonImage_init() {
-            var
-            icon,
-            iconLabel;
-            
-            icon        = this.getLinks()[0];  
-            iconLabel   = icon.getLabel();      
+        tag._bindIconEvents = function(icon) {
+            var iconLabel = icon.getLabel();
             
             /*
              * Prevent binding on icon and label
@@ -414,19 +411,20 @@ WAF.addWidget({
                 icon.preventBinding = true;
             }
             
-            
             icon._inButton = true;
 
             /*
              * Center content on icon design change
              */
-            $(icon).bind('onWidgetDesign', function(){
+            $(icon).unbind('onWidgetDesign').bind('onWidgetDesign', function(){
                 var
                 button;
 
                 button = this.getLinks()[0];
 
-                button._centerContent();
+                if (button) {
+                    button._centerContent();
+                }
 
                 /*
                  * Refresh focus position
@@ -441,15 +439,17 @@ WAF.addWidget({
                 /*
                  * Center content on icon design change
                  */
-                $(iconLabel).bind('onWidgetDesign', function(){
+                $(iconLabel).unbind('onWidgetDesign').bind('onWidgetDesign', function(){
                     var
                     icon,
                     button;
 
                     icon    = this.getLinkedTag();
                     button  = icon.getLinks()[0];
-
-                    button._centerContent();
+                    
+                    if (button) {
+                        button._centerContent();                        
+                    }
 
                     /*
                      * Refresh focus position
@@ -474,19 +474,89 @@ WAF.addWidget({
                  * Reset position
                  */
                 $(iconLabel).bind('onWidgetDestroy', {tag : tag}, function() {
-                    tag._centerContent();
+                    // tag._centerContent();
                 })
-
             }
+
+            /*
+             * Widgeticon  custom on state change event
+             * Also change parent widget states
+             */
+            $(icon).bind('onStateChange', function(){
+                var state,
+                    button,
+                    stateObj,
+                    buttonState,
+                    buttonStateObj;
+
+                button = this.getLinks()[0];
+                
+                stateObj        = this.getCurrentState();
+                state           = stateObj ? stateObj.cssClass : '';
+                buttonStateObj  = button.getCurrentState();
+                buttonState     = buttonStateObj ? buttonStateObj.cssClass : '';
+                
+                /*
+                 * Get equivalence
+                 */
+                switch(state) {
+                    case 'waf-state-state2':
+                        state = 'waf-state-hover';
+                        break;
+                        
+                    case 'waf-state-state3':
+                        state = 'waf-state-active';
+                        break;                        
+                        
+                    case 'waf-state-state4':
+                        state = 'waf-state-disabled';
+                        break;
+                        
+                    default:
+                        state = '';
+                        break;
+                }
+                
+                /*
+                 * Change button state
+                 */
+                if (buttonState == 'waf-state-focus' && state == '') {
+                    // DO NOTHING
+                } else if (buttonState != state) {
+                    button.changeState(state);
+                }
+            });   
+                
+            /*
+             * Icon label custom on destroy event
+             * Reset position
+             */
+            $(icon).bind('onWidgetDestroy', {tag : tag}, function() {
+                if (tag.status != 'destroy') {
+                    D.tag.deleteWidgets(tag);
+            }
+            });            
+        };
+            
+        /**
+         * Init widget : bind custom events
+         * @method _init
+         */
+        tag._init = function buttonImage_init(fromRedo) {
+            var icon,
+                iconLabel;
+            
+            icon = this.getLinks(fromRedo === true)[0];  
+            // iconLabel   = icon.getLabel();      
+            
+            tag._bindIconEvents(icon);
+
             /*
              * Widget custom on file drop event
              * Trigger icon onFileDrop event
              */
             $(tag).bind('onFileDrop', {}, function(e, data) {
-                var
-                icon;
-
-                icon = this.getLinks()[0];
+                var icon = this.getLinks()[0];
 
                 data.silentMode = true;
 
@@ -510,8 +580,7 @@ WAF.addWidget({
              * Also change sub widgets  states
              */
             $(tag).bind('onStateChange', function(){
-                var
-                icon,
+                var icon,
                 state,
                 nState,
                 stateObj,
@@ -559,75 +628,25 @@ WAF.addWidget({
                     }
                 }
             });            
-            
-            /*
-             * Widgeticon  custom on state change event
-             * Also change parent widget states
-             */
-            $(icon).bind('onStateChange', function(){
-                var
-                state,
-                button,
-                stateObj,
-                buttonState,
-                buttonStateObj;
-
-                button = this.getLinks()[0];
-                
-                stateObj        = this.getCurrentState();
-                state           = stateObj ? stateObj.cssClass : '';
-                buttonStateObj  = button.getCurrentState();
-                buttonState     = buttonStateObj ? buttonStateObj.cssClass : '';
-                
-                /*
-                 * Get equivalence
-                 */
-                switch(state) {
-                    case 'waf-state-state2':
-                        state = 'waf-state-hover';
-                        break;
-                        
-                    case 'waf-state-state3':
-                        state = 'waf-state-active';
-                        break;                        
-                        
-                    case 'waf-state-state4':
-                        state = 'waf-state-disabled';
-                        break;
-                        
-                    default:
-                        state = '';
-                        break;
-                }
-                
-                /*
-                 * Change button state
-                 */
-                if (buttonState == 'waf-state-focus' && state == '') {
-                    // DO NOTHING
-                } else if (buttonState != state) {
-                    button.changeState(state);
-                }
-            });   
-                
-            /*
-             * Icon label custom on destroy event
-             * Reset position
-             */
-            $(icon).bind('onWidgetDestroy', {tag : tag}, function() {
-                if (tag.status != 'destroy') {
-                    D.tag.deleteWidgets(tag);
-                }
-            })                
         }
-        
+
+        // on WidgetCopy we automatically copy the icon of the original image
+        $(tag).bind('onWidgetCopy', function(e, originalElement, copyParams) {
+            if (originalElement && originalElement.getLinks().length) {
+                var icon = originalElement.getLinks()[0].copy(copyParams.inPlace, copyParams.silentMode, this)[0];
+                if (icon) {
+                    this._setIcon(icon);
+                    icon.refresh();
+                }
+            }
+        });
+            
         /**
          * Center the content of the widget
          * @method _centerContent
          */
         tag._centerContent = function buttonImage_center_content() {
-            var
-            icon,
+            var icon,
             newTop,
             newLeft,
             labelPos,
@@ -638,7 +657,6 @@ WAF.addWidget({
             iconLabel,
             iconWidth,
             iconHeight,
-            htmlObject,
             iconMargin;
             
             icon        = this.getLinks()[0];
@@ -648,8 +666,6 @@ WAF.addWidget({
             if (!icon) {
                 return;
             }
-            
-            htmlObject  = this.getHtmlObject();
             
             iconWidth   = eltWidth = icon.getWidth();
             iconHeight  = eltHeight= icon.getHeight();
@@ -706,9 +722,56 @@ WAF.addWidget({
                 iconLabel._refreshPosition();
             }
             
+        };
+        
+        tag._setIcon = function(icon) {
+            icon.setParent(this);
+            if (icon.getLabel()) {
+                icon.getLabel().setParent(this);
+            }
+            
+            /*
+             * Link widgets
+             */
+            icon.link(this);
+            this.link(icon);
+            
+            /*
+             * Group widgets
+             */
+            group = new Designer.ui.group.Group();
+            group.add(this);
+            group.add(icon);
+            group.add(icon.getLabel());            
+            
+            /*
+             * Save the group
+             */
+            Designer.ui.group.save();
+            
+            /*
+             * Create a label to the icon
+             */
+            // D.tag.setLabel(icon);
+            
+            iconLabel = icon.getLabel();
+            
+            /*
+             * Set label align if not defined
+             */
+            if (iconLabel && iconLabel.status != 'destroy') {
+                iconLabel.getAttribute('data-valign').setValue('middle');
+                iconLabel.setCss('text-align', 'center');
+                iconLabel.setCss('position', 'absolute');
+            }
+            
+            // be sure to center label/icon
+            tag._centerContent();
         }
         
-        if (!param._isLoaded) {
+        if (param.fromCopy) {
+            // do nothing
+        } else if (!param._isLoaded) {
             /*
              * Create icon widget with label
              */
@@ -726,39 +789,7 @@ WAF.addWidget({
                 }
             });
             
-            /*
-             * Link widgets
-             */
-            icon.link(tag);
-            tag.link(icon);
-            
-            /*
-             * Group widgets
-             */
-            group = new Designer.ui.group.Group();
-            group.add(tag);
-            group.add(icon);
-            group.add(icon.getLabel());            
-            
-            /*
-             * Save the group
-             */
-            Designer.ui.group.save();
-            
-            /*
-             * Create a label to the icon
-             */
-            D.tag.setLabel(icon);
-            
-            iconLabel = icon.getLabel();
-            
-            /*
-             * Set label align if not defined
-             */
-            if (iconLabel && iconLabel.status != 'destroy') {
-                iconLabel.getAttribute('data-valign').setValue('middle');
-                iconLabel.setCss('text-align', 'center');
-            }
+            tag._setIcon(icon);
             
             /*
              * Center content
@@ -770,12 +801,12 @@ WAF.addWidget({
              */
             tag._init();
         } else {
-            $(tag).bind('onReady', function(){ 
+            $(tag).bind('onReady', function(e, data){ 
             
             /*
              * Init button
              */
-                this._init();
+                this._init(data && data.from && data.from == 'redo');
             });
         }    
     }

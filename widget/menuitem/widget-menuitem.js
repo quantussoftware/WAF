@@ -95,8 +95,8 @@ WAF.Widget.provide(
             height  : height + 'px',
             width   : width + 'px'
         });
-        
-        objHtmlText.html() && objHtmlText.html(objHtmlText.html().replace(/\n/g, '<br/>'));
+
+        // objHtmlText.html() && objHtmlText.html(objHtmlText.html().replace(/\n/g, '<br/>'));
                 
         // Setting the theme
         if (inData.theme) {
@@ -240,7 +240,10 @@ WAF.Widget.provide(
             htmlObject  = $(this);
             id          = htmlObject.prop('id');
             widget      = $$(id);
-            
+
+            htmlObject.parent().children("li").removeClass("waf-state-selected");
+            htmlObject.addClass('waf-state-selected');
+
             if (widget.onClick) {
                 widget.onClick();
             }
@@ -284,7 +287,7 @@ WAF.Widget.provide(
         renameMenuItem : function menuitem_rename_menuItem(label) {
             var
             richText;
-            richText = this.$domNode.children('.waf-richText');
+            richText = this.$domNode.children('.waf-menuItem-text');
             richText.html(label);
         },
        

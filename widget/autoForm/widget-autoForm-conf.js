@@ -46,14 +46,14 @@ WAF.addWidget({
     },
     {
         name        : 'data-display-error',
-        description : 'Display error',
+        description : 'Display errors',
         type        : 'checkbox',
         category    : 'Error Handling',
         defaultValue: 'true'
     },
     {
         name        : 'data-errorDiv',
-        description : 'Placeholder for error description',
+        description : 'Error ID',
         category    : 'Error Handling'
     },
     {
@@ -249,8 +249,12 @@ WAF.addWidget({
         description : 'On Stop Resize',
         category    : 'Resize'
         
-    }
-    ],
+    },
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }],
     style      : [
     {
         name        : 'width',

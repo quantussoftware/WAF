@@ -83,26 +83,28 @@ WAF.proxy.HttpRequest = function (config) {
                             message : e.data || e.message
                         });
                     }
-                    if (oResponse.result !== undefined) {
-                        return oResponse.result;
-                    } else if (oResponse.error !== undefined) {
-                        if (oResponse.error.data) {
-                            throw WAF.proxy.ErrorFactory.createError({
-                                code    : oResponse.error.code,
-                                message : oResponse.error.message,
-                                data    : oResponse.error.data
-                            });
-                        } else {
-                            throw WAF.proxy.ErrorFactory.createError({
-                                code    : oResponse.error.code,
-                                message : oResponse.error.message
-                            });
-                        }
+                } else {
+                    return null;
+                }
+
+                // first we check the response.status code
+                if(xhr.status >= 400){
+                    // we have an error
+                    if (!!oResponse && !!oResponse.error) {
+                        throw WAF.proxy.ErrorFactory.createError({
+                            code    : oResponse.error.code,
+                            message : oResponse.error.message,
+                            data    : oResponse.error.data || null
+                        });
                     } else {
                         return null;
                     }
-                } else {
-                    return null;
+                }else{
+                    if (!!oResponse && !!oResponse.result) {
+                        return oResponse.result;
+                    } else {
+                        return null;
+                    }
                 }
             }
         } else {
@@ -116,17 +118,28 @@ WAF.proxy.HttpRequest = function (config) {
                             params.onerror(e);
                             return;
                         }
-                        if (oResponse.result !== undefined) {
-                            oResponse = oResponse.result;
+                    }
+                    // first we check the response.status code
+                    if(xhr.status >= 400){
+                        // we have an error
+                        if (!!oResponse && oResponse.error) {
+                            params.onerror(oResponse.error);
+                        } else {
+                            params.onerror(oResponse);
+                        }
+
+                    }else{
+                        if (!!oResponse) {
+                            oResponse = oResponse.result || null;
                             params.onsuccess(oResponse);
                         } else {
-                            if (oResponse.error) {
+                            if (!!oResponse && oResponse.error) {
                                 params.onerror(oResponse.error);
                             } else {
                                 params.onerror(oResponse);
                             }
                         }
-                    }
+                    } 
                 }
             }
         }

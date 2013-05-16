@@ -43,7 +43,7 @@ WAF.Widget.provide(
         htmlObject,
         nb,
         thisI;
-
+        
         that        = this;
         htmlObject  = this.$domNode;
         text        = data.text === "" ? data.action : data.text;
@@ -145,7 +145,7 @@ WAF.Widget.provide(
         /*
          * BUTTON NAVIGATION
          */
-        if (data['link']) {
+        /*if (data['link']) {
             htmlObject.bind('click', {}, function(e) {
                 switch(data['target']) {
                     case '_blank':
@@ -157,11 +157,34 @@ WAF.Widget.provide(
                         break;
                 }
             });
-        }        
+        } */
+        
+         
+        htmlObject.bind('click', {}, function(e) {
+            var target, link;
+            link = that.$domNode.attr('data-link');
+            target = that.$domNode.attr('data-target');
+            if (link) {
+            //if (data['link']) {
+                switch(target) {
+                    case '_blank':
+                        window.open(link);
+                        break;
+
+                    default :
+                        window.location = link;
+                        break;
+                }
+            } else {
+                e.preventDefault();
+            }
+        });
+            
         
         /*
          * Add actions on data source if button is binded
          */
+        
         if (this.source) {  
 
             var eventAction = "click";
@@ -231,6 +254,20 @@ WAF.Widget.provide(
          */
         setValue : function button_set_value (value) {
             this.$domNode.text(value);
+        },
+        
+        setURL : function(lnk, target) {
+            if (target) {
+                this.$domNode.attr('data-target', target);
+            }
+            this.$domNode.attr('data-link', lnk);
+        },
+        getURL : function() {
+            return this.$domNode.attr('data-link');
+        },
+        disable : function() {
+            this.$domNode.removeClass('waf-state-hover');
+            WAF.Widget.prototype.disable.call(this);
         }
     }
 );

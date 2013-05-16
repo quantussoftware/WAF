@@ -13,12 +13,10 @@
 * Consequently, no title, copyright or other proprietary rights
 * other than those specified in the applicable license is granted.
 */
+
 /**
  * @brief			rpc-server.js
  * @details
- *
- *
- *
  * @author		        erwan carriou
  * @date			July 2009
  * @version			0.9
@@ -54,6 +52,7 @@ WAF.rpc = {
      * Call and check a function
      * @namespace WAF.rpc
      * @method callAndCheck
+     * @param {String} modulePath name of the module to call
      * @param {String} func name of the function to call
      * @param {Array} groupExecID ID of execution
      * @param {Array} groupPromoteID of promote
@@ -331,7 +330,6 @@ function getCatalog(params) {
     hasDescription = false,
     i = 0;
 
-    // signature = application.rpcService.getCatalog(); // sc 16/05/2012 rpcService property was removed
     oSignature = JSON.parse(signature);
 
     // get Params
@@ -385,14 +383,10 @@ function doRequest(request, response) {
      * @return {String} type of the request
      */
     function getType(contentType) {
-        var type = 'text/plain';
-        if (contentType.indexOf("json")) {
-            type = 'json';
-        } else {
-            if (contentType.indexOf("xml")) {
-                type = 'xml';
-            }
-        }
+        var type = 'json';      
+        if (contentType && contentType.indexOf('xml') != -1) {
+            type = 'xml';
+        }        
         return type;
     }
 
@@ -403,14 +397,12 @@ function doRequest(request, response) {
      * @return {String} full type of the request
      */
     function getFullType(contentType) {
-        var type = 'text/plain';
-        if (contentType.indexOf("json")) {
-            type = 'application/json-rpc';
-        } else {
-            if (contentType.indexOf("xml")) {
-                type = 'application/xml';
-            }
+        var type = 'application/json-rpc';
+
+        if (contentType && contentType.indexOf('xml') != -1) {
+            type = 'application/xml';
         }
+        
         return type;
     }
 
@@ -445,14 +437,8 @@ function doRequest(request, response) {
             result = WAF.rpc.execute(jsonObj.method.keys, jsonObj.params, jsonObj.method.source);
             version = jsonObj.jsonrpc;
         } else {
-            // if (WAF.root[jsonObj.method] !== undefined) {
             result = WAF.rpc.call(jsonObj.module, jsonObj.method, jsonObj.params || []);
             version = jsonObj.jsonrpc;
-        /*  } else {
-                errorCode = -32601;
-                errorMessage = 'method ' + jsonObj.method + ' not found';
-                response.statusCode = 500;
-            }*/
         }
 
     } catch (error) {
@@ -471,7 +457,6 @@ function doRequest(request, response) {
             }
         }
     }
-
 
     //checkReturnType(jsonObj.method, result);
 

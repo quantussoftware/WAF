@@ -38,7 +38,7 @@ WAF.addWidget({
     },    
     {
         name        : 'data-src',                                                 
-        description : 'Source Page'
+        description : 'Source page'
     }    
     ],
     style: [                                                                     

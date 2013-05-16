@@ -22,71 +22,152 @@ WAF.Widget.provide(
  * @class Accordion
  * @extends WAF.Widget
  */
-    'Accordion', 
+    'Accordion',
     
-                
     {
     },
 
     function WAFWidget(config, data, shared) {
         
     },
-    
-                
     {
-        getAccordionOptions : function () {
-            return {
-                duration	: this.config['data-duration'],
-                collapsible	: this.config['data-several-opened'] === "true",
-                headerHeight	: 40,
-                contentHeight	: 250,
-                sectionMargin	: 2,
-                expandedSectionIcon	: '/walib/WAF/widget/accordion/icons/widget-accordion-expanded-icon.png',
-                collapsedSectionIcon    : '/walib/WAF/widget/accordion/icons/widget-accordion-collapsed-icon.png'   
+        ready : function () {
+            var i,
+            icon,
+            length,
+            widget,
+            header,
+            section;
+            
+            //the only place to declare globale variable
+            this.disabled   = false;    
+            this._sections  = []; // array of accordion's section in dom order
+            
+            // initial
+            icon = this.$domNode.find('.waf-state-collapsed .waf-accordion-icon').css('background-image');
+            this._collapsedIcon = icon.substring(4,icon.length-1);
+            this._collapsedIcon = this._collapsedIcon.replace(window.location.origin, '');
+            //work around for firefox
+            if (this._collapsedIcon.indexOf("\"") !== -1) {
+                this._collapsedIcon = this._collapsedIcon.substr(1, this._collapsedIcon.length-2);
+            }
+            this.$domNode.find('.waf-state-collapsed .waf-accordion-icon').css('background-image', 'none');
+            
+            
+            icon = this.$domNode.find('.waf-state-expanded .waf-accordion-icon').css('background-image') || '';
+            this._expandedIcon = icon.substring(4,icon.length-1);
+            this._expandedIcon = this._expandedIcon.replace(window.location.origin, '');
+            //work around for firefox
+            if (this._expandedIcon.indexOf("\"") !== -1) {
+                this._expandedIcon = this._expandedIcon.substr(1, this._expandedIcon.length-2);
+            }
+            this.$domNode.find('.waf-state-expanded .waf-accordion-icon').css('background-image', 'none');
+            
+            
+            this.$domNode.find('.waf-state-expanded .waf-accordion-icon img').attr('src', this._expandedIcon);
+            this.$domNode.find('.waf-state-collapsed .waf-accordion-icon img').attr('src', this._collapsedIcon);
+            
+            this.enable();
+            this._initSectionsArray();
+            
+            length  = this._sections.length;
+            widget  = this;
+            
+            for ( i=0; i<length; i++ ) {
+                
+                section = this._sections[i];
+                header  = this._getHeader(section);
+
+                header.addListener('click', (function (widget, i) {
+                    return function() {
+                        if(widget.disabled){
+                            return;
+                        }
+                        widget.toggleSection(i+1);
+                    }
+                })(widget, i));                
+            } 
+        },
+        
+        
+        // private methods
+        // return: header container
+        _getHeader : function (section) {
+            
+            var
+            children = section.getChildren();
+            
+            if(children[0].$domNode.attr('class').indexOf('accordion-header') != -1 ){
+                return children[0];
+            } else {
+                return children[1];
             }
         },
         
-         
-        ready : function () {
+        
+        // return: content container
+        _getContent : function (section) {
             
-            var 
+            var
+            children = section.getChildren();
+            
+            if(children[1].$domNode.attr('class').indexOf('accordion-content') != -1 ){
+                return children[1];
+            } else {
+                return children[0];
+            }            
+        },
+        
+        
+        // get.links() returns unmodified and unsorted sections, we create a new global array 
+        // and we sort sections accordiong to the top position.
+        _initSectionsArray : function _initSectionsArray() {
+            var
             i,
             links,
-            widget,
-            length,
-            header,
-            height,
-            content,
+            length;
+            
+            links           = this.getLinks();
+            length          = links.length;
+            
+            for ( i=0; i<length; i++) {
+                this._sections.push(links[i]);
+            }
+            this._sections.sort(function(a,b){
+                return (a.getPosition().top - b.getPosition().top);
+            });
+        },
+        
+        
+        _getSection : function _getSection(index) {
+            return this._sections[index];
+        },
+        
+        
+        _isCollapsed : function _isCollapsed(index) {
+            var 
             section,
-            accordionOptions;
+            headerHeight;
             
+            section         = this._getSection(index);
+            headerHeight    = this.config['data-header-height'];
             
-            links       = this.getLinks();
-            length      = links.length;
-            widget      = this;
+            return (headerHeight == section.getHeight());
+        },
+        
+        _getExpandedSectionIndex : function _getExpandedSectionIndex() {
+            var
+            i,
+            length,
+            headerHeight;
             
-            accordionOptions    = this.getAccordionOptions();
-            height              = accordionOptions.headerHeight + accordionOptions.contentHeight;
-
-            for( i=0 ; i<length ; i++){
-                
-                section = links[i];
-                header  = section.getChildren()[0]; 
-                content = section.getChildren()[1]; 
-
-                header.addListener('click', (function (widget, header) {
-                    return function() {
-                        if(accordionOptions.collapsible){
-                            widget.simpleSlide(header.getParent());
-                        } else {
-                            if(header.getParent().getHeight() === height){
-                                return;
-                            }
-                            widget.slide(header.getParent()); 
-                        }
-                        
-                    }
-                })(widget, header));
+            length          = this._sections.length;
+            headerHeight    = this.config['data-header-height'];
+            
+            for(i=0; i<length; i++) {
+                if(this._sections[i].getHeight() > headerHeight){
+                    return i;
+                }
             }
         },
         
@@ -94,226 +175,303 @@ WAF.Widget.provide(
         /**
          * complete the current running animation immediately
          */
-        stopAnimation : function stopAnimation(){
+        _stopAnimation : function _stopAnimation(){
             
             var
             j,
             links,
             length;
-
             
-            links               = this.getLinks();
-            length              = links.length;
+            links   = this.getLinks();
+            length  = links.length;
             
             for (j=0; j<length ; j++) {
                 links[j].$domNode.stop(true,true);
             }
         },
         
-        
-        /**
-         */
-        slide : function slide(container) {
+        _slide : function _slide(index) {
+            
             var
             i,
             top,
-            sign,
-            length,
-            options,
-            section;
+            sup,
+            duration,
+            iconExpand,
+            iconCollapse,
+            headerHeight,
+            contentHeight,
+            sectionToExpand,
+            sectionToCollapse;
             
-            i       = 0;
-            options = this.getAccordionOptions();
-            if (container.getHeight() >  options.headerHeight) {
-                return;
+            
+            duration        = parseInt(this.config['data-duration'],10);
+            headerHeight    = parseInt(this.config['data-header-height'],10);
+            contentHeight   = parseInt(this.config['data-content-height'],10);
+            
+            sectionToExpand     = this._getSection(index);
+            sectionToCollapse   = this._getExpandedSectionIndex();
+            
+            iconExpand      = this._getHeader(sectionToExpand).getChildren()[1];
+            iconCollapse    = this._getHeader(this._sections[sectionToCollapse]).getChildren()[1];
+                
+            
+            if( index < sectionToCollapse) {
+                i   = index + 1;
+                top = '+=' + contentHeight;
+                sup = sectionToCollapse - 1;
+                
+                
+                sectionToExpand.$domNode.animate({
+                    height  : headerHeight + contentHeight
+                }
+                , duration);  
+                
+                this._sections[sectionToCollapse].$domNode.animate({
+                    height  : headerHeight,
+                    top     : top
+                }
+                , duration);  
+                
+                
+                    
+            } else {
+                i   = sectionToCollapse+1;
+                top = '-=' + contentHeight;
+                sup = index - 1;
+                
+
+                sectionToExpand.$domNode.animate({
+                    height  : headerHeight + contentHeight,
+                    top     : top
+                }
+                , duration);  
+                
+                this._sections[sectionToCollapse].$domNode.animate({
+                    height  : headerHeight
+                }
+                , duration); 
             }
-            this.stopAnimation();
-            section     = this.sectionsToAnimate(container);
+            
+            this._sections[sectionToCollapse].removeClass('waf-state-expanded');
+            this._sections[sectionToCollapse].addClass('waf-state-collapsed');
+            this._sections[sectionToCollapse].$domNode.find('.waf-state-expanded').addClass('waf-state-collapsed');
+            this._sections[sectionToCollapse].$domNode.find('.waf-state-collapsed').removeClass('waf-state-expanded');
             
 
-            if( !section[i] ){
-                return;
-            }
-            length  = section.length;
+            sectionToExpand.addClass('waf-state-expanded');
+            sectionToExpand.removeClass('waf-state-collapsed');
+            sectionToExpand.$domNode.find('.waf-state-collapsed').addClass('waf-state-expanded');
+            sectionToExpand.$domNode.find('.waf-state-expanded').removeClass('waf-state-collapsed');
             
-            if (section[i].getPosition().top > section[length-1].getPosition().top) {
-                sign    = '+'; 
-                top     = sign+'='+options.contentHeight;
+            this.$domNode.find('.waf-state-expanded .waf-accordion-icon img').attr('src',this._expandedIcon);
+                this.$domNode.find('.waf-state-collapsed .waf-accordion-icon img').attr('src',this._collapsedIcon);
                 
-                section[i].$domNode.animate({
-                    top: top,
-                    height: options.headerHeight
-                }, options.duration, (function(widget,section){
-                    return function () {
-                        section.getChildren()[0].getChildren()[1].$domNode.children().attr('src',widget.getAccordionOptions().collapsedSectionIcon);
-                        section.$domNode.removeClass('accordion-expanded');
-//                        section.$domNode.addClass('accordion-collapsed');
-                    };
-                })(this,section[i]));
-                
-                section[length-1].$domNode.animate({
-                    height: options.headerHeight + options.contentHeight
-                }, options.duration, (function(widget,section){
-                    return function () {                        
-                        section.getChildren()[0].getChildren()[1].$domNode.children().attr('src',widget.getAccordionOptions().expandedSectionIcon);
-                        section.$domNode.addClass('accordion-expanded');
-//                        section.$domNode.removeClass('accordion-collapsed');
-                    };
-                })(this,section[length-1]));
-                
-            } else {
-                sign = '-';
-                top = sign + '=' + options.contentHeight;
-                
-                section[length-1].$domNode.animate({
-                    top: top,
-                    height: options.headerHeight + options.contentHeight
-                }, options.duration, (function(widget,section){
-                    return function () {
-                        section.getChildren()[0].getChildren()[1].$domNode.children().attr('src',widget.getAccordionOptions().expandedSectionIcon);
-                        section.$domNode.addClass('accordion-expanded');
-//                        section.$domNode.removeClass('accordion-collapsed');
-                    };
-                })(this,section[length-1]));
-                
-                section[i].$domNode.animate({
-                    height: options.headerHeight
-                }, options.duration, (function(widget,section){
-                    return function () {
-                        section.getChildren()[0].getChildren()[1].$domNode.children().attr('src',widget.getAccordionOptions().collapsedSectionIcon);
-                        section.$domNode.removeClass('accordion-expanded');
-//                        section.$domNode.addClass('accordion-collapsed');
-                    };
-                })(this,section[i]));
-            }
-                        
-            
-            for(i=1; i < length-1 ; i++){
-                
-                top = sign+'='+options.contentHeight;
-                section[i].$domNode.animate({
-                    top: top
-                }, options.duration);
-            }
+            for (; i<=sup; i++) {
+                this._sections[i].$domNode.animate({
+                    top : top
+                }, duration);
+            }            
         },
         
         
-        /**
-         *
-         */
-        sectionsToAnimate : function sectionsToAnimate(container) {
+        _slideCollapsibleAccordion : function _slideCollapsibleAccordion(index){
             var
-            j,
-            links,
+            i,
+            top,
+            icon,
             height,
             length,
-            accordionOptions,
-            sectionsToAnimate;
-
+            section,
+            duration,
+            headerHeight,
+            contentHeight;
             
-            links               = this.getLinks();
-            length              = links.length;
-            accordionOptions    = this.getAccordionOptions();
-            sectionsToAnimate   = [];
-          
+            contentHeight   = parseInt(this.config['data-content-height'],10); 
+            headerHeight    = parseInt(this.config['data-header-height'],10);
+            duration        = parseInt(this.config['data-duration'],10);
+            section         = this._getSection(index);
+            length          = this._sections.length;
+            icon            = this._getHeader(section).getChildren()[1];
             
-            height = accordionOptions.headerHeight + accordionOptions.contentHeight;
-            for( j=0 ; j<length ; j++ ){
-                if( links[j].id === container.id ||  links[j].getHeight() > accordionOptions.headerHeight){
-                    break;
-                }
-            }
-
+            if(this._isCollapsed(index)) {
+                
+                top     = '+='+contentHeight;
+                height  = headerHeight + contentHeight;
+                
+                icon.$domNode.children().attr('src',this.config['data-expanded-icon']);
+                section.$domNode.addClass('waf-state-expanded');
+                section.$domNode.removeClass('waf-state-collapsed');
+                section.$domNode.find('.waf-state-collapsed').addClass('waf-state-expanded');
+                section.$domNode.find('.waf-state-expanded').removeClass('waf-state-collapsed');
             
-            if(links[j].getHeight() > accordionOptions.headerHeight){
-                for( ;j<length-1 &&  (links[j].id !== container.id); j++ ) {
-                    sectionsToAnimate.push(links[j]);
-                }
-                sectionsToAnimate.push(links[j]);
             } else {
                 
-                for( ;j<length-1 &&  (links[j].getHeight() === accordionOptions.headerHeight ); j++ ) {
-                    sectionsToAnimate.push(links[j]);
-                }
-                sectionsToAnimate.push(links[j]);
-                sectionsToAnimate.reverse();
+                top     = '-=' + contentHeight;
+                height  = headerHeight;
                 
-            }
-            return sectionsToAnimate;
-        }, 
-        
-        
-        /**
-         * 
-         */
-        simpleSlide : function simpleSlide(container) {
-            var 
-            i,
-            top,
-            sign,
-            options,
-            accordionInfo;
-        
-            accordionInfo   = this.getAccordionInfo();
-            options         = this.getAccordionOptions();
-            
-            //complete the current running animation immediately
-            this.stopAnimation();
-            
-            // if the selected container is opened
-            if (container.getHeight() >  options.headerHeight) {
-                
-                container.$domNode.animate({
-                    height: options.headerHeight
-                }, options.duration, (function(widget,section){
-                    return function () {
-                        section.getChildren()[0].getChildren()[1].$domNode.children().attr('src',widget.getAccordionOptions().collapsedSectionIcon);
-                        section.$domNode.removeClass('accordion-expanded');
-                    };
-                })(this,container));
-                sign = '-';
-                
-            } else {
-                // if the selected container is closed
-                container.$domNode.animate({
-                    height: options.headerHeight + options.contentHeight
-                }, options.duration, (function(widget,section){
-                    return function () {
-                        section.getChildren()[0].getChildren()[1].$domNode.children().attr('src',widget.getAccordionOptions().collapsedSectionIcon);
-                        section.$domNode.addClass('accordion-expanded');
-                    };
-                })(this,container));
-                sign = '+';
+                icon.$domNode.children().attr('src',this.config['data-collapsed-icon']);
+                section.$domNode.removeClass('waf-state-expanded');
+                section.$domNode.addClass('waf-state-collapsed');
+                section.$domNode.find('.waf-state-expanded').addClass('waf-state-collapsed');
+                section.$domNode.find('.waf-state-collapsed').removeClass('waf-state-expanded');
             }
             
-            for (i=0; i < accordionInfo.nbOfSection; i++) {
-                // if the ith section is below the container
-                if (accordionInfo.sections[i].getPosition().top > container.getPosition().top) {
-                    
-                    top = sign+'='+options.contentHeight;
-                    accordionInfo.sections[i].$domNode.animate({
-                        top: top
-                    }, options.duration);
-                }
+            section.$domNode.animate({
+                height: height
+            }
+            , duration); 
+                
+            for(i=index+1; i<length; i++){
+                this._sections[i].$domNode.animate({
+                    top: top
+                }, duration);
             }
         },
         
         
-        /**
-         * 
-         */
-        getAccordionInfo : function(){
-            var 
-            i,
-            sections,
-            nbOfSections;
+        // public methods
+        destroy : function destroy() {
+            $('#'+this.divID).remove();
+        },
         
-            sections        = this.getLinks();
-            nbOfSections    = sections.length;
         
-            return {
-                sections    : sections,
-                nbOfSection : nbOfSections
-            };
-        }
+        disable : function disable() {
+            this.disabled = true;
+        },
+        
+        
+        enable: function enable() {
+            this.disabled = false;
+        },
+        
+        
+        isDisabled : function isDisabled(){
+            return this.disabled ;
+        },
+        
+        
+        toggleSection : function toggleSection(index){
+            var
+            expandSeveral;
+            
+            index = index -1;
+            
+            if(index >= this._sections.length || index <0)
+            {
+                return false;
+            }
+            
+            this._stopAnimation();
+            
+            expandSeveral = (this.config['data-expand-several'] === 'false');
+            
+            if(expandSeveral){
+                this._slideCollapsibleAccordion(index);
+            } else if (!expandSeveral && this._isCollapsed(index)) {
+                this._slide(index);
+            }
+            return true;
+            
+        },
+        
+        expand : function expand(index){
+            var
+            expandSeveral;
+            
+            index = index -1;
+            
+            if(index >= this._sections.length || index <0)
+            {
+                return false;
+            }
+            
+            if(!this._isCollapsed(index)){
+                return false;
+            }
+            
+            expandSeveral = (this.config['data-expand-several'] === 'false');
+            
+            this._stopAnimation();
+            
+            if(expandSeveral){
+                this._slideCollapsibleAccordion(index);
+            } else {
+                this._slide(index);
+            }
+            return true;
+        },
+        
+        expandAll : function expandAll(){
+            var expandSeveral = (this.config['data-expand-several'] === 'false');
+            
+            var length = this.getNumberOfSections();
+            
+            if(!expandSeveral){
+                return false;
+            }
+            
+            for(var i=1; i<=length; i++){
+                this.expand(i);
+            }
+            return true;           
+            
+        },
+        
+        collapseAll : function collapseAll(){
+            var expandSeveral = (this.config['data-expand-several'] === 'false');
+            
+            var length = this.getNumberOfSections();
+            
+            if(!expandSeveral){
+                return false;
+            }
+            
+            for(var i=1; i<=length; i++){
+                this.collapse(i);
+            }
+            return true;           
+            
+        },
+        
+        
+        collapse : function collapse(index){
+            var
+            expandSeveral;
+            
+            index = index -1;
+            
+            if(index >= this._sections.length || index <0)
+            {
+                return false;
+            }
+            
+            if(this._isCollapsed(index)){
+                return false;
+            }
+            
+            expandSeveral = (this.config['data-expand-several'] === 'false');
+            
+            this._stopAnimation();
+            
+            if(expandSeveral){
+                this._slideCollapsibleAccordion(index);
+                return true;
+            } else {
+                return false;
+            } 
+        },
+        
+        getNumberOfSections : function getNumberOfSections(){
+            return this._sections.length;            
+        },
+        
+        isCollapsed : function isCollapsed(index){
+            if(index > this.getNumberOfSections() || index <0 ) {
+                return null;
+            }
+            
+            return this._isCollapsed(index-1);
+        } 
+        
     });

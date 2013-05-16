@@ -42,6 +42,7 @@ WAF.Widget.provide(
                 classname   : 'waf-widget-footer waf-dialog-footer'
             }
         },
+        Z_INDEX : 100001,
         minimizedInfo : {
             height          : 28,
             width           : 165,
@@ -363,7 +364,7 @@ WAF.Widget.provide(
                     containment: "document",
                     zIndex  : function(){
                         if(utils.isModal() ){
-                             return 100001;
+                             return shared['Z_INDEX'];
                         }
                         
                         return null;
@@ -371,9 +372,12 @@ WAF.Widget.provide(
                     stop: function(event, ui) {
                         if(utils.isModal() ){
                             htmlObj.css({
-                                'z-index' : 100001
+                                'z-index' : shared['Z_INDEX']
                             });
                         }
+                    },
+                    drag : function(){
+                        $('.waf-dialog-ismodal').css('zIndex' , shared['Z_INDEX'])
                     }
                 });
                 
@@ -396,36 +400,68 @@ WAF.Widget.provide(
             },
             makeModal : function(){
                 var
-                modal;
+                modal,
+                modalW,
+                modalH;
                 
-                modal   = $('#waf-dialog-fade');
+                modal   = htmlObj.parent().children('.waf-dialog-fade');
                 
                 if(modal.length == 0){
-                    modal = $('<div id="waf-dialog-fade"></div>');
+                    modal = $('<div class="waf-dialog-fade"></div>');
                 }
                 
-                modal.click(function(){
-                    $('.waf-dialog-ismodal').each(function(){
-                        var widget = $(this).data('widget');
-                        
-                        if(widget){
-                            widget.closeDialog();
-                        }
+                if(config['data-hideOnOutsideClick'] == 'true'){
+                    modal.click(function(){
+                        $(this).parent().children('.waf-dialog-ismodal').each(function(){
+                            var widget = $(this).data('widget');
+
+                            if(widget){
+                                widget.closeDialog();
+                            }
+                        });
                     });
-                });
+                }
                 
-                htmlObj.css('z-index', '100001');
+                htmlObj.css('z-index', shared['Z_INDEX']);
                 htmlObj.addClass('waf-dialog-ismodal');
                 htmlObj.data('widget' , that);
                 
-                $('body').append(modal);
+                htmlObj.parent().append(modal);
+                
+                switch(that.domNode.parentNode.nodeName){
+                    case 'SECTION':
+                        var
+                        parent = htmlObj.parent().parent();
+                        
+                        modalW = parent.width();
+                        modalH = parent.height();
+                        
+                        break;
+                    case 'BODY':
+                        modalW = '100%';
+                        modalH = '100%';
+                        
+                        modal.css({
+                            'position' : 'fixed'
+                        });
+                        
+                        break;
+                    default:
+                        modalW = htmlObj.parent().width();
+                        modalH = htmlObj.parent().height();
+                        
+                        break;
+                }
+                
                 modal.css({
-                    'filter': 'alpha(opacity=50)'
-                }).fadeIn(); 
+                    'filter': 'alpha(opacity=50)',
+                    'width' : modalW,
+                    'height': modalH
+                }).fadeIn();
             },
             bringToFront : function(){
                 if(this.isModal()){
-                    htmlObj.css('z-index', '100001');
+                    htmlObj.css('z-index', shared['Z_INDEX']);
                 }
                 else{
                     htmlObj.css('z-index', '99999');
@@ -434,7 +470,7 @@ WAF.Widget.provide(
         }
     },
     {
-        ready   : function(){
+        ready   : function(shared){
             var
             content,
             that,
@@ -462,13 +498,15 @@ WAF.Widget.provide(
                 utils.makeResizable();
             }
             
-            if(utils.isModal() && config['data-autoopen'] !== 'true'){
+            if(utils.isModal() && config['data-hideonload'] !== 'true'){
                 utils.makeModal();
             }
             
             if(utils.toFront()){
                 utils.bringToFront();
             }
+            
+            htmlObj.find('.waf-dialog-header').trigger("drag");
             
             if(config['data-load'] && config['data-load'] != '' && content){
                 var
@@ -489,7 +527,7 @@ WAF.Widget.provide(
             }
             
             // Auto open :
-            if(config['data-autoopen'] === 'true'){
+            if(config['data-hideonload'] === 'true'){
                 this.closeDialog();
             }
             
@@ -616,11 +654,11 @@ WAF.Widget.provide(
             }
             
             htmlObj = dw._getHtmlObject();
-            modal = $('#waf-dialog-fade');
+            modal = htmlObj.parent().children('.waf-dialog-fade');
             
             htmlObj.hide();
             
-            if($('.waf-dialog-ismodal:visible').length == 0){
+            if(htmlObj.parent().children('.waf-dialog-ismodal:visible').length == 0){
                 modal.hide();
             }
         },
@@ -640,7 +678,6 @@ WAF.Widget.provide(
             }
             
             htmlObj = dw._getHtmlObject();
-            modal   = $('#waf-dialog-fade');
             utils   = dw._private.utils;
             
             if(utils.isModal()){
@@ -665,7 +702,7 @@ WAF.Widget.provide(
             delete WAF.widgets[this.id]
     
             this.$domNode.remove();
-            $('#waf-dialog-fade').hide();
+            this.$domNode.parent().children('.waf-dialog-fade').hide();
         },
         maximizeDialog : function(){
             var

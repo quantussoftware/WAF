@@ -47,6 +47,7 @@
  */
 
 
+
 .cupertino.waf-tabView.waf-tabView-menu-position-left-bottom .waf-menuBar,
 .cupertino.waf-tabView.waf-tabView-menu-position-left-top .waf-menuBar {
 	
@@ -103,6 +104,7 @@
 .waf-tabView.waf-tabView-menu-position-top-right .waf-widget.waf-menuBar-horizontal.cupertino {
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
+	
 }
 
 .waf-tabView.waf-tabView-menu-position-bottom-left .waf-widget.waf-menuBar-horizontal.cupertino,
@@ -140,6 +142,66 @@
 	border-top: 1px solid;
 }
 
+
+/* Top */
+.cupertino.waf-tabView.waf-tabView-menu-position-top-left > .waf-container,
+.cupertino.waf-tabView.waf-tabView-menu-position-top-right > .waf-container,
+/* GUI Designer */
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-top-left > div > div > .waf-container,
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-top-right > div > div > .waf-container
+/* // GUI Designer */ 
+{
+	-webkit-border-radius: 0 0 5px 5px;
+	   -moz-border-radius: 0 0 5px 5px;
+	    -ms-border-radius: 0 0 5px 5px;
+	     -o-border-radius: 0 0 5px 5px;
+	        border-radius: 0 0 5px 5px;
+}
+
+/* Bottom */
+.cupertino.waf-tabView.waf-tabView-menu-position-bottom-left > .waf-container,
+.cupertino.waf-tabView.waf-tabView-menu-position-bottom-right > .waf-container,
+/* GUI Designer */
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-bottom-left > div > div > .waf-container,
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-bottom-right > div > div > .waf-container
+/* // GUI Designer */
+{
+	-webkit-border-radius: 5px 5px 0 0;
+	   -moz-border-radius: 5px 5px 0 0;
+	    -ms-border-radius: 5px 5px 0 0;
+	     -o-border-radius: 5px 5px 0 0;
+	        border-radius: 5px 5px 0 0;
+}
+
+/* Left */
+.cupertino.waf-tabView.waf-tabView-menu-position-left-top > .waf-container,
+.cupertino.waf-tabView.waf-tabView-menu-position-left-bottom > .waf-container,
+/* GUI Designer */
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-left-top > div > div > .waf-container,
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-left-bottom > div > div > .waf-container
+/* // GUI Designer */ 
+{	
+	-webkit-border-radius: 0 5px 5px 0;
+	   -moz-border-radius: 0 5px 5px 0;
+	    -ms-border-radius: 0 5px 5px 0;
+	     -o-border-radius: 0 5px 5px 0;
+	        border-radius: 0 5px 5px 0;
+}
+
+/* Right */
+.cupertino.waf-tabView.waf-tabView-menu-position-right-top > .waf-container,
+.cupertino.waf-tabView.waf-tabView-menu-position-right-bottom > .waf-container,
+/* GUI Designer */
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-right-top > div > div > .waf-container,
+body.yui-layout .cupertino.waf-tabView.waf-tabView-menu-position-right-bottom > div > div > .waf-container
+/* // GUI Designer */ 
+{	
+	-webkit-border-radius: 5px 0 0 5px;
+	   -moz-border-radius: 5px 0 0 5px;
+	    -ms-border-radius: 5px 0 0 5px;
+	     -o-border-radius: 5px 0 0 5px;
+	        border-radius: 5px 0 0 5px;
+}
 
 /**
  * -------------------------------------------------------

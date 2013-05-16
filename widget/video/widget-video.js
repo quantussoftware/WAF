@@ -26,140 +26,144 @@ WAF.Widget.provide(
     },
     function WAFWidget(config, data, shared) {
         var
-        url,
-        link,
         video,
-        htmlObj,
-        sourceAtt;
+        htmlObj;
         
         htmlObj     = this.$domNode;
-        sourceAtt   = this.sourceAtt;
         
         htmlObj.empty();
         
         switch(config['data-from']){
             case 'local' :
-                config['data-local-url']        = config['data-local-url']          || '';
-                config['data-local-poster']     = config['data-local-poster']       || '';
-                config['data-local-preload']    = config['data-local-preload']      == 'true';
-                config['data-local-muted']      = config['data-local-muted']        == 'true';
-                config['data-autoplay']         = config['data-autoplay']           == 'true';
-                config['data-loop']             = config['data-loop']               == 'true';
-                config['data-controls']         = config['data-controls']           == 'true';
-                
                 video   = $('<video>');
-
-                video.attr({
-                    width   : '100%',
-                    height  : '100%'
-                });
-                
-                if(config['data-local-muted'] && config['data-local-muted'] != ''){
-                    video.attr('muted', 'muted');
-                }
-
-                if(config['data-local-poster'] && config['data-local-poster'] != ''){
-                    video.attr('poster', config['data-local-poster']);
-                }
-
-                if(config['data-local-preload'] && config['data-local-preload'] != ''){
-                    video.attr('preload', 'preload');
-                }
-
-                if(config['data-autoplay'] && config['data-autoplay'] != ''){
-                    video.attr('autoplay', 'autoplay');
-                }
-
-                if(config['data-loop'] && config['data-loop'] != ''){
-                    video.attr('loop', 'loop');
-                }
-
-                if(config['data-controls'] && config['data-controls'] != ''){
-                    video.attr('controls', 'controls');
-                }
-                
-                
-                if(config['data-local-url'] != ''){
-                    video.attr('src',config['data-local-url']);
-                }
-                
-                video.appendTo(htmlObj);
-                
                 break;
-            case 'youtube' :
-                config['data-youtube-id']       = config['data-youtube-id']         || '';
-                config['data-youtube-start']    = config['data-youtube-start']      || '0';
-                config['data-youtube-autohide'] = config['data-youtube-autohide']   == 'true' ? 1 : 0;
-                config['data-autoplay']         = config['data-autoplay']           == 'true' ? 1 : 0;
-                config['data-loop']             = config['data-loop']               == 'true' ? 1 : 0;
-                config['data-controls']         = config['data-controls']           == 'true' ? 1 : 0;
-                
+            case 'youtube'  :
+            case 'vimeo'    :
                 video   = $('<iframe>');
+                break;
+        }
 
-                video.attr({
-                    width   : '100%',
-                    height  : '100%'
-                });
+        video.attr({
+            width   : '100%',
+            height  : '100%'
+        });
+
+        video.appendTo(htmlObj);
+        $(this).data('_tag' , video);
+        
+        this._setConfig(config);
+    },
+    {
+        _getTag: function(){
+            return $(this).data('_tag');
+        },
+        _setConfig: function(config){
+            var
+            $video      = this._getTag(),
+            sourceAtt   = this.sourceAtt;
+            
+            switch(config['data-from']){
+                case 'local' :
+                    config['data-local-url']        = config['data-local-url']          || '';
+                    config['data-local-poster']     = config['data-local-poster']       || '';
+                    config['data-local-preload']    = config['data-local-preload']      == 'true';
+                    config['data-local-muted']      = config['data-local-muted']        == 'true';
+                    config['data-autoplay']         = config['data-autoplay']           == 'true';
+                    config['data-loop']             = config['data-loop']               == 'true';
+                    config['data-controls']         = config['data-controls']           == 'true';
                 
-                if(config['data-youtube-id'] != ''){
-                    link    = 'http://www.youtube.com/embed/';
+                    if(config['data-local-muted'] && config['data-local-muted'] != ''){
+                        $video.attr('muted', 'muted');
+                    }
+
+                    if(config['data-local-poster'] && config['data-local-poster'] != ''){
+                        $video.attr('poster', config['data-local-poster']);
+                    }
+
+                    if(config['data-local-preload'] && config['data-local-preload'] != ''){
+                        $video.attr('preload', 'preload');
+                    }
+
+                    if(config['data-autoplay'] && config['data-autoplay'] != ''){
+                        $video.attr('autoplay', 'autoplay');
+                    }
+
+                    if(config['data-loop'] && config['data-loop'] != ''){
+                        $video.attr('loop', 'loop');
+                    }
+
+                    if(config['data-controls'] && config['data-controls'] != ''){
+                        $video.attr('controls', 'controls');
+                    }
+                
+                
+                    if(config['data-local-url'] != ''){
+                        this.setValue(config['data-local-url']);
+                    }
+                
+                    break;
+                case 'youtube' :
+                    config['data-youtube-id']       = config['data-youtube-id']         || '';
+                    config['data-youtube-start']    = config['data-youtube-start']      || '0';
+                    config['data-youtube-autohide'] = config['data-youtube-autohide']   == 'true' ? 1 : 0;
+                    config['data-autoplay']         = config['data-autoplay']           == 'true' ? 1 : 0;
+                    config['data-loop']             = config['data-loop']               == 'true' ? 1 : 0;
+                    config['data-controls']         = config['data-controls']           == 'true' ? 1 : 0;
+                
+                    if(config['data-youtube-id'] != ''){
+                        this.setValue(config['data-youtube-id'] , config);
+                    }
+                
+                    break;
+                case 'vimeo' :
+                    config['data-vimeo-id']       = config['data-vimeo-id']         || '';
+                    config['data-vimeo-title']    = config['data-vimeo-title']      == 'true' ? 1 : 0;
+                    config['data-vimeo-byline']   = config['data-vimeo-byline']     == 'true' ? 1 : 0;
+                    config['data-vimeo-portrait'] = config['data-vimeo-portrait']   == 'true' ? 1 : 0;
+                    config['data-autoplay']       = config['data-autoplay']         == 'true' ? 1 : 0;
+                    config['data-loop']           = config['data-loop']             == 'true' ? 1 : 0;
                     
-                    link    += config['data-youtube-id'];
+                    if(config['data-vimeo-id'] != ''){
+                        this.setValue(config['data-vimeo-id'] , config);
+                    }
+                    
+                    break;
+            }
+            
+            if (sourceAtt) {
+                sourceAtt.addListener(function(e) {
+                    var link = e.data.widget.getFormattedValue();
+
+                    if(link == ""){
+                        return;
+                    }
+
+                    e.data.widget.setValue(link , config);
+                },{},{
+                    widget:this
+                });
+            }
+        },
+        setValue: function(value , config){
+            var
+            link    = value,
+            $video  = this._getTag();
+            
+            config  = config || this.config;
+            
+            switch(config['data-from']){
+                case 'youtube' :
+                    link    = 'http://www.youtube.com/embed/' + value;
+
                     link    += '?autohide=' + config['data-youtube-autohide'];
                     link    += '&autoplay=' + config['data-autoplay'];
                     link    += '&loop='     + config['data-loop'];
                     link    += '&controls=' + config['data-controls'];
                     link    += '&start='    + config['data-youtube-start'];
                     link    += '&theme=light';
-                    
-                    video.attr('src',link);
-                }
-                
-                if (sourceAtt) {
-                    sourceAtt.addListener(function(e) {
-                        link = e.data.widget.getFormattedValue();
-                        
-                        if(link == ""){
-                            return;
-                        }
-                        
-                        link    = 'http://www.youtube.com/embed/' + link;
-
-                        link    += '?autohide=' + config['data-youtube-autohide'];
-                        link    += '&autoplay=' + config['data-autoplay'];
-                        link    += '&loop='     + config['data-loop'];
-                        link    += '&controls=' + config['data-controls'];
-                        link    += '&start='    + config['data-youtube-start'];
-                        link    += '&theme=light';
-
-                        video.attr({
-                            src : link
-                        });
-                    },{},{
-                        widget:this
-                    });
-                }
-                
-                video.appendTo(htmlObj);
-                
-                break;
-            case 'vimeo' :
-                config['data-vimeo-id']       = config['data-vimeo-id']         || '';
-                config['data-vimeo-title']    = config['data-vimeo-title']      == 'true' ? 1 : 0;
-                config['data-vimeo-byline']   = config['data-vimeo-byline']     == 'true' ? 1 : 0;
-                config['data-vimeo-portrait'] = config['data-vimeo-portrait']   == 'true' ? 1 : 0;
-                config['data-autoplay']       = config['data-autoplay']         == 'true' ? 1 : 0;
-                config['data-loop']           = config['data-loop']             == 'true' ? 1 : 0;
-                
-                video   = $('<iframe>');
-                    
-                video.attr({
-                    width   : '100%',
-                    height  : '100%'
-                });
-                    
-                if(config['data-vimeo-id'] != ''){
-                    link    = 'http://player.vimeo.com/video/';
+                    break;
+                case 'vimeo' :
+                    link    = 'http://player.vimeo.com/$video/' + value;
                     
                     link    += config['data-vimeo-id'];
                     link    += '?autohide=' + config['data-vimeo-autohide'];
@@ -168,46 +172,11 @@ WAF.Widget.provide(
                     link    += '&portrait=' + config['data-vimeo-portrait'];
                     link    += '&autoplay=' + config['data-autoplay'];
                     link    += '&loop='     + config['data-loop'];
-                    
-                    video.attr('src',link);
-                    
-                    video.appendTo(htmlObj);
-                }
-                
-                if (sourceAtt) {
-                    sourceAtt.addListener(function(e) {
-                        link = e.data.widget.getFormattedValue();
-                        
-                        if(link == ""){
-                            return;
-                        }
-                        
-                        link    = 'http://player.vimeo.com/video/' + link;
-                    
-                        link    += config['data-vimeo-id'];
-                        link    += '?autohide=' + config['data-vimeo-autohide'];
-                        link    += '&title='    + config['data-vimeo-title'];
-                        link    += '&byline='   + config['data-vimeo-byline'];
-                        link    += '&portrait=' + config['data-vimeo-portrait'];
-                        link    += '&autoplay=' + config['data-autoplay'];
-                        link    += '&loop='     + config['data-loop'];
-
-                        video.attr({
-                            src : link
-                        });
-                    },{},{
-                        widget:this
-                    });
-                }
-                
-                video.appendTo(htmlObj);
-                
-                break;
+                    break;
+            }
+            
+            $video.attr('src' , link);
         }
-        
-    },
-    {
-        
     }
 
-);
+    );

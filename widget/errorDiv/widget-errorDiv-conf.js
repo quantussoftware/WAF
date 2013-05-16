@@ -34,7 +34,13 @@ WAF.addWidget({
         name        : 'height',
         defaultValue: '20px'
     }],
-    events: [],
+    events: [
+       /*{
+            name       : 'onReady',
+            description: 'On Ready',
+            category   : 'UI Events'
+        }*/
+    ],
     properties: {
         style: {
             theme       : false,

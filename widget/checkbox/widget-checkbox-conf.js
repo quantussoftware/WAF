@@ -35,7 +35,7 @@ WAF.addWidget({
     },
     {
         name       : 'data-errorDiv',
-        description: 'Display Error'
+        description: 'Error ID'
     },
     {
         name        : 'data-checked',
@@ -54,8 +54,7 @@ WAF.addWidget({
     },
     {
         name        : 'tabindex',
-        description : 'Tabindex',
-        typeValue   : 'integer'
+        description : 'Tabindex'
     },
     {
         name        : 'data-icon-default',
@@ -96,8 +95,18 @@ WAF.addWidget({
     }],
     events: [
     {
+        name       : 'blur',
+        description: 'On Blur',
+        category   : 'Focus Events'
+    },
+    {
         name       : 'change',
         description: 'On Change',
+        category   : 'Focus Events'
+    },
+    {
+        name       : 'focus',
+        description: 'On Focus',
         category   : 'Focus Events'
     },
     {
@@ -129,7 +138,12 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties: {
         style: {
             theme       : true,
@@ -151,17 +165,17 @@ WAF.addWidget({
             border      : true
         },
         state : [{
-                label   : 'hover',
-                cssClass: 'waf-state-hover'
+            label   : 'hover',
+            cssClass: 'waf-state-hover'
         },{
-                label   : 'active',
-                cssClass: 'waf-state-active'
+            label   : 'active',
+            cssClass: 'waf-state-active'
         },{
-                label   : 'selected',
-                cssClass: 'waf-state-selected'
+            label   : 'selected',
+            cssClass: 'waf-state-selected'
         },{
-                label   : 'disabled',
-                cssClass: 'waf-state-disabled'
+            label   : 'disabled',
+            cssClass: 'waf-state-disabled'
         }]
     }/*,{
         description : 'icon',
@@ -204,10 +218,22 @@ WAF.addWidget({
             
             icons = [];
             
-            if (config['data-icon-default'])    icons.push({cssClass : 'waf-checkbox-icon-default',  value : config['data-icon-default']});
-            if (config['data-icon-hover'])      icons.push({cssClass : 'waf-checkbox-icon-hover',    value : config['data-icon-hover']});
-            if (config['data-icon-active'])     icons.push({cssClass : 'waf-checkbox-icon-active',   value : config['data-icon-active']});
-            if (config['data-icon-selected'])   icons.push({cssClass : 'waf-checkbox-icon-selected', value : config['data-icon-selected']});
+            if (config['data-icon-default'])    icons.push({
+                cssClass : 'waf-checkbox-icon-default',  
+                value : config['data-icon-default']
+            });
+            if (config['data-icon-hover'])      icons.push({
+                cssClass : 'waf-checkbox-icon-hover',    
+                value : config['data-icon-hover']
+            });
+            if (config['data-icon-active'])     icons.push({
+                cssClass : 'waf-checkbox-icon-active',   
+                value : config['data-icon-active']
+            });
+            if (config['data-icon-selected'])   icons.push({
+                cssClass : 'waf-checkbox-icon-selected', 
+                value : config['data-icon-selected']
+            });
             
             cssClass    = 'waf-icon waf-checkbox-icon';
             if (icons.length == 0) {
@@ -238,11 +264,11 @@ WAF.addWidget({
                 icon.svg({
                     loadURL: '/walib/WAF/widget/checkbox/skin/' + theme + '/svg/widget-checkbox-skin-' + theme + '.svg',
                     onLoad: function(svg) {
-                            svg.configure({
-                                    width: '100%',
-                                    height: '100%',
-                                    preserveAspectRatio: 'none'
-                            });
+                        svg.configure({
+                            width: '100%',
+                            height: '100%',
+                            preserveAspectRatio: 'none'
+                        });
                     }
                 });
             }

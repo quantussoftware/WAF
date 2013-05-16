@@ -23,6 +23,18 @@
  */
 
 
+/**
+ * -------------------------------------------------------
+ * @section main
+ * -------------------------------------------------------
+ */
+.waf-errorDiv{
+	/*
+		by default, border-color inherits from the color property, so setting text color to red, would cause the border to become red as well
+	    this change ensures this doesn't happen.
+	*/
+	border-color:inherit;
+}
 
 /**
  * -------------------------------------------------------

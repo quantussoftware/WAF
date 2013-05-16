@@ -132,11 +132,13 @@ WAF.Widget.provide(
                     }
                                         
                     this.$domNode.addClass('waf-tabView-tab');   
-                    
-                    tabView._menuItemLastWidth = this.getWidth();
-                    
+
+					if (this.getWidth(true) > tabView._menuItemLastWidth) {
+						tabView._menuItemLastWidth = this.getWidth(true);
+					}
+
                     tabView._menuItemLastHeight = this.getHeight();
-                    
+					
                     /*
                      * Add close button
                      */
@@ -144,7 +146,7 @@ WAF.Widget.provide(
                         tabView._addCloseButton(this);             
                     }
                     
-                });                
+                });
 
                 /*
                  * Add resizable cosntraints
@@ -445,31 +447,28 @@ WAF.Widget.provide(
          * @param {string} label : label of the new tab
          */
         addTab : function tabview_add_tab(label, closable) {
-            var
-            tabs,
-            tabLi,
-            tabId,
-            index,
-            calcul,
-            tabCss,
-            newSize,
-            tabView,
-            menuBar,
-            tabWidth,
-            menuItem,
-            tabHeight,
-            tabConfig,
-            tabWidget,
-            containers,
-            totalWidth,
-            totalHeight,
-            containerId,
-            menuBarWidth,
-            containerDiv,
-            menuBarHeight,
-            menuBarMargin,
-            containerInfo,
-            containerWidget;
+            var tabs,
+				tabLi,
+				tabId,
+				calcul,
+				tabCss,
+				newSize,
+				tabView,
+				menuBar,
+				tabWidth,
+				menuItem,
+				tabHeight,
+				tabWidget,
+				containers,
+				totalWidth,
+				totalHeight,
+				containerId,
+				menuBarWidth,
+				containerDiv,
+				menuBarHeight,
+				menuBarMargin,
+				containerInfo,
+				containerWidget;
             
             tabView         = this;
             
@@ -483,7 +482,7 @@ WAF.Widget.provide(
             tabs            = menuBar.$domNode.children('.waf-menuItem');
             index           = containers.length + 1;            
             
-            tabWidth        = tabs.width();
+            tabWidth        = tabs.outerWidth();
             tabHeight       = menuBar.$domNode.height();
             
             tabCss          = {};
@@ -500,7 +499,7 @@ WAF.Widget.provide(
                 totalWidth   += that.outerWidth();
                 totalHeight  += that.outerHeight();                   
 
-                if (i != tabs.length-1) {
+                if (i != tabs.length - 1) {
                    totalWidth  += menuBarMargin;
                    totalHeight += menuBarMargin;
                 }
@@ -519,13 +518,18 @@ WAF.Widget.provide(
             /*
              * Create tab
              */
-            tabLi = $('<li id="' + tabId + '" data-type="menuItem" data-lib="WAF" class="waf-widget waf-menuItem default inherited ">');
-            
+            tabLi = $('<li id="' + tabId + '" data-type="menuItem" data-lib="WAF"/>');
+
+			// last child isn't the last one anymore since we add a new one: remove the class to stay coherent
+			// and to prevent the use of hacks in width calculation
+			//
+			menuBar.$domNode.find('.waf-menuItem:last-child').removeClass('waf-menuItem-last');
+
             if (tabView._display == 'horizontal') {
-                tabCss['margin-left']   = parseInt($(tabs[tabs.length-1]).css('margin-right')) == 0 ? menuBarMargin + 'px' : '0px';
+                tabCss['margin-left']   = 0;	//parseInt($(tabs[tabs.length-1]).css('margin-right')) == 0 ? menuBarMargin + 'px' : '0px';
                 tabHeight               = menuBar.$domNode.height();
-                tabWidth                = this._menuItemLastWidth;                
-                
+                tabWidth                = this._menuItemLastWidth;
+
                 /*
                  * resize menuBar
                  */
@@ -557,12 +561,15 @@ WAF.Widget.provide(
             
             tabLi.css(tabCss);
             
-            tabLi.prop('class', tabs.prop('class').replace('waf-state-active', ''));
+            tabLi.prop('class', tabs.prop('class').replace(/waf-state-active|waf-menuItem-first/g, 'waf-menuItem-last'));
             
+			// TODO: menuItems added by the designer have a <div class="waf-richText..."> instead of this <p/>
+			//		 there should be only one menuItem type...
             tabLi.html('<p class="waf-menuItem-text waf-menuItem-icon-top" style="height:20px;width:90px">' + label + '</p>')
             
             tabLi.appendTo(menuBar.$domNode);            
-            menuItem = new WAF.widget.MenuItem({id: tabId});
+            
+			menuItem = new WAF.widget.MenuItem({id: tabId});
             
             /*
              * Add close button
@@ -871,7 +878,7 @@ WAF.Widget.provide(
                 /*
                  * Call super class disable function
                  */
-                WAF.Widget.prototype.disable.call(this);  
+                WAF.Widget.prototype.disable.call(this);
             }
         },
         

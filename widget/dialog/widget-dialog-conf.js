@@ -24,7 +24,7 @@ WAF.addWidget({
     attributes  : [
     {
         name        : 'data-load',
-        description : 'Interface Page to Include'
+        description : 'HTML file to include'
     },{
         name        : 'data-resizable',
         description : 'Resizable',
@@ -46,10 +46,6 @@ WAF.addWidget({
         description : 'Draggable',
         type        : 'checkbox'
     }, {
-        name        : 'data-autoopen',
-        description : 'Closed by default',
-        type        : 'checkbox'
-    }, {
         name        : 'data-modal',
         description : 'Modal',
         type        : 'checkbox',
@@ -62,10 +58,20 @@ WAF.addWidget({
             if(this.getValue()){
                 tag.getAttribute('data-front').setValue('true');
                 tag.getAttribute(this.data.aName).setValue('true');
-                D.tag.refreshPanels();
             }
+            
+            else{
+                tag.getAttribute(this.data.aName).setValue('false');
+            }
+            
+            D.tag.refreshPanels();
         }
     }, {
+        name        : 'data-hideOnOutsideClick',
+        visibility  : 'hidden',
+        defaultValue: 'false',
+        type        : 'checkbox'
+    },{
         name        : 'data-front',
         description : 'Float on top',
         type        : 'checkbox',
@@ -117,7 +123,12 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties: {
         style: {                                                
             theme       : true,                 // false to not display the "Theme" option in the "Theme & Class" section
@@ -159,18 +170,11 @@ WAF.addWidget({
     
     onCreate: function(tag , param){
         var
-        event,
-        title,
+        btnOK,
         group,
-        content,
         toolbar,
         classes,
         titleBar,
-        btnClose,
-        iconImage,
-        btnMaximize,
-        btnMinimize,
-        btnOK,
         btnCancel;
         
         /**
@@ -203,7 +207,6 @@ WAF.addWidget({
          * @method _subWidgetsClickFn
          */
         tag._subWidgetsClickFn = function() {
-            
             if (D.getCurrent() != tag) {
                 tag.setCurrent();
                 D.tag.refreshPanels();
@@ -350,11 +353,9 @@ WAF.addWidget({
             }
             
             for(var i = 0 , fit ; fit = allFits[i] ; i++ ){
-                
                 if($.inArray(fit, config.fit) >= 0){
                     widget.savePosition(fit, config[fit], false, false);
                 }
-                
                 else{
                     widget['setFitTo' + camelCaseFits[i]](false);
                     widget.savePosition(fit, null);
@@ -379,6 +380,7 @@ WAF.addWidget({
             }
             
             widget.setAsSubElement(true);
+            widget.onClick = tag._subWidgetsClickFn;
             this.link(widget);
             group.add(widget);
             
@@ -520,7 +522,7 @@ WAF.addWidget({
             });
             
             Designer.studio.createEvent('' , btnCancel.getLib() , btnCancel.getId() , 'click' , btnCancel.getType() , undefined , false);
-            Designer.studio.setScriptEvent(btnCancel.getId() , btnCancel.getType() , 'click' , "\t\t$$('" + tag.getAttribute('id').getValue() + "').closeDialog(); //cancel button");
+            Designer.studio.setScriptEvent(btnCancel.getId() , btnCancel.getType() , 'click' , "\t\t$$(" + (Designer.isComponent() ? 'getHtmlId("' : "'") + tag.getAttribute('id').getValue() + (Designer.isComponent() ? '")' : "'") + ").closeDialog(); //cancel button");
             
             btnCancel.getEvent('click').setHandlerName('click');
             
@@ -538,7 +540,7 @@ WAF.addWidget({
             });
             
             Designer.studio.createEvent('' , btnOK.getLib() , btnOK.getId() , 'click' , btnOK.getType() , undefined , false);
-            Designer.studio.setScriptEvent(btnOK.getId() , btnOK.getType() , 'click' , "\t\t$$('" + tag.getAttribute('id').getValue() + "').closeDialog(); //ok button");
+            Designer.studio.setScriptEvent(btnOK.getId() , btnOK.getType() , 'click' , "\t\t$$(" + (Designer.isComponent() ? 'getHtmlId("' : "'") + tag.getAttribute('id').getValue() + (Designer.isComponent() ? '")' : "'") + ").closeDialog(); //ok button");
 
             btnOK.getEvent('click').setHandlerName('click');
             
@@ -555,11 +557,16 @@ WAF.addWidget({
                 linkedWidgets;
 
                 linkedWidgets = tag.getLinks();
-
+                
                 for(var i = 0 , widget ; widget = linkedWidgets[i] ; i++){
-                    widget.setAsSubElement(true);
+                    widget.setAsSubWidget(true);
+                    widget.onClick = tag._subWidgetsClickFn;
                 }
             });
         }
+        
+        $('#textInput-data-load').css({
+            'cursor' : 'default'
+        })
     }
 });                                                                                                                                  

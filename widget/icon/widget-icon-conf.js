@@ -25,14 +25,14 @@ WAF.addWidget({
     tag         : 'span',
     attributes  : [   
     {
-        name        : 'data-label',
-        description : 'Label',
-        defaultValue: ''
-    },
-    {
         name        : 'data-draggable',
         description : 'Draggable',
         type        : 'checkbox'
+    },
+    {
+        name        : 'data-label',
+        description : 'Label',
+        defaultValue: ''
     },
     {
         name        : 'data-label-position',
@@ -568,7 +568,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties  : {
         style   : {
             theme       : false,
@@ -1043,6 +1048,17 @@ WAF.addWidget({
         $(tag).bind('onStateChange', function(e) {
             this.onDesign();
         });
+
+        $(tag).bind('onWidgetCopy', function(e, originalElement, copyParams) {
+            if (originalElement.getAttribute('data-label')) {
+                this.setLabel(originalElement.getAttribute('data-label').getValue());
+            }
+            
+            // center label + icon inside buttonImage if needed
+            if (this.getParent().isButtonImage()) {
+                this.getParent()._centerContent();
+            }
+        });
         
         /**
          * Update the sprite info attribute
@@ -1100,6 +1116,17 @@ WAF.addWidget({
          * Show default icon on create
          */
         tag._showIcon('state1');
+        
+        /**
+		 * Destroy related data if parent is a menuItem
+		 */
+        $(tag).bind('onWidgetDestroy',function(){
+            var parent = this.getParent();
+            if(parent.isMenuItem()){
+                parent.setAttribute('data-icon','');
+                parent.domUpdate();
+            }
+        });
     }
 });
 

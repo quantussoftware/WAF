@@ -216,7 +216,12 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     structure : [
     {
         description : 'header',
@@ -517,15 +522,14 @@ WAF.addWidget({
                 li.appendTo(ul);
             }
             
-            $('.calendarview').live({
-                'mouseover' : function(){
-                    $(this).addClass('yuimenuitem-selected');
-                    $(this).children().addClass('yuimenuitemlabel-selected');
-                }, 
-                'mouseout'  : function(){
-                    $(this).removeClass('yuimenuitem-selected');
-                    $(this).children().removeClass('yuimenuitemlabel-selected');
-                }
+            $(document).on('mouseover', '.calendarview', function(){
+                $(this).addClass('yuimenuitem-selected');
+                $(this).children().addClass('yuimenuitemlabel-selected');
+            });
+            
+            $(document).on('mouseout', '.calendarview', function(){
+                $(this).removeClass('yuimenuitem-selected');
+                $(this).children().removeClass('yuimenuitemlabel-selected');
             });
             
             ul.appendTo(bdDiv);

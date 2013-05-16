@@ -59,8 +59,13 @@ WAF.addWidget({
     {
         name            : 'data-theme',
         visibility      : 'hidden',
-        defaultValue    : 'cupertino'
-    }
+        defaultValue    : 'inherited'
+    },
+    {
+        name            : 'data-context',
+        visibility      : 'hidden',
+        defaultValue    : '["disableCopyCut"]'
+    }        
     ],
     
     // {Array} default height and width of the container for the widget in the GUI Designer
@@ -112,7 +117,12 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
 
     // {JSON} panel properties widget
     //
@@ -149,7 +159,7 @@ WAF.addWidget({
     * @result {WAF.widget.Template} the widget
     */
     onInit: function (config) {                            
-        var widget = new WAF.widget.splitView(config);       
+        var widget = new WAF.widget.SplitView(config);       
         return widget;
     },
     
@@ -185,38 +195,38 @@ WAF.addWidget({
      * @param {Designer.tag.Tag} container of the widget in the GUI Designer
      */ 
     onCreate: function ( tag , param) { 
-             
+
         $(tag).bind("onReady", function(){
             this.fix(); 
 
             var linkedWidget = this.getLinks();
             $.each(linkedWidget, function(index, value) { 
                 value.fix(); 
-                console.log(value.getId())
             });
 
         });
 
 
-
          if (!param._isLoaded) {
+
+            $(tag).bind("onWidgetDrop", function(){
+                this.setXY( 0, 0, true, true );
+            });
             
-             $(tag).bind("onWidgetDrop", function(){
-                 this.setXY( 0, 0, true, true );
-                 this.setPositionRight( "0px", false, false ); 
-                 this.setPositionBottom( "0px", false, false );
-                 this.forceTopConstraint();
-                 this.forceLeftConstraint();
-                 this.forceBottomConstraint();
-                 this.forceRightConstraint();
-                 this.updateZindex (0);   
-             });
+            tag.setPositionRight( "0px", false, false ); 
+            tag.setPositionBottom( "0px", false, false );
+            tag.forceTopConstraint();
+            tag.forceLeftConstraint();
+            tag.forceBottomConstraint();
+            tag.forceRightConstraint();
+            tag.setXY( 0, 0, true, true );
+            tag.updateZindex (0);     
              
-             window.setTimeout(function(){
+            window.setTimeout(function(){
                  
-                 createStructure();
+                createStructure();
                  
-             }, 0);
+            }, 0);
              
          }
         
@@ -320,7 +330,10 @@ WAF.addWidget({
 
             //set button role
             content.getAttribute("data-popup-display-button").setValue(button.getId()); 
-            
+
+
+            content.domUpdate()
+
             //save group
             Designer.ui.group.save();
 

@@ -130,7 +130,7 @@ WAF.Widget.provide(
             
             return res;
         },
-        getchartType: function(){
+        getChartType: function(){
             return this.config['data-chartType'];
         },
         setFormat   : function(format){
@@ -157,13 +157,34 @@ WAF.Widget.provide(
             r               = that._private.r;
             linkedWidgets   = that._private.linkedWidgets;
             
+            if(!labels && !values && that._private && that._private.labels && that._private.values){
+                labels = that._private.labels;
+                values = [];
+                
+                var valuesClone = that.$domNode.data('values');
+                
+                for(var _i = 0 ; _i<valuesClone.length ; _i++){
+                    if(valuesClone[_i].length){
+                        values[_i] = [];
+                    }
+                    
+                    for(var _j = 0 ; _j<valuesClone[_i].length ; _j++){
+                        values[_i][_j] = valuesClone[_i][_j];
+                    }
+                }
+            }
+            
+            if(!labels || !values){
+                return false;
+            }
+            
             r.setSize($("#" + inConfig.id).width(),$("#" + inConfig.id).height());
             
             r.clear();
             
             switch(inConfig['data-chartType']){
                 case 'Pie Chart':
-                    var radius  = Math.min($("#" + inConfig.id).width(),$("#" + inConfig.id).height())/2 - 55,
+                    var radius  = Math.min($("#" + inConfig.id).width(),$("#" + inConfig.id).height())/2 - 60,
                     opts    = {
                         colors      : that.colors,
                         stroke      : null,
@@ -175,7 +196,6 @@ WAF.Widget.provide(
                         legendothers: null,
                         legendpos   : null
                     };
-                    
                     that.chart     = r.g.piechart(r.width/2, r.height/2, radius, values[0] , opts);
                     that.chart.selected = -1;
                                                 
@@ -224,7 +244,14 @@ WAF.Widget.provide(
                     }
 
                     that.chart.click(function(){
-                        that.source.select(this.sector.value.order);
+                        if(that.source){
+                            if(that.source.length > 1){
+                                that.source.select(this.sector.value.order);
+                            }
+                            else{
+                                that.source.select(0);
+                            }
+                        }
                     });
                                                 
                     // Set the format :
@@ -235,11 +262,25 @@ WAF.Widget.provide(
                                                 
                     if(inConfig['data-tooltipDisplay']==='true'){
                         that.chart.hover(function () {
-                            this.tag = r.g.blob(this.cx + (radius + 2)*Math.cos(this.mangle*Math.PI / 180),this.cy-(radius + 2)*Math.sin(this.mangle*Math.PI / 180), labels[this.sector.value.order] + "\n" + that.getFormattedValue(this.sector.value.value), this.mangle).insertBefore(this.cover);
-                            this.tag[0].attr({
-                                fill : that.colors[this.sector.index%that.colors.length], 
-                                stroke : "#000"
-                            });
+                            if(values[0].length > 1){
+                                this.tag = r.g.blob(this.cx + (radius + 2)*Math.cos(this.mangle*Math.PI / 180),this.cy-(radius + 2)*Math.sin(this.mangle*Math.PI / 180), labels[this.sector.value.order] + "\n" + that.getFormattedValue(this.sector.value.value), this.mangle).insertBefore(this.cover);
+                            
+                                this.tag[0].attr({
+                                    fill : that.colors[this.sector.index%that.colors.length], 
+                                    stroke : "#000"
+                                });
+
+                                this.tag[0].scale(1.25 , 1.25);
+                            }
+                            else if (values[0].length > 0){
+                                this.tag = r.g.blob(this.cx + (radius + 2)*Math.cos(this.mangle*Math.PI / 180),this.cy-(radius + 2)*Math.sin(this.mangle*Math.PI / 180) , labels[0] + '\n' + that.getFormattedValue(values[0][0].value), this.mangle).insertBefore(this.cover);
+                                this.tag[0].attr({
+                                    fill : this.sector.attr('fill'), 
+                                    stroke : "#000"
+                                });
+
+                                this.tag[0].scale(1.25 , 1.25);
+                            }
                         }, function () {
                             this.tag.animate({
                                 opacity: 0
@@ -259,12 +300,12 @@ WAF.Widget.provide(
                                 '<TD>' + 
                                 '<DIV id = "' + legendaryC.prop('id') + '-legendary-item-' + i + '"></DIV></TD></TR>');
                             htmlObj.appendTo(legTable);
-                            $('<TD>' + labels[that.chart.series[i].value.order] + '</TD>').appendTo(htmlObj);
+                            $('<TD>' + labels[that.chart.series[i].value?that.chart.series[i].value.order:0] + '</TD>').appendTo(htmlObj);
                             var legItem = Raphael(legendaryC.prop('id') + '-legendary-item-' + i , 20 , 20).rect(0,0,20,20).attr({
                                 fill:that.chart.series.length==1?that.chart.series[0].attr('fill'):that.chart.series[i].attr('fill'), 
                                 cursor : 'pointer'
                             });
-                            legItem.index = that.chart.series[i].value.order;
+                            legItem.index = that.chart.series[i].value? that.chart.series[i].value.order:0;
 
                             legItem.click(function(e){
                                 that.source.select(this.index);
@@ -348,7 +389,9 @@ WAF.Widget.provide(
                     });
                                                 
                     that.chart.click(function(e){
-                        that.source.select(this.value.order);
+                        if(this.value){
+                            that.source.select(this.value.order);
+                        }
                         if(that.events && that.events.click){
                             that.events.click.call(that , e);
                         }
@@ -670,6 +713,14 @@ WAF.Widget.provide(
                                         angle       : -labelAngle
                                     }
                                     break;
+                                default :
+                                    point = {
+                                        x : options.m.x + options.width/2,
+                                        y : r.height - textMax/2,
+                                        textAnchor  : inConfig['data-labelAlign'],
+                                        angle       : -labelAngle
+                                    };
+                                    break;
                             }
                             textTemp = r.text(point.x, point.y , labels[i-1]).attr({
                                 'text-anchor' : point.textAnchor
@@ -704,6 +755,11 @@ WAF.Widget.provide(
                     case 'dblclick':
                         this.chart.dblclick(function(e){
                             that.events.dblclick.call( that , e);
+                        });
+                        break;
+                    case 'click':
+                        this.chart.click(function(e){
+                            that.events.click.call( that , e);
                         });
                         break;
                     case 'dblclickColumn':
@@ -775,6 +831,7 @@ WAF.Widget.provide(
             var 
             labels          = [],
             values          = [],
+            valuesClone     = [],
             source          = this.source,
             shared          = {
                 classes     : {
@@ -842,17 +899,34 @@ WAF.Widget.provide(
                 
             if(source && inConfig['data-axisLabel'] && columns.length > 0){
                 source.addListener("all",function(e){
-
                     switch(e.eventKind){
+                        case "onAttributeChange":
+                            var refresh = false;
+                            if(inConfig['data-axisLabel'] == e.attributeName){
+                                refresh = true;
+                            }
+                            else{
+                                for(var i = 0 , column ; column = columns[i] ; i++){
+                                    if(e.attributeName == column.colID){
+                                        refresh = true;
+                                    }
+                                }
+                            }
+                            
+                            if(!refresh){
+                                break;
+                            }
                         case "onElementSaved" :
                         case "onCollectionChange" :
-                            labels   = [];
-                            values   = [];
+                            labels          = [];
+                            values          = [];
+                            valuesClone     = [];
                         
                         
                         
                             for(var j = 0 ; j<columns.length ; j++){
-                                values[j] = [];
+                                values[j]       = [];
+                                valuesClone[j]  = [];
                             }
                         
                             minLength = Math.min(parseInt(inConfig['data-limitlength']), source.length);
@@ -866,12 +940,18 @@ WAF.Widget.provide(
                                     
                                         for(j = 0 ; j < columns.length ; j++){
                                             values[j].push(isNaN(parseFloat(item[columns[j].sourceAttID]))?0:parseInt(item[columns[j].sourceAttID]));
+                                            valuesClone[j].push(isNaN(parseFloat(item[columns[j].sourceAttID]))?0:parseInt(item[columns[j].sourceAttID]));
                                         }
                                     
                                         if(event.userData.onLastEntity){
                                         
                                             that._private.labels    = labels;
                                             that._private.values    = values;
+                                            
+                                            that.$domNode.data({
+                                                labels: labels,
+                                                values: valuesClone
+                                            });
                                         
                                             that.recreateChart(labels,values);
                                         }

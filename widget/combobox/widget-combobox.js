@@ -31,7 +31,7 @@ WAF.Widget.provide(
     },
     /**
      * @constructor
-     * @param {Object} inConfig configuration of the widget
+     * @param {Object} in"Config configuration of the widget
      */
 
     /**
@@ -48,7 +48,9 @@ WAF.Widget.provide(
         options,
         firstInit,
         htmlObject,
-        optionsLength;
+        optionsLength,
+        dsName = '',
+        dcObject;
 
         widget              = this;
         htmlObject          = $(this.containerNode); 
@@ -60,25 +62,55 @@ WAF.Widget.provide(
         this._autoDispatch  = !data['autoDispatch'] || data['autoDispatch'] == 'false' ? false : true;     
         
         this._limit         = !data['limit'] ? this._limit : parseInt(data['limit']);
+
+        // remove title on the select
+        this.$domNode.children('button').attr('title', '');
               
         source = this.source;
-        
+
         if (source) {
-            options         = data['binding-options'].replace(/\[/g, '').replace(/\]/g, '').split(' ');
+            // FIXME: the defaultTop should be set in the property somehow... we should not have to guess it.
+            var theDataClass = null,
+                dataClassTop = 40
+            ;
+            if(typeof this.source.getDataClass == "function"){
+                theDataClass = this.source.getDataClass();
+            }
+            if(!!theDataClass && typeof theDataClass.getDefaultTopSize == "function"){
+                dataClassTop = theDataClass.getDefaultTopSize() || 40;
+            }
+            if(this._limit > dataClassTop){
+                this._limit = dataClassTop;
+            }
+
+            options = data['binding-options'].replace(/\[/g, '').replace(/\]/g, '').split(' ');
+
+            // get primary key
+            dcObject = source.getDataClass();
             
+            if (dcObject && dcObject.getName) {
+                dsName = dcObject.getName();
+            }
+            
+            if (dsName) {
+                this._primary = ds[dsName]._private.primaryKey;
+            }                                              
+
             this._options   = [];
             for (i = 0; i < options.length; i += 1) {
                 if (options[i]) {
-                    this._options.push(options[i])
+                    this._options.push(options[i]);
                 }
             }
-            
+
             optionsLength   = options.length;
-            
+        
             this._combobox.html('');
             
             source.addListener('all', function(e) {
+                
                 var
+                key,
                 i,
                 ds,
                 dsID,
@@ -105,9 +137,9 @@ WAF.Widget.provide(
 
                         for (i = 0; i < dsLength; i += 1) {
                             index = i;
-                            if (!widget._limit || i < widget._limit) {
+                            if (!widget._limit || i < widget._limit) { 
                                 dataSource.getElement(i, {
-                                    onSuccess : function(e){
+                                    onSuccess : function(e){ 
                                         var
                                         i,
                                         ds,
@@ -143,8 +175,14 @@ WAF.Widget.provide(
                                             if (ds._private.sourceType != 'dataClass' && ds._private.sourceType != 'relatedEntities') {
                                                 widget._primary = ds._private.attNameList[0];
                                             } 
+                                            
+                                            key = widget._key;
 
-                                            attr = (!widget._key || dsID == widget._key) ? widget._primary : widget._key;                
+                                            if (dataSource.getScope() == WAF.DataSource.LOCAL) {
+                                                key = e.dataSource.getWebComponentID() + '_' + key;
+                                            }
+                                            
+                                            attr = (!widget._key || dsID == key) ? widget._primary : widget._key;                
 
                                             if (ds._private.sourceType != 'dataClass' && ds._private.sourceType != 'relatedEntities') {
                                                 identifier  = e.position;
@@ -168,23 +206,27 @@ WAF.Widget.provide(
                          * Select sourceout value after sourcein has been loaded
                          */
                         if (widget._tmpValue && widget.sourceOut) {
-                            widget.setValue(widget._tmpValue);
+                            widget._setValue(widget._tmpValue);
                         }
                         
                         break;
                         
                     case 'onCurrentElementChange' :
-                        if (widget._autoDispatch) {                            
+                        if (widget._autoDispatch) {                     
                             ds      = e.dataSource;   
                             
                             if (ds._private.sourceType != 'dataClass' && ds._private.sourceType != 'relatedEntities') {
                                 widget._primary = ds._private.attNameList[0];
                             }
                                         
-                            attr    = (!widget._key || dsID == widget._key) ? widget._primary : widget._key;                                                              
+                            key = widget._key;
+                            if (e.dataSource && e.dataSource.getScope() == WAF.DataSource.LOCAL) {
+                                key = e.dataSource.getWebComponentID() + '_' + key;
+                            }
+							
+                            attr    = (!widget._key || dsID == key) ? widget._primary : widget._key;                                                          
 
                             value   = e.dataSource.getAttributeValue(attr);
-
                             /*
                              * If value is not into the limit of displayed options
                              */
@@ -194,6 +236,7 @@ WAF.Widget.provide(
                                 pos,
                                 first,
                                 count,
+                                attribute,
                                 collection;
 
                                 i           = 0;
@@ -219,6 +262,7 @@ WAF.Widget.provide(
 
                                 collection.each(function(elt) {
                                     var 
+                                    keyTmp,
                                     j,
                                     values;
 
@@ -233,9 +277,14 @@ WAF.Widget.provide(
                                         }
 
                                         widget._posInCombo[elt.position] = count;
+                                        
+                                        keyTmp = widget._key;
+                                        if (e.dataSource && e.dataSource.getScope() == WAF.DataSource.LOCAL) {
+                                            keyTmp = e.dataSource.getWebComponentID() + '_' + keyTmp;
+                                        }
 
-                                        attr = (!widget._key || dsID == widget._key) ? widget._primary : widget._key;                
-
+                                        attr    = (!widget._key || dsID == keyTmp) ? widget._primary : widget._key;    
+                                        
                                         if (ds._private.sourceType != 'dataClass' && ds._private.sourceType != 'relatedEntities') {
                                             identifier  = elt.position;
                                         } else {
@@ -253,19 +302,20 @@ WAF.Widget.provide(
                                 });
                             }
 
-                            widget.setValue(value);
+                            widget._setValue(value);
 
                             /*
                              * To prevent first dispatch if widget is binded
                              * on source out
                              */
                             if (firstInit && widget.sourceOut) {
-                                // DO NOTHING
+                            // DO NOTHING
                             } else {                                
                                 /*
                                  * Case of source out
                                  */
                                 if (widget.sourceOut) {
+                                    
                                     switch (widget._sourceOutInfo.dataClassAtt.kind) {
                                         case 'relatedEntity':
                                             break;                                            
@@ -338,13 +388,13 @@ WAF.Widget.provide(
                          * Change option value and label
                          */
                         option
-                            .html(label)
-                            .val(e.entity[attr].value);
+                        .html(label)
+                        .val(e.entity[attr].value);
 
                         break;
                 }
             }, {
-                
+                listenerID : this.id
             }, {
                 widget : this
             });
@@ -374,6 +424,8 @@ WAF.Widget.provide(
         _autoDispatch   : false,
         
         _tmp            : {},
+
+        _selectOptions  : [],
         
         sourceOut       : null,
         
@@ -392,9 +444,14 @@ WAF.Widget.provide(
             
             widget = this;
             
+            
+            if (source && source.getScope() == WAF.DataSource.LOCAL) {
+                attr = attr.replace(this.source.getWebComponentID() + '_', '');
+            }
+            
+            
             for (i in source) {
                 currentSource = source[i];
-                
                 if (currentSource && currentSource.emAtt) {
                     if (WAF.utils.ucFirst(attr) == currentSource.emAtt.path) {
                         result = currentSource
@@ -415,6 +472,7 @@ WAF.Widget.provide(
             list,
             layout,
             tagWidth,
+            keyBinding,
             buttonSize;
             
             that            = this;
@@ -422,10 +480,14 @@ WAF.Widget.provide(
             tagWidth        = this.getWidth();  
             
             this._editable  = !this.config['data-editable'] || this.config['data-editable'] == 'false' ? false : true;   
-        
-            if (this.config['data-binding-out']) {
 
-                this._sourceOutInfo = WAF.dataSource.solveBinding(this.config['data-binding-out']);
+            if (this.config['data-binding-out']) {
+                keyBinding = this.config['data-binding-out'];
+                if (this.source != null && this.source.getScope() == WAF.DataSource.LOCAL) {
+                    keyBinding = this.source.getWebComponentID() + '_' + keyBinding;
+                }
+                this._sourceOutInfo = WAF.dataSource.solveBinding(keyBinding);
+                
                 if (this._sourceOutInfo) {
                     this.sourceOut = this._sourceOutInfo.dataSource;
                 }
@@ -465,7 +527,11 @@ WAF.Widget.provide(
                 /*
                  * Change datasource onchange event
                  */
-                this._input.bind( "autocompleteselect", {sourceOut : that.sourceOut, widget : that}, function(e, ui) {
+                this._input.bind( "autocompleteselect", {
+                    sourceOut : that.sourceOut, 
+                    widget : that
+                }, function(e, ui) {
+                    
                     var
                     i,
                     evt,
@@ -521,16 +587,18 @@ WAF.Widget.provide(
                              * Case of source out
                              */
                             if (widget.sourceOut) {
+                                
                                 switch (widget._sourceOutInfo.dataClassAtt.kind) {
                                     case 'relatedEntity':
                                         source = widget._getRelatedAttribute(widget.sourceOut, widget.source.getID());
-
                                         if (source) {
                                             widget.source.getDataClass().getEntity(widget._tmp[index], {
                                                 onSuccess: function(e) {
                                                     e.userData.source.set(e.entity);
                                                 }
-                                            }, {source : source})
+                                            }, {
+                                                source : source
+                                            })
                                         }
                                         break;
 
@@ -560,7 +628,7 @@ WAF.Widget.provide(
                             });
                         }
                     } else {
-                        widget.setValue($(ui.item.option).val());
+                        widget._setValue($(ui.item.option).val());
 
                         if (widget.sourceOut) {
                             switch (widget._sourceOutInfo.dataClassAtt.kind) {
@@ -573,7 +641,7 @@ WAF.Widget.provide(
                                                 source.set(e.entity);
                                             }
                                         })
-                                        //source.set(widget.source);
+                                    //source.set(widget.source);
                                     }
                                     break;
 
@@ -604,7 +672,7 @@ WAF.Widget.provide(
 
                         that._hasOver = false;
                     }
-                );
+                    );
 
                 this._input.focusin(function() {
                     that.setState('active');
@@ -645,11 +713,13 @@ WAF.Widget.provide(
                         return false;
                     });                    
                     
-                    this._input.css({'cursor' : 'pointer'});
+                    this._input.css({
+                        'cursor' : 'pointer'
+                    });
 
                     this._input.attr('readonly', 'readonly');
 
-                    this._input.attr('disabled', 'disabled');
+                    //this._input.attr('disabled', 'disabled');
                 }
                 
                 /*
@@ -750,6 +820,7 @@ WAF.Widget.provide(
             }
             
             if (that.sourceOut) {
+                
                 that.sourceOut.addListener('all', function(e){
                     var
                     kind,
@@ -758,7 +829,7 @@ WAF.Widget.provide(
                     
                     widget  = e.data.widget;
                     kind    = e.eventKind;
-
+                    
                     if (!widget._changeFromCombo) {
                         switch(kind) {
                             case 'onElementSaved' :
@@ -768,7 +839,6 @@ WAF.Widget.provide(
                             case 'onAttributeChange' :
                             case 'onCurrentElementChange' :
                                 value = e.dataSource.getAttribute(widget._sourceOutInfo.attName).getValue();
-
                                 if (value && typeof(value) == 'object' && value[widget._primary]) {
                                     value = value[widget._primary];
                                 } else if (value && typeof(value) == 'object') {       
@@ -778,9 +848,9 @@ WAF.Widget.provide(
 
                                 if (typeof value === 'undefined') {
                                     value = '';
-                                }  
+                                } 
 
-                                widget.setValue(value);
+                                widget._setValue(value);
                                 
                                 widget._tmpValue = value;
                                 
@@ -823,6 +893,22 @@ WAF.Widget.provide(
                 })
             }
         },
+
+        _loadOption: function(value){
+            var ds = this.source,
+                dsID = ((!!ds) ? ds.getID() : null),
+                keyTmp = this._key;
+            if (ds && ds.getScope() == WAF.DataSource.LOCAL) {
+                keyTmp = ds.getWebComponentID() + '_' + keyTmp;
+            }
+            var attr = (!this._key || dsID == keyTmp) ? this._primary : this._key;
+            if(!!ds){
+                this._selectOptions = [];
+                ds.query(attr + " = :1", value);
+            }else{
+                this._selectOptions = [value];
+            }
+        },
         
         /**
          * Custom setValue function
@@ -830,14 +916,27 @@ WAF.Widget.provide(
          * @param {string} value
          */
         setValue : function combobox_set_value(value) {
+            if (this.isDisabled()) {
+                return this.getValue();
+            }
+            
+            this._setValue(value);
+
+        },
+        
+        _setValue : function (value) {
             var
             i,
             event,
             events,
             eventsL;
-            if (typeof value == 'undefined' || value === '') {
+
+            if (typeof value == 'undefined' || value === '' || value == null) {
                 this._input.val('');
             } else {
+                if(-1 == this._selectOptions.indexOf(value)){
+                    this._loadOption(value);
+                }
                 this._combobox.combobox('setValue', value);
             }
             
@@ -900,6 +999,11 @@ WAF.Widget.provide(
             label = this.getFormattedValue(label);    
 
             this._combobox.append($('<option value=\'' + value + '\'>').html(label));
+
+            // _selectOptions
+            if(-1 == this._selectOptions.indexOf(value)){
+                this._selectOptions.push(value);
+            }
             
             if (selected) {
                 this._combobox.combobox('setValue', value);
@@ -920,14 +1024,20 @@ WAF.Widget.provide(
             option = $(this._combobox.children('option').get(index - 1));
             
             if (option.val() == this.getValue()) {
-                this.setValue('');
+                // _selectOptions update
+                var indexValue = this._selectOptions.indexOf(this.getValue());
+                if(-1 != indexValue){
+                    this._selectOptions.splice(indexValue, 1);
+
+                }
+                this._setValue('');
             }
 
             if (option.length > 0) {
                 option.remove();
             }
 
-            /*if (currentIndex == index) {
+        /*if (currentIndex == index) {
                 this.setValue('');
             }*/
         },
@@ -1073,7 +1183,7 @@ WAF.Widget.provide(
         }
 
     }
-);
+    );
 
 /*
  * Fig bug on combobox list doesn't disappear

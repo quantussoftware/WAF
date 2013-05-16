@@ -398,13 +398,31 @@ WAF.utils.string = {
 			}
 		}
 		return sString;
+	},
+
+	/**
+	 * htmlDecodes the specified string, replacing html entities &[amp|lt|gt|nbsp]; with corresponding characters
+	 * 
+     * @static
+     * @method htmlDecode
+	 * @param {String} value
+	 * @return {String}
+	 */
+	htmlDecode: function(value){
+		if (value && (value == '&nbsp;' || value=='&#160;' || (value.length == 1 && value.charCodeAt(0) == 160))){
+			return ' ';
+		}
+		
+		return !value ? value : String(value).replace(/&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"');
 	}
 };
 
 
 WAF.utils.init = function(){
 	var lang = WAF.utils.getBrowserLang();
-	var dateOptions = $.datepicker.regional[lang];
+	var dateOptions = null;
+	if (typeof $ !== 'undefined' && $ != null && $.datepicker != null)
+		dateOptions = $.datepicker.regional[lang];
 	if (dateOptions != null)
 	{
 		$.datepicker.setDefaults(dateOptions);

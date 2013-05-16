@@ -31,11 +31,11 @@ WAF.addWidget({
     },
     {
         name       : 'data-errorDiv',
-        description: 'Display Error'
+        description: 'Error ID'
     },
     {
         name       : 'value',
-        description: 'Default Value'
+        description: 'Default value'
     },
     {
         name       : 'class',
@@ -67,6 +67,13 @@ WAF.addWidget({
         defaultValue: 'false'
     },
     {
+        name        : 'data-readOnly',
+        description : 'Read only',
+        type        : 'checkbox',
+        typeValue   : 'bool',
+        defaultValue: 'false'
+    },
+    {
         name        : 'data-password',
         description : 'Password field',
         type        : 'checkbox',
@@ -87,15 +94,14 @@ WAF.addWidget({
         defaultValue: 'false'
     },
     {
-        name       : 'tabindex',
-        description : 'Tabindex',
-        typeValue   : 'integer'
+        name        : 'tabindex',
+        description : 'Tabindex'
     },
-	{
-		name		: 'placeholder',
-		description	: 'Input placeholder',
-		type		: 'string'
-	}],
+    {
+        name		: 'placeholder',
+        description	: 'Input placeholder',
+        type		: 'string'
+    }],
     events: [
     {
         name       : 'touchstart',

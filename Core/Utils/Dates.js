@@ -22,6 +22,26 @@ function ISOToDate(string)
 	return dd;
 }
 
+function stringToSimpleDate(string)
+{
+	if (string == null || string == "")
+		return null;
+	var arr = string.split('!');
+	if (arr.length < 3)
+		return null;
+	return new Date(Number(arr[2]), Number(arr[1])-1, Number(arr[0]));
+}
+
+
+Date.prototype.toJSON = function(key){
+	return this.toISO()+","+this.toSimpleDateString();
+}
+
+Date.prototype.toSimpleDateString = function()
+{
+	return "" + this.getDate() + "!" + (this.getMonth()+1) + "!" + (this.getYear()+1900);
+}
+
 Date.prototype.setISO = function (string) {
     var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
         "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +

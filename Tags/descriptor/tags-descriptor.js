@@ -437,13 +437,16 @@ WAF.tags.Descriptor.prototype.setInternalId = function (value) {
  * @method addAttribute
  * @param {String} name name of the attribute to add to the descriptor
  */
-WAF.tags.Descriptor.prototype.addAttribute = function (name) {
-    var attribute = new WAF.tags.descriptor.Attribute({
-        name       : name,
-        description: name
-    });
-    attribute.setDescriptor(this);
-    this._attributes.add(attribute);                
+WAF.tags.Descriptor.prototype.addAttribute = function (name) { 
+    var attribute = null;    
+    if (!this._attributes.getByName(name)) {    
+        attribute = new WAF.tags.descriptor.Attribute({
+            name       : name,
+            description: name
+        });
+        attribute.setDescriptor(this);
+        this._attributes.add(attribute);         
+    }
 };
 
 /**
@@ -451,6 +454,7 @@ WAF.tags.Descriptor.prototype.addAttribute = function (name) {
  * @namespace WAF.tags.Descriptor
  * @method addMenuItem
  * @param {Object} config menuItem properties
+ * @param {Function} callback callback
  */
 WAF.tags.Descriptor.prototype.addMenuItem = function (config, callback) {
     var 

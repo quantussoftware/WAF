@@ -38,6 +38,8 @@ WAF.Widget.provide(
     function WAFWidget(config, data, shared) {
         
     },{
-        
+        setValue : function(msg) {
+            this.$domNode.text(msg);
+        }
     }
 );

@@ -23,7 +23,7 @@ WAF.addWidget({
     attributes : [
     {
         name       : 'data-progressinfo',
-        description: 'Progress Reference'
+        description: 'Progress reference'
     },
     {
         name       : 'class',
@@ -31,27 +31,33 @@ WAF.addWidget({
     },
     {
         name        : 'data-showstop',
-        description : 'Show Stop Button',
+        description : 'Show stop button',
         type        : 'checkbox',
         defaultValue: 'false'
     },
     {
         name	    : 'data-no-empty-display',
-        description : "Hide if Inactive",
+        description : "Hide if inactive",
         type	    : 'checkbox',
         defaultValue: 'false'
     },
     {
         name        : 'data-label',
-        description : 'label',
-        defaultValue: 'Progress Bar on []',
-        visibility  : 'hidden'
+        description : 'Label',
+        defaultValue: 'Progress on {curValue} out of {maxValue}'
     },
     {
         name        : 'data-label-position',
         description : 'label position',
         defaultValue: 'top'
     }
+    ],
+    events: [
+    /*{
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/
     ],
     style: [
     {
@@ -64,9 +70,9 @@ WAF.addWidget({
             var result;
             if (typeof D != "undefined") {
                 if (D && D.isMobile) {
-                    result = "11px";
+                    result = "21px";
                 } else {
-                    result = "10px";
+                    result = "20px";
                 }
                 return result;
             }
@@ -97,13 +103,13 @@ WAF.addWidget({
         return progress;
     },
     onDesign: function (config, designer, tag, catalog, isResize) {    
-        var
-        height;
+        var height = tag.getHeight(),
+        label = tag.getLabel();     
         
-        height      = tag.getHeight();     
-
-        tag.getLabel().getAttribute('data-text').setValue('Progress Bar on [' + tag.getAttribute('data-progressinfo').getValue() + ']');
-        tag.getLabel().onDesign();
+        if (label) {
+            label.getAttribute('data-text').setValue(tag.getAttribute('data-label').getValue());
+            label.onDesign();
+        }        
         
         if (!isResize){
             /*

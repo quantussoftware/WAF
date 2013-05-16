@@ -46,19 +46,25 @@ WAF.Widget.provide(
         /*
          * BUTTON NAVIGATION
          */
-        if (data['link']) {
-            htmlObject.bind('click', {}, function(e) {
-                switch(data['target']) {
+        htmlObject.bind('click', {}, function(e) {
+            var target, link;
+            link = that.$domNode.attr('data-link');
+            target = that.$domNode.attr('data-target');
+            if (link) {
+            //if (data['link']) {
+                switch(target) {
                     case '_blank':
-                        window.open(data['link']);
+                        window.open(link);
                         break;
-                    
+
                     default :
-                        window.location = data['link'];
+                        window.location = link;
                         break;
                 }
-            });
-        }        
+            } else {
+                e.preventDefault();
+            }
+        });
         
         /*
          * Add actions on data source if button is binded
@@ -165,7 +171,7 @@ WAF.Widget.provide(
                     htmlObject._state = null;
                 });
 
-                htmlObject.focusin(function() {       
+                htmlObject.focusin(function() {
                     if (htmlObject._state != 'active') {
                         that.setState('focus');
                     }
@@ -193,9 +199,9 @@ WAF.Widget.provide(
             icon;
 
             /*
-             * Call super class disable function
+             * Call super class setState function
              */
-            WAF.Widget.prototype.setState.call(this, arguments);
+            WAF.Widget.prototype.setState.apply(this, arguments);
 
             if (state == "active") {
                 this.$domNode.addClass("waf-state-active");
@@ -298,6 +304,16 @@ WAF.Widget.provide(
              * Call super class enable function
              */
             WAF.Widget.prototype.enable.call(this);    
+        },
+        
+        setURL : function(lnk, target) {
+            if (target) {
+                this.$domNode.attr('data-target', target);
+            }
+            this.$domNode.attr('data-link', lnk);
+        },
+        getURL : function() {
+            return this.$domNode.attr('data-link');
         }
     }
 );

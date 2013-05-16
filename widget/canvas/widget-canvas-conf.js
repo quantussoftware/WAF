@@ -38,7 +38,7 @@ WAF.addWidget({
     }, 
     {
         name       : 'data-src',
-        description: 'Src',
+        description: 'Background URL',
         type       : 'file',
         accept     : 'image/*'
     }
@@ -102,7 +102,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/
     ],
     properties: {
         style: {                                                
@@ -137,6 +142,11 @@ WAF.addWidget({
         imgSource   = tag.getAttribute('data-src').getValue();
         myFile      = {};
         canvas      = tag.getHtmlObject()[0];
+        
+        if(!canvas){
+            return;
+        }
+        
         width       = canvas.width;
         height      = canvas.height;
         ctx         = canvas.getContext("2d");

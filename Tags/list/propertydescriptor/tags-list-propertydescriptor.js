@@ -23,6 +23,27 @@ WAF.tags.list.PropertyDescriptor = function () {
     this._hash = {};
 }
 
+
+/**
+ * Get all the structure in array
+ * @namespace WAF.tags.list.PropertyDescriptor
+ * @method toArray
+ * @return {Array} array that represents the structures
+ */
+WAF.tags.list.PropertyDescriptor.prototype.toArray = function () {
+    return this._list;    
+};
+
+/**
+ * Get all the structure in hash map
+ * @namespace WAF.tags.list.PropertyDescriptor
+ * @method toHash
+ * @return {Object} hashmap of the structure
+ */
+WAF.tags.list.PropertyDescriptor.prototype.toHash = function () {
+    return this._hash;     
+};
+
 /**
  * Add an item (a descriptor of an attribute, event or style of a tag)
  * @namespace WAF.tags.list.PropertyDescriptor

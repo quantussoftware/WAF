@@ -150,7 +150,12 @@ WAF.addWidget({
         name       : 'filesExists',
         description: 'On File Exists',
         category   : 'Upload Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
 
     // {JSON} panel properties widget
     //
@@ -178,6 +183,32 @@ WAF.addWidget({
             find    : ''
         }]
     },
+    menu : [{
+        icon        : '/walib/WAF/widget/fileUpload/icons/application_view_list.png',
+        title       : 'Hide list',
+        callback    : function(){
+            var
+            tag,
+            linkedTags;
+            
+            
+            tag         = this;
+            linkedTags  = this.getFULinkedWidgets();
+            
+            if(linkedTags.filesList){
+                if($(tag).data('fileListHided')){
+                    linkedTags.filesList.show();
+                    
+                }
+                else{
+                    linkedTags.filesList.hide();
+                }
+                
+                $(tag).data('fileListHided' , !$(tag).data('fileListHided'));
+                $(tag).trigger('fileListHideShow');
+            }
+        }
+    }],
 
     // (optional area)
     // 
@@ -298,18 +329,23 @@ WAF.addWidget({
         // Fill the table container
         
         
-        if(isResize){
+        if(isResize || tag._firstCreation){
             if(linkedTags.filesList && tag.refreshFileList){
                 var
                 fileList    = linkedTags.filesList;
-                
-                tag.refreshFileList();
 
                 fileList.setWidth(tag.getWidth())
                 fileList.setY(tag.getHeight(), true, false);
+                
+                tag._firstCreation--;
             }
         }
         
+        tag.refreshFileList();
+        
+        if(tag._firstCreation == 0){
+            delete tag._firstCreation;
+        }
     },
     
     onCreate : function(tag,param){
@@ -438,7 +474,7 @@ WAF.addWidget({
             });
 
             config.fitToRight && button.setFitToLeft(false);
-            button.getAttribute('class').setValue( config['class'] );
+            button.addClass( config['class'] );
             
             button.getAttribute('data-text').setValue(config.text);
             button.savePosition('left', position.left);
@@ -547,6 +583,8 @@ WAF.addWidget({
             group.add(filesList);
 
             Designer.ui.group.save();
+            
+            tag._firstCreation = 2;
         }
         
         else {   
@@ -557,6 +595,16 @@ WAF.addWidget({
                 tag.refreshFileList();
             });
         }
+        
+        $(tag).bind('fileListHideShow' , function(){
+            $('#waf-focus-menu-' + tag.getId()).find('img').css({
+                opacity : $(tag).data('fileListHided') ? 0.5 : 1
+            });
+        });
+        
+        $(tag).bind('onWidgetFocus' , function(){
+            $(tag).trigger('fileListHideShow');
+        });
         
         tag.refresh();
     }

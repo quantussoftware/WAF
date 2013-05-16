@@ -86,7 +86,7 @@ WAF.Widget.provide(
             if (that.source && that.source.getDataClass() && that.source.getDataClass().getName) {
                 extraConfig.datasource  = {
                     dsname  : that.source.getDataClass().getName(),
-                    id      : that.source.ID,
+                    id      : that.source.getCurrentElement()?that.source.getCurrentElement().getKey():null,
                     field   : that.sourceAtt.name,
                     saveOnDS: config['data-action'] === 'true'
                 }
@@ -97,8 +97,8 @@ WAF.Widget.provide(
                     break;
                 case 'popup' :
                     if(!btnCardinal && tabContainer){
-                         tabContainer.remove();
-                         break;
+                        tabContainer.remove();
+                        break;
                     }
                     if(!tabContainer){
                         break;
@@ -125,7 +125,7 @@ WAF.Widget.provide(
                     tempFiles;
                     
                     maxFiles    = parseInt(config['data-maxfiles']);
-                    maxSize     = parseInt(config['data-maxfilesize']);
+                    maxSize     = parseFloat(config['data-maxfilesize']);
                     fileUnity   = config['data-maxfilesize-unity'].toLowerCase();
                     
                     switch(fileUnity){
@@ -142,14 +142,14 @@ WAF.Widget.provide(
                         if(maxFiles > -1){
                             for (var i = 0,f; (f = files[i]) && (i < maxFiles); i++) {
                                 if(maxSize > -1){
-                                	if(f.fileSize && f.fileSize <= maxSize) {
-                                		tempFiles.push(f);
-                                	} else if(f.size && f.size < maxSize) {
-										tempFiles.push(f);
-                                	}
+                                    if(f.fileSize && f.fileSize <= maxSize) {
+                                        tempFiles.push(f);
+                                    } else if(f.size && f.size < maxSize) {
+                                        tempFiles.push(f);
+                                    }
                                 }
                                 else{
-                                   tempFiles.push(f); 
+                                    tempFiles.push(f); 
                                 }
                             }
                         }
@@ -157,13 +157,13 @@ WAF.Widget.provide(
                             for (i = 0,f; f = files[i]; i++) {
                                 if(maxSize > -1){
                                     if(f.fileSize && f.fileSize <= maxSize) {
-                                		tempFiles.push(f);
-                                	} else if(f.size && f.size < maxSize) {
-										tempFiles.push(f);
-                                	}
+                                        tempFiles.push(f);
+                                    } else if(f.size && f.size < maxSize) {
+                                        tempFiles.push(f);
+                                    }
                                 }
                                 else{
-                                   tempFiles.push(f); 
+                                    tempFiles.push(f); 
                                 }
                             }
                         }
@@ -320,7 +320,7 @@ WAF.Widget.provide(
                     return res;
                 },
                 uploadFiles : function() {
-                	that._sendFiles(that.fileSet.getFilesInfo() , that.fileSet.getFiles() , extraConfig);
+                    that._sendFiles(that.fileSet.getFilesInfo() , that.fileSet.getFiles() , extraConfig);
                 }
             }
             
@@ -342,15 +342,14 @@ WAF.Widget.provide(
             /**
              * Init events :
              */
-            $('.' + classes.filesList.children.tr).live({
-                'mouseenter' : function(e){
-                    $(this).children('.' + classes.filesList.children.tdbutton).children().show();
-                    $(this).addClass('waf-state-hover');
-                },
-                'mouseleave' : function(e){
-                    $(this).children('.' + classes.filesList.children.tdbutton).children().hide();
-                    $(this).removeClass('waf-state-hover');
-                }
+            $(document).on('mouseenter', '.' + classes.filesList.children.tr, function(e){
+                $(this).children('.' + classes.filesList.children.tdbutton).children().show();
+                $(this).addClass('waf-state-hover');
+            });
+              
+            $(document).on('mouseleave', '.' + classes.filesList.children.tr, function(e){
+                $(this).children('.' + classes.filesList.children.tdbutton).children().hide();
+                $(this).removeClass('waf-state-hover');
             });
             
 
@@ -367,13 +366,11 @@ WAF.Widget.provide(
                 upload.click();
             });  
         
-            $('#' + that.id + '-upload').live({
-                change : function(e){
-                    that.fileSet.appendFiles(this.files);
-                    if(config['data-autoUpload'] === 'true'){
-                        extraConfig.folder = that.getFolderName();
-                        that._sendFiles(that.fileSet.getFilesInfo() , that.fileSet.getFiles() , extraConfig);
-                    }
+            $(document).on('change', '#' + that.id + '-upload', function(e){
+                that.fileSet.appendFiles(this.files);
+                if(config['data-autoUpload'] === 'true'){
+                    extraConfig.folder = that.getFolderName();
+                    that._sendFiles(that.fileSet.getFilesInfo() , that.fileSet.getFiles() , extraConfig);
                 }
             }); 
         
@@ -424,8 +421,10 @@ WAF.Widget.provide(
                 evt.preventDefault();
             }
             var dropZone = document.getElementById(this.id);
-            dropZone.addEventListener('dragover', handleDragOver, false);
-            dropZone.addEventListener('drop', handleFileSelect, false);
+            if(dropZone){
+                dropZone.addEventListener('dragover', handleDragOver, false);
+                dropZone.addEventListener('drop', handleFileSelect, false);
+            }
         },
         _notify: function ( title, text ) {
             if ($('#waf-notify-container').length == 0) {
@@ -448,7 +447,7 @@ WAF.Widget.provide(
         _sendFiles : function(filesInfo, files, config){
             var that = this;
             if(that.source && config.datasource){
-                config.datasource.id = that.source.ID;
+                config.datasource.id = that.source.getCurrentElement().getKey();
             }
             
             if(files.length < 1) {
@@ -467,8 +466,25 @@ WAF.Widget.provide(
                         response : JSON.parse(evt.target.responseText)
                     }
                     
+                    if(responseObj.response.error && responseObj.response.error.length > 0){
+                        try{
+                            var
+                            serverResponse = JSON.parse(xhr.responseText);
+
+                            WAF.ErrorManager.displayError(serverResponse)
+                        }
+                        catch(e){
+                            WAF.ErrorManager.displayError({
+                                error : [],
+                                message : 'Error : Files not uploaded'
+                            })
+                        }
+                        
+                        return;
+                    }
+                    
                     if(that.config['data-notification'] === 'true'){
-                            that._notify('File(s) uploaded','File(s) uploaded successfully');
+                        that._notify('File(s) uploaded','File(s) uploaded successfully');
                     }
                     that.events && that.events.filesUploaded && that.events.filesUploaded(responseObj);
                     that.source && that.source.serverRefresh();
@@ -493,30 +509,44 @@ WAF.Widget.provide(
                         url: '/waUpload/verify',
                         data: { 
                             filesInfo : JSON.stringify(filesInfo)
-                        },
-                        success: function(data, textStatus, jqXHR){
-                            var serverResponse  = JSON.parse(jqXHR.responseText),
-                            opts = {
-                                yesOption : function(){
-                                    config.replace = true;
-                                    theForm.append('config',JSON.stringify(config));
-                                    xhr.send(theForm);
-                                },
-                                noOption : function(){
-                                    config.replace = false;
-                                    theForm.append('config',JSON.stringify(config));
-                                    xhr.send(theForm);
-                                }
-                            }
-                            if(serverResponse && serverResponse.conflits && serverResponse.conflits.length && serverResponse.conflits.length > 0 ){
-                                that.events && that.events.filesExists && that.events.filesExists(serverResponse);
-                                that._confirm('Server Message',serverResponse.message,opts);
-                            }
-                            else{
+                        }
+                    })
+                    .done(function(data, textStatus, jqXHR){
+                        var
+                        serverResponse  = JSON.parse(jqXHR.responseText),
+                        opts = {
+                            yesOption : function(){
+                                config.replace = true;
+                                theForm.append('config',JSON.stringify(config));
+                                xhr.send(theForm);
+                            },
+                            noOption : function(){
+                                config.replace = false;
                                 theForm.append('config',JSON.stringify(config));
                                 xhr.send(theForm);
                             }
+                        }
+                        if(serverResponse && serverResponse.conflicts && serverResponse.conflicts.length && serverResponse.conflicts.length > 0 ){
+                            that.events && that.events.filesExists && that.events.filesExists(serverResponse);
+                            that._confirm('Server Message',serverResponse.conflictMessage,opts);
+                        }
+                        else{
+                            theForm.append('config',JSON.stringify(config));
+                            xhr.send(theForm);
+                        }
+                    })
+                    .error(function(xhr, textStatus, jqXHR){
+                        try{
+                            var
+                            serverResponse = JSON.parse(xhr.responseText);
 
+                            WAF.ErrorManager.displayError(serverResponse)
+                        }
+                        catch(e){
+                            WAF.ErrorManager.displayError({
+                                error : [],
+                                message : 'Error : Files not uploaded'
+                            });
                         }
                     });
                 }
@@ -641,7 +671,7 @@ WAF.Widget.provide(
         },
         
         uploadFiles : function() {
-        	return this.fileSet.uploadFiles();
+            return this.fileSet.uploadFiles();
         },
         
         getFiles : function(){

@@ -20,14 +20,14 @@
  *
  * @link /walib/WAF/widget/css/widget.css
  *
- */
+*/
 
 
 /**
  * -------------------------------------------------------
  * @section Main
  * -------------------------------------------------------
- */
+*/
 
 
 /**
@@ -37,9 +37,9 @@
  *
  * @section combobox select
  * -------------------------------------------------------
- */
+*/
 .waf-combobox select {
-	display: none;
+    display: none;
 }
 
 
@@ -47,7 +47,7 @@
  * -------------------------------------------------------
  * @section combobox input
  * -------------------------------------------------------
- */
+*/
 .waf-combobox input {
     background: transparent;
     border: none;
@@ -60,13 +60,13 @@
     text-shadow: inherit;
     letter-spacing: inherit;
     float: left; /* To fix position bug on firefox */
-    
+
     -webkit-border-top-left-radius: inherit;
     -webkit-border-bottom-left-radius: inherit;
-       -moz-border-top-left-radius: inherit;
-       -moz-border-bottom-left-radius: inherit;
-            border-top-left-radius: inherit;
-            border-bottom-left-radius: inherit;
+    -moz-border-top-left-radius: inherit;
+    -moz-border-bottom-left-radius: inherit;
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
 }
 
 
@@ -74,18 +74,18 @@
  * -------------------------------------------------------
  * @section combobox button
  * -------------------------------------------------------
- */
+*/
 .waf-combobox button {
     border-top: none;
     border-bottom: none;
     border-right: none;
-    
+
     -webkit-border-top-right-radius: inherit;
     -webkit-border-bottom-right-radius: inherit;
-       -moz-border-top-right-radius: inherit;
-       -moz-border-bottom-right-radius: inherit;
-            border-top-right-radius: inherit;
-            border-bottom-right-radius: inherit;
+    -moz-border-top-right-radius: inherit;
+    -moz-border-bottom-right-radius: inherit;
+    border-top-right-radius: inherit;
+    border-bottom-right-radius: inherit;
 }
 
 
@@ -93,7 +93,7 @@
  * -------------------------------------------------------
  * @section combobox list
  * -------------------------------------------------------
- */
+*/
 .waf-combobox-list {
     background-image: none;
 }
@@ -110,11 +110,16 @@
  * -------------------------------------------------------
  * @subsection combobox list ui-menu-item
  * -------------------------------------------------------
- */
+*/
 .waf-combobox-list .ui-menu-item strong {
     font-weight: bold;
 }
 
 .ui-autocomplete {
     z-index: 9999999 !important;
+}
+
+/* fix the combo box issue */
+.waf-combobox .ui-button {
+    position: absolute;
 }

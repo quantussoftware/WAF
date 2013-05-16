@@ -27,15 +27,18 @@ WAF.addWidget({
     },
     {
         name       : 'data-binding',
-        description: 'Source'
+        description: 'Source',
+        context : ['allowBind']
     },
     {
         name       : 'data-errorDiv',
-        description: 'Display Error'
+        description: 'Error ID',
+        context : ['protected']
     },
     {
         name       : 'value',
-        description: 'Default Value'
+        description: 'Default value',
+        context : ['protected']
     },
     {
         name       : 'class',
@@ -43,7 +46,8 @@ WAF.addWidget({
     },    
     {
         name       : 'data-format',
-        description: 'Format'
+        description: 'Format',
+        context : ['protected']
     },
     {
         name        : 'data-label',
@@ -67,17 +71,27 @@ WAF.addWidget({
         defaultValue: 'false'
     },
     {
+        name: 'data-readOnly',
+        description: 'Read only',
+        type: 'checkbox',
+        typeValue   : 'bool',
+        defaultValue: 'false',
+        context : ['protected']
+    },
+    {
         name        : 'data-password',
         description : 'Password field',
         type        : 'checkbox',
-        defaultValue: 'false'
+        defaultValue: 'false',
+        context : ['protected']
     },
     {
         name        : 'data-datapicker-on',
         description : 'Enable datepicker',
         type        : 'checkbox',
         typeValue   : 'bool',
-        defaultValue: 'true'
+        defaultValue: 'true',
+        context : ['protected']
     },
     {
         name        : 'data-datapicker-icon-only',
@@ -87,15 +101,15 @@ WAF.addWidget({
         defaultValue: 'false'
     },
     {
-        name		: 'tabindex',
-        description : 'Tabindex',
-        typeValue   : 'integer'
+        name        : 'tabindex',
+        description : 'Tabindex'
     },
-	{
-		name		: 'placeholder',
-		description	: 'Input placeholder',
-		type		: 'string'
-	}],
+    {
+        name		: 'placeholder',
+        description	: 'Input placeholder',
+        type		: 'string',
+        context : ['protected']
+    }],
     events: [
     {
         name       : 'blur',
@@ -176,7 +190,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [
     {
         name        : 'width',
@@ -252,14 +271,14 @@ WAF.addWidget({
         /*
          * Change tag type into textarea if multiline
          */
-        if (tag._config.changeType && htmlElement.tagName == "INPUT" && multiline == 'true') {
+        if (tag._config.changeType && htmlElement && htmlElement.tagName == "INPUT" && multiline == 'true') {
             tag._config.changeType(tag, 'textarea');
         }
         
         /*
          * Change tag type into input if not multiline
          */
-        if(tag._config.changeType && htmlElement.tagName == "TEXTAREA" && multiline == 'false') {
+        if(tag._config.changeType && htmlElement && htmlElement.tagName == "TEXTAREA" && multiline == 'false') {
             tag._config.changeType(tag, 'input');
         }
 
@@ -400,7 +419,7 @@ WAF.addWidget({
         source          = tag.getSource();
         newClass        = htmlObject.attr('class');
         newStyle        = htmlObject.attr('style');
-        events          = htmlObject.data('events');
+        events          = $._data(htmlObject, 'events');
 
         tmpHtmlObject   = $('<' + type + '/>').attr('id', 'tmp-' + tagId);
         tmpHtmlObject.appendTo('#' + tag.overlay.id + ' .bd');

@@ -56,10 +56,10 @@ WAF.Widget.provide(
                 ctx.clearRect(0, 0, width, height);
                 
                 if (url == null || url == "") {
-                    ctx.fillStyle = "rgb(200,0,0)";
-                    ctx.fillRect(0, 0, width / 2, height / 2);
-                    ctx.fillStyle = "rgba(0, 50, 200, 0.5)";
-                    ctx.fillRect(width / 2 - width / 6, height / 2 - height / 6, width / 2 + width / 6, height / 2 + height / 6);
+//                    ctx.fillStyle = "rgb(200,0,0)";
+//                    ctx.fillRect(0, 0, width / 2, height / 2);
+//                    ctx.fillStyle = "rgba(0, 50, 200, 0.5)";
+//                    ctx.fillRect(width / 2 - width / 6, height / 2 - height / 6, width / 2 + width / 6, height / 2 + height / 6);
                 }
                 
                 else{
@@ -85,10 +85,10 @@ WAF.Widget.provide(
         }
         
         else{
-            ctx.fillStyle = "rgb(200,0,0)";
-            ctx.fillRect(0, 0, width / 2, height / 2);
-            ctx.fillStyle = "rgba(0, 50, 200, 0.5)";
-            ctx.fillRect(width / 2 - width / 6, height / 2 - height / 6, width / 2 + width / 6, height / 2 + height / 6);
+//            ctx.fillStyle = "rgb(200,0,0)";
+//            ctx.fillRect(0, 0, width / 2, height / 2);
+//            ctx.fillStyle = "rgba(0, 50, 200, 0.5)";
+//            ctx.fillRect(width / 2 - width / 6, height / 2 - height / 6, width / 2 + width / 6, height / 2 + height / 6);
         }
     },
     {

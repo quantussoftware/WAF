@@ -124,6 +124,13 @@
             background-size: 7px;
     
 }
+.cupertino.waf-navigationView .waf-navigationView-body {
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+        -ms-border-radius: 0;
+         -o-border-radius: 0;
+            border-radius: 0;	
+}
 
 /**
  * -------------------------------------------------------

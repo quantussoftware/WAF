@@ -1,4 +1,4 @@
-/*
+    /*
 * This file is part of Wakanda software, licensed by 4D under
 *  (i) the GNU General Public License version 3 (GNU GPL v3), or
 *  (ii) the Affero General Public License version 3 (AGPL v3) or
@@ -57,8 +57,13 @@ WAF.addWidget({
     {
         name            : 'data-theme',
         visibility      : 'hidden',
-        defaultValue    : 'cupertino'
-    },                                                         
+        defaultValue    : 'inherited'
+    },
+    {
+        name            : 'data-context',
+        visibility      : 'hidden',
+        defaultValue    : "['disableCopyCut']"
+    },
     {
         name        : '',                                                 
         description : '',                                                 
@@ -69,7 +74,7 @@ WAF.addWidget({
     },
     {
         name         : 'data-title',
-        defaultValue : 'Views for iPhone',
+        defaultValue : '',
         description  : 'Title'
     },
     {
@@ -255,7 +260,12 @@ WAF.addWidget({
         name       : 'mouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
 
     // {JSON} panel properties widget
     //
@@ -322,7 +332,7 @@ WAF.addWidget({
     */
     onInit: function (config) {  
           
-        var widget = new WAF.widget.navigationView(config);      
+        var widget = new WAF.widget.NavigationView(config);      
 
         return widget;
     },
@@ -399,6 +409,11 @@ WAF.addWidget({
         });
 
         wid.previousID = wid.getId();
+
+        var context             = D.env.tagAttributes.context.tag,
+            contextProtected    = D.env.tagAttributes.context["protected"],
+            contextAllowBind    = D.env.tagAttributes.context["allowBind"],
+            contextAllowDrop    = D.env.tagAttributes.context["allowDrop"];
 
         if (!wid.addNewView) {
 
@@ -532,6 +547,9 @@ WAF.addWidget({
 
                 // view
                 view = new Designer.tag.Tag(containerDef);
+                //view.addAttribute(context);
+                //view.getAttribute(context).setValue('["'+contextProtected+'", "'+contextAllowDrop+'"]');
+                view.addContext(contextProtected + " " + contextAllowDrop);
                 view.create({
                     id         : D.tag.getNewId("view"),
 					width      : wid.getWidth(),
@@ -550,7 +568,6 @@ WAF.addWidget({
                 view.setPositionRight( "0px", false, false );
                 group.add(view);
                 wid.link(view);
-                wid.resizeHandles = 'none';
 
                 $("#"+view.getId()).click(
                     function(e){
@@ -568,6 +585,9 @@ WAF.addWidget({
 
                 //header
                 header  = new Designer.tag.Tag(containerDef);
+                //header.addAttribute(context);
+                //header.getAttribute(context).setValue('["'+contextProtected+'", "'+contextAllowDrop+'"]');
+                header.addContext(contextProtected + " " + contextAllowDrop);
                 header.create({
                     id         : D.tag.getNewId("header"),
 					width      : wid.getWidth(),
@@ -576,7 +596,7 @@ WAF.addWidget({
                 });
                 header._linkedWidget = view;
                 header.setXY( 0, 0, true );
-                header.addClass('waf-navigationView-header waf-widget-header'); // 
+                header.addClass('waf-navigationView-header waf-widget-header');
                 header.setParent( view );  
                 header.forceTopConstraint();
                 header.forceRightConstraint();
@@ -624,8 +644,11 @@ WAF.addWidget({
 
                 //back button
                 backButton = new Designer.tag.Tag(buttonDef);
+                //backButton.addAttribute(context);
+                //backButton.getAttribute(context).setValue('["'+contextProtected+'"]');
+                backButton.addContext(contextProtected);
                 backButton.create({
-                id      : D.tag.getNewId("back-buttom"),    
+                id      : D.tag.getNewId("backButton"),    
                 width   : "50px",
                 height  : "29px",
                 silentMode : true
@@ -638,6 +661,7 @@ WAF.addWidget({
                 
                 //content of the view
                 body  = new Designer.tag.Tag(containerDef);
+                body.addContext(contextProtected + " " + contextAllowDrop + " " + contextAllowBind);
                 body.create({
                     id         : D.tag.getNewId("body"),
                     width      : wid.getWidth(),
@@ -929,8 +953,11 @@ WAF.addWidget({
             
             //content
             content = new Designer.tag.Tag(containerDef);
+            //content.addAttribute(context);
+            //content.getAttribute(context).setValue('["'+contextProtected+'", "'+contextAllowDrop+'"]');
+            content.addContext(contextProtected + " " + contextAllowDrop);
             content.create({
-                id         : D.tag.getNewId("view-manager"),
+                id         : D.tag.getNewId("viewManager"),
                 width      : wid.getWidth(),
                 height     : "418px",
                 silentMode : true
@@ -966,6 +993,9 @@ WAF.addWidget({
 
             //footer
             footer       = new Designer.tag.Tag(containerDef);
+            //footer.addAttribute(context);
+            //footer.getAttribute(context).setValue('["'+contextProtected+'", "'+contextAllowDrop+'"]');
+            footer.addContext(contextProtected + " " + contextAllowDrop);
             footer.create({
                id           : D.tag.getNewId("footer"),
                width        : wid.getWidth(),

@@ -1,18 +1,19 @@
 /*
-* This file is part of Wakanda software, licensed by 4D under
-*  (i) the GNU General Public License version 3 (GNU GPL v3), or
-*  (ii) the Affero General Public License version 3 (AGPL v3) or
-*  (iii) a commercial license.
-* This file remains the exclusive property of 4D and/or its licensors
-* and is protected by national and international legislations.
-* In any event, Licensee's compliance with the terms and conditions
-* of the applicable license constitutes a prerequisite to any use of this file.
-* Except as otherwise expressly stated in the applicable license,
-* such license does not include any other license or rights on this file,
-* 4D's and/or its licensors' trademarks and/or other proprietary rights.
-* Consequently, no title, copyright or other proprietary rights
-* other than those specified in the applicable license is granted.
-*/
+ * This file is part of Wakanda software, licensed by 4D under
+ *  (i) the GNU General Public License version 3 (GNU GPL v3), or
+ *  (ii) the Affero General Public License version 3 (AGPL v3) or
+ *  (iii) a commercial license.
+ * This file remains the exclusive property of 4D and/or its licensors
+ * and is protected by national and international legislations.
+ * In any event, Licensee's compliance with the terms and conditions
+ * of the applicable license constitutes a prerequisite to any use of this file.
+ * Except as otherwise expressly stated in the applicable license,
+ * such license does not include any other license or rights on this file,
+ * 4D's and/or its licensors' trademarks and/or other proprietary rights.
+ * Consequently, no title, copyright or other proprietary rights
+ * other than those specified in the applicable license is granted.
+ */
+
 /**
  * The engine that converts static HTML tags into dynamic Widgets
  *
@@ -26,97 +27,98 @@
 /**
  * Tags namespace
  *
- * @class WAF.tags
+ * @namespace WAF.tags
  */
 WAF.tags = {
-    
     /**
      * Parse the document to find Wakanda Widget and Datasource markup and create them
      *
      * @static
+     * @namespace WAF.tags
      * @method createView
      */
-    createView: function createView() {    
+    createView: function createView() {
         var tabDataSources = [],
         tabDom = [],
         i = 0,
         source = {},
+        sourceName = '',
         nbComponent = -1,
         nbDataSource = -1,
         dataSourceList = [],
         privateData = {},
         domobj = [];
-        
+
         $.datepicker.setDefaults($.datepicker.regional['']);
 
         // create first the data source
         tabDataSources = $('[data-type=dataSource]');
-        
+
         for (i = 0, nbDataSource = tabDataSources.length; i < nbDataSource; i++) {
             domobj = tabDataSources[i];
             this.createComponent(domobj, true);
         }
 
         dataSourceList = WAF.dataSource.list;
-		
+
         // if some sources depends from others, need a second pass
         WAF.dataSource.fullyInitAllSources();
-		
+
         // then the widgets
         tabDom = $('[data-type]');
-        
+
         for (i = 0, nbComponent = tabDom.length; i < nbComponent; i++) {
-            domobj = tabDom[i];            
+            domobj = tabDom[i];
             this.createComponent(domobj, false);
             if (false) {
                 // catch the error if there is a pb with the dataSource
                 try {
                     this.createComponent(domobj, false);
-                } catch (e) {
+                } catch (exp) {
                     // TODO change alert on a kind of Error
                     if (typeof console !== 'undefined' && 'log' in console) {
-                        console.log('There is an error with the tag of id ' + domobj.id, e);
+                        console.log('WAF: There is an error with the tag of id ' + domobj.id, exp);
                     } else {
-                        alert('You have an error with the tag of id ' + domobj.id + '\r\nerror: ' + e.message);
+                        alert('WAF: You have an error with the tag of id ' + domobj.id + '\r\nerror: ' + exp.message);
                     }
                 }
             }
         }
-		
+
         // resolve the source
-        for (var e in dataSourceList)  {
-            source = dataSourceList[e];
+        for (sourceName in dataSourceList) {
+            source = dataSourceList[sourceName];
             privateData = source._private;
             if (source.mustResolveOnFirstLevel()) {
                 source.resolveSource();
-                if (false) {					
+                if (false) {
                     // catch the error if there is a pb with the dataSource
-                    try {                        
+                    try {
                         source.resolveSource();
-                    } catch (e) {
+                    } catch (exp) {
                         // TODO change alert on a kind of Error
                         if (typeof console !== 'undefined' && 'log' in console) {
-                            console.log('There is an error with the datasource of id ' + privateData.id, e);
+                            console.log('WAF: There is an error with the datasource of id ' + privateData.id, exp);
                         } else {
-                            alert('There is an error with the datasource of id ' + privateData.id + '\r\nerror: ' + e.message);
+                            alert('WAF: There is an error with the datasource of id ' + privateData.id + '\r\nerror: ' + exp.message);
                         }
-                    }				
-                }				
+                    }
+                }
             }
         }
 
     },
-
     /**
      * Create the widget or the datasource from the DOM
      * 
      * @static
+     * @namespace WAF.tags 
      * @method createComponent
      * @param {Object} domObj DOM object
      * @param {Boolean} isDataSource true if the component a dataSource (false by default)
      * @return {WAF.Widget|WAF.DataSource|Null}
      **/
-    createComponent: function createComponent(domObj, isDataSource) {        
+    createComponent: function createComponent(domObj, isDataSource) {
         var lib = '',
         type = '',
         nbAttributes = {},
@@ -157,19 +159,19 @@ WAF.tags = {
 
             if (domObj.getAttribute('data-column-width')) {
                 config['data-column-width'] = domObj.getAttribute('data-column-width');
-            }            
-            
+            }
+
             if (widget[lib] && widget[lib][type]) {
-                            
+
                 definition = widget[lib][type];
-                                                
+
                 // create the config
                 for (i = 0, nbAttributes = definition.attributes.length; i < nbAttributes; i++) {
                     attributeName = definition.attributes[i].name;
                     value = domObj.getAttribute(attributeName);
                     if (value && value.replace) {
                         value = value.replace(/&quot;/g, '"');
-                    }     
+                    }
                     config[attributeName] = value;
                 }
 
@@ -187,7 +189,7 @@ WAF.tags = {
                 component = definition.onInit(config);
 
                 elt = document.getElementById(config.id);
-                
+
                 if (elt) {
                     eltStyle = elt.style;
                     if (eltStyle.borderWidth && config['data-type'].match(new RegExp('(^button$)|(^textField$)'))) {
@@ -195,23 +197,23 @@ WAF.tags = {
                         eltStyle.height = parseInt(eltStyle.height, 10) + (parseInt(eltStyle.borderWidth, 10) * 2) + 'px';
                     }
                 }
-                return component;                
-            }            
-        } else {        
+                return component;
+            }
+        } else {
             if (isDataSource && type === 'dataSource') {
-                          
-                definition = widget['WAF']['dataSource'];                   
-                    
+
+                definition = widget['WAF']['dataSource'];
+
                 // create the config
                 nbAttributes = definition.attributes.length;
                 for (i = 0; i < nbAttributes; i++) {
-                    attributeName = definition.attributes[i].name;         
+                    attributeName = definition.attributes[i].name;
                     config[attributeName] = domObj.getAttribute(attributeName);
                 }
 
                 // force getting the mandatory attribute
                 sID = domObj.getAttribute('data-id');
-                if (sID == null || sID == '') {
+                if (sID === null || sID === '') {
                     attributeName = 'id';
                     config[attributeName] = domObj.getAttribute(attributeName);
                 } else {
@@ -221,12 +223,13 @@ WAF.tags = {
                 config[attributeName] = domObj.getAttribute(attributeName);
                 attributeName = 'data-lib';
                 config[attributeName] = domObj.getAttribute(attributeName);
-
+                attributeName = 'data-scope';
+                config[attributeName] = domObj.getAttribute(attributeName) || WAF.DataSource.GLOBAL;
                 // creation of the component
                 component = definition.onInit(config);
-                
+
                 // creation of the variable if dataSource variable
-                if (config['data-source-type'] == 'scalar') {
+                if (config['data-source-type'] === 'scalar') {
                     switch (config['data-dataType']) {
                         case 'number':
                             if (typeof window[config.id] === 'undefined') {
@@ -256,44 +259,44 @@ WAF.tags = {
                     }
                     return component;
                 }
-                if (config['data-source-type'] == 'object') {
+                if (config['data-source-type'] === 'object') {
                     if (typeof window[config.id] === 'undefined') {
                         window[config.id] = {};
                     }
                     return component;
                 }
-                if (config['data-source-type'] == 'array') {
+                if (config['data-source-type'] === 'array') {
                     if (typeof window[config.id] === 'undefined') {
                         window[config.id] = [];
                     }
                     return component;
                 }
-                if (config['data-source-type'] == 'date') {
+                if (config['data-source-type'] === 'date') {
                     if (typeof window[config.id] === 'undefined') {
                         window[config.id] = new Date();
                     }
                     return component;
-                }                
+                }
 
-                return component;                                    
+                return component;
             }
         }
 
         return null;
     },
-    
     /**
      * Create the widget or the datasource from a framgment
      * 
      * @static
+     * @namespace WAF.tags 
      * @method generate
      * @param {String} id id of the element where to integrate the fragment
      * @param {Boolean} includeItself do we have to genrate from the DOM id itself
      * (otherwise it is from its children) 
      **/
-    generate : function generate(id, includeItself) {
+    generate: function generate(id, includeItself) {
         var tabDom = [],
-        domobj = null, 
+        domobj = null,
         domId = '',
         domDataType = '',
         domDataScope = '',
@@ -301,6 +304,7 @@ WAF.tags = {
         nbDom = 0,
         container = $$(id),
         source = null,
+        sourceName = '',
         internalSources = {},
         nbComponent = 0,
         privateData = '',
@@ -308,50 +312,80 @@ WAF.tags = {
         tabDomBindings = [],
         lstDomBindings = {},
         binding = {},
-        dataSourceNameGlobalList = {};
-        
+        dataSourceNameGlobalList = {},
+        components = [],
+        compManager = WAF.loader.componentsManager,
+        nbComponents = 0,
+        component = null;
+
         if (typeof includeItself === 'undefined') {
             includeItself = true;
-        } 
-        
+        }
         var tabDomFirst = $('#' + id + '[data-type]');
-		
+
         tabDom = $('#' + id + ' [data-type]');
-        if (tabDomFirst.length != 0 && includeItself) {
+
+        if (tabDomFirst.length !== 0 && includeItself) {
             tabDom.push(tabDomFirst[0]);
         }
-			
+
         nbComponent = tabDom.length;
-        
+
         // create first the data source        
         for (i = 0; i < nbComponent; i++) {
             domobj = tabDom[i];
             domId = domobj.getAttribute('data-id');
             domDataType = domobj.getAttribute('data-type');
             domDataScope = domobj.getAttribute('data-scope');
-                      
-            if (sources && typeof (sources[domId]) === 'undefined' && domDataType === 'dataSource') {                      
-                if (domDataScope == 'global') {
+
+            if (sources && typeof (sources[domId]) === 'undefined' && domDataType === 'dataSource') {
+                if (domDataScope === 'global') {
                     dataSourceNameGlobalList[domId] = domId;
-                }                
+                }
                 source = this.createComponent(domobj, true);
+                source._private.componentID = id;
                 internalSources[domId] = source;
             } else {
                 if (sources && typeof (sources[domId]) !== 'undefined' && domDataType === 'dataSource') {
-                    internalSources[domId] = sources[domId];
+                    if (domDataScope === 'global') {
+                        dataSourceNameGlobalList[domId] = domId;
+                        internalSources[domId] = sources[domId];
+                    } else {
+                        internalSources[domId] = sources[domId];
+                    }
                 }
-            }                        
+            }
         }
-        		
+
         // if some sources depends from others, need a second pass
         WAF.dataSource.fullyInitAllSources();
-                
-        // create first the widget      
+
+        // check if components need to be loaded
+        components = $('#' + id + ' [data-type=component]');
+        nbComponents = components.length;
+        if (nbComponents > 0) {
+
+            for (i = 0; i < nbComponents; i++) {
+                component = components[i];
+
+                // check if we need to load
+                if (component.getAttribute('data-start-load') === null || component.getAttribute('data-start-load') === 'true') {
+
+                    // check if we have a valid path
+                    if (component.getAttribute('data-path') !== null && component.getAttribute('data-path') !== '') {
+                        compManager.add();
+                    }
+                }
+            }
+        }
+
+
+        // create then the widget      
         for (i = 0, nbComponent; i < nbComponent; i++) {
             domobj = tabDom[i];
             this.createComponent(domobj, false);
         }
-        
+
         // check for datasource in use in widgets
         tabDomBindings = $('#' + id + ' [data-binding]');
         nbDom = tabDomBindings.length;
@@ -362,62 +396,57 @@ WAF.tags = {
                 lstDomBindings[binding] = binding;
             }
         }
-                
+
         // resolve the source
-        for (var e in internalSources)  {
-            source = internalSources[e];
+        for (sourceName in internalSources) {
+            source = internalSources[sourceName];
             privateData = source._private;
             position = source.getPosition();
-            if (lstDomBindings[source.getID()]) {             
+            if (lstDomBindings[source.getID()]) {
                 // catch the error if there is a pb with the dataSource
-                try {   
-                    
-                    if (position >= 0) {                    
+                try {
+                    if (position >= 0) {
                         if (source.select) {
+                            // we need this first select to "force" the select execution
                             if (position > 0) {
                                 source.select(0);
+                                source.select(position);
                             } else {
                                 source.select(1);
+                                source.select(position);
                             }
-                        }                    
-                        if (dataSourceNameGlobalList[e]) {
-                            source.resolveSource(); 
-                        }                                            
-                        if (source.select) {
-                            source.select(position);
-                        }            
+                        }
                     } else {
-                        source.resolveSource(); 
-                    }                    
-                } catch (e) {
+                        source.resolveSource();
+                    }
+                } catch (exp) {
                     // TODO change alert on a kind of Error
                     if (typeof console !== 'undefined' && 'log' in console) {
-                        console.log('There is an error with the datasource of id ' + privateData.id, e);
+                        console.log('WAF: There is an error with the datasource of id ' + privateData.id, exp);
                     } else {
-                        alert('There is an error with the datasource of id ' + privateData.id + '\r\nerror: ' + e.message);
+                        alert('WAF: There is an error with the datasource of id ' + privateData.id + '\r\nerror: ' + exp.message);
                     }
-                }				                				
+                }
             }
         }
-        
+
         // resizable
-        if (container && container.resizable && $('#'+ id).data('resizable') == true) {
-            container.resizable(true);           
+        if (container && container.resizable && $('#' + id).data('resizable') === true) {
+            container.resizable(true);
         }
-        
+
         // draggable
-        if (container && container.resizable && $('#'+ id).data('draggable') == true) {           
-            container.draggable(true);          
+        if (container && container.resizable && $('#' + id).data('draggable') === true) {
+            container.draggable(true);
         }
-        
+
         //modal
-        if ($('#'+ id).data('modal') == true) {
-         
-            $('#'+ id).css('z-index', '99999');            
-            $('#'+ id).parent().append('<div id="waf-component-fade"></div>'); 
+        if ($('#' + id).data('modal') === true) {
+            $('#' + id).css('z-index', '99999');
+            $('#' + id).parent().append('<div id="waf-component-fade"></div>');
             $('#waf-component-fade').css({
                 'filter': 'alpha(opacity=50)'
-            }).fadeIn();                                                   
-        }   
+            }).fadeIn();
+        }
     }
 }; 

@@ -22,7 +22,8 @@ WAF.addWidget({
     attributes : [
     {
         name       : 'data-binding',
-        description: 'Source'
+        description: 'Source',
+        context     : ["protected"]
     },
     {
         name       : 'class',
@@ -30,13 +31,15 @@ WAF.addWidget({
     },
     {
         name       : 'data-src',
-        description: 'Src',
+        description: 'Image URL',
         type       : 'file',
-        accept     : 'image/*'
+        accept     : 'image/*',
+        context    : ["protected"]
     },
     {
         name        : 'data-link',
-        description : 'Link'
+        description : 'URL',
+        context     : ["protected"]
     },
     {
         name        : 'data-target',
@@ -59,6 +62,7 @@ WAF.addWidget({
         name        : 'data-fit',
         description : 'Fit',
         type        : 'dropdown',
+        context     : ["protected"],
         options     : [{
             key : '0',
             value : 'to container'
@@ -127,7 +131,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [
     {
         name        : 'width',

@@ -18,20 +18,13 @@
 
 (function () {
 
-//**
-
-// Currently for use only in studio only.
-
-	require = studio_require;
-
-//**
-
 	// List of "native" C++ implemented modules.
 
 	var	nativeModules = {
-	
-		net:	true,
-		tls:	true,	
+								
+		net:	{	isLoaded:	false	},
+		tls:	{	isLoaded:	false	},
+		events:	{	isLoaded:	false	},
 	
 	};
 	
@@ -96,50 +89,74 @@
 	// require() function definition.
 
 	var requireFunction = function (id) {
-		
-		if (typeof require == "undefined") {
-		
-			throw new Exception(ExceptionCode.INTERNAL_ERROR);
-		
-		}
-	
-		// C++ code must check that id is a string.
+			
+		// C++ code must check that id is a string and that it is non empty.
 	
 		var fullPath, uniqueId;
-				
-		// id must be a non-empty string, this must have been checked by C++ code.
 	
-		if (nativeModules[id]) {
+		// Handle "native" C++ modules.
+	
+		if (typeof nativeModules[id] != 'undefined') {
 		
-			// Return "native" C++ module.
+			if (nativeModules[id].isLoaded) 
+			
+				return nativeModules[id].moduleObject;
+
+			else {
+			
+				var moduleObject	= requireNative(id);
+
+				if (typeof moduleObject != 'undefined') {
 		
-			return requireNative(id);
+					nativeModules[id].isLoaded = true;
+					nativeModules[id].moduleObject = moduleObject;
+					
+				}
+				
+				return moduleObject;
+			
+			}
 
 		}
+		
+		// Resolve id.
+		
+		var error	= {};
 
-		fullPath = uniqueId = resolveId(id);		
-		if (typeof loadedModules[uniqueId] != "undefined") {
+		fullPath = uniqueId = resolveId(id, error);
+		if (typeof error.exception != "undefined") {
+		
+			throw error.exception;
+		
+		} else if (typeof loadedModules[uniqueId] != "undefined") {
 		
 			// Module is already loaded, return it from the cache.
-			
-			//trace("Load from cache \"" + uniqueId + "\".\n");
-			
+						
 			return loadedModules[uniqueId];
 		
 		} else if (typeof pendingModules[uniqueId] != "undefined") {
 		
 			// Module loading is pending (recursive call), return "ongoing" exported module.
 			
-			//trace("Load pending module \"" + uniqueId + "\".\n");
-			
 			return pendingModules[uniqueId];
 		
 		} else if (fullPath.search(jsonSuffix) != -1) {
 		
 			// Module is a JSON file.
-		
-			loadedModules[uniqueId] = loadJSON(fullPath);
-			return loadedModules[uniqueId];
+			
+			var loadedModule;
+					
+			loadedModule = loadJSON(fullPath, error);
+			if (typeof error.exception != "undefined")
+			
+				throw error.exception;
+			
+			else {
+			
+				loadedModules[uniqueId] = loadedModule;
+				return loadedModule;
+				
+			}
 		
 		} else {
 	
@@ -150,16 +167,15 @@
 				var	exports	= {};
 				var module 	= {};
 			
-				module.id = id;
+				module.id = fullPath.substring(0, fullPath.length - 3);
 				module.uri = "file://" + fullPath;
 				module.filename = fullPath;
 				module.loaded = false;
+				module.exports = exports;
 			
 				pendingModules[uniqueId] = exports;
 					
 				// Native function require._evaluate() will evaluate script file.
-				
-				// trace("Evaluating \"" + fullPath + "\".\n");
 				
 				require._evaluate(fullPath, exports, module);
 				
@@ -186,19 +202,20 @@
 		
 	// Resolve the id into the full path of a JavaScript file and return it.
 		
-	var resolveId = function (id) {
-
+	var resolveId = function (id, error) {
+	
 		var splitted;
 	
-		if ((splitted = id.split('/')) == null)
+		if ((splitted = id.split('/')) == null) {
 	
-			throw new Exception(ExceptionCode.CANNOT_PARSE_ID, id);
+			error.exception = new Exception(ExceptionCode.CANNOT_PARSE_ID, id);
+			return null;
 	
-		else if (splitted[0] == '.') {
+		} else if (splitted[0] == '.') {
 		
 			// Relative path from current path.
 		
-			return resolvePath(require._getCurrentPath() + id.slice(2));
+			return resolvePath(require._getCurrentPath() + id.slice(2), error);
 			
 		} else if (splitted[0] == '..') {
 		
@@ -209,21 +226,21 @@
 			parent = require._getCurrentPath();
 			lastIndex = parent.slice(0, parent.length - 1).lastIndexOf('/');
 						
-			return resolvePath(parent.slice(0, lastIndex) + id.slice(2));
+			return resolvePath(parent.slice(0, lastIndex) + id.slice(2), error);
 
 		} else if (splitted[0] == '' || splitted[0].search(drivePrefix) != -1) {
 
 			// Absolute path.
-		
-			return resolvePath(id);
+					
+			return resolvePath(id, error);
 	
 		} else {
 		
 			// Iterate require.paths[] to resolve relative id.
 			
 			if (typeof require.paths != "undefined" && require.paths instanceof Array) {
-
-				for (var i = 0; i < require.paths.length; i++) {
+			
+				for (var i = require.paths.length - 1; i >= 0 ; i--) {
 			
 					var	path;
 					
@@ -239,75 +256,86 @@
 					
 					}
 							
-					try {
-										
-						path = resolvePath(require.paths[i] + id);
+					var e	= {};
 					
-					} catch (e) {
+					path = resolvePath(require.paths[i] + id, e);
+					if (typeof e.exception != "undefined")
 					
 						continue;
 						
-					}	
+					else
 					
-					return path;
+						return path;
 				
 				}
 				
 			}			
-			throw new Exception(ExceptionCode.UNABLE_TO_RESOLVE_ID, id);
+			error.exception = new Exception(ExceptionCode.UNABLE_TO_RESOLVE_ID, id);
+			return null;
 			
 		}
 		
 	}
-		
+			
 	// Resolve path to a JavaScript or JSON file. Determine if it is a folder or file. 
 	// If it is a folder, then first resolve to a file using package.json or index.js. 
 	// Then check that file actually exists. Return full path of a ".js" or ".json" 
 	// file.
 			
-	var resolvePath = function (path) {
+	var resolvePath = function (path, error) {
 
 		// If path is a folder. Try to find "package.json", otherwise use "index.js".
+		// File existence will be checked below.
 	
 		if (isFolder(path)) {
 		
-			if (path.charAt(path.length - 1) != '/') {
-			
-				path = path.concat('/');
-				
-			}
+			var folderPath	= path;
 		
-			if (isFile(path + "package.json")) {
+			if (folderPath.charAt(folderPath.length - 1) != '/')
+			
+				folderPath = folderPath.concat('/');
+		
+			if (isFile(folderPath + "package.json")) {
 			
 				var content;
 				
-				content = loadJSON(path + "package.json");		
-				if (typeof content.main != "string") {
+				content = loadJSON(folderPath + "package.json", error);
+				if (typeof error.exception != "undefined") {
+			
+					// JSON parsing failed, pass error.exception from loadJSON(). 
+					
+					return null;
 				
-					throw new Exception(ExceptionCode.PACKAGE_DOES_NOT_HAVE_MAIN, path + "package.json");
+				} else if (typeof content.main != "string") {
+				
+					error.exception = new Exception(ExceptionCode.PACKAGE_DOES_NOT_HAVE_MAIN, folderPath + "package.json");
+					return null;
 									
 				} else if (content.main.charAt(0) != '.' || content.main.charAt(1) != '/') {
 				
 					// "main" must be a relative path.
 					
-					throw new Exception(ExceptionCode.MAIN_NOT_RELATIVE_PATH, content.main);
+					error.exception = new Exception(ExceptionCode.MAIN_NOT_RELATIVE_PATH, content.main);
+					return null;
 				
 				} else {
 				
-					path = path + content.main.slice(2);					
+					path = folderPath + content.main.slice(2);
 				
 				}
 			
+			} else if (isFile(folderPath + "index.js")) {
+			
+				path = folderPath + "index.js";
+			
 			} else {
 			
-				// File existence will be checked below.
+				// No "package.js" or "index.js" file found, try to solve to file.
 			
-				path = path + "index.js";
-			
-			} 
+			}
 			
 		}
-
+		
 		// If path was a folder, it has been resolved to a file (using "package.json" or "index.js").
 		// If file path has no suffix, first try ".js", then ".json".
 		
@@ -317,9 +345,12 @@
 			
 				return path;
 				
-			else
+			else {
 			
-				throw new Exception(ExceptionCode.RESOLVED_FILE_NOT_FOUND, path);
+				error.exception = new Exception(ExceptionCode.RESOLVED_FILE_NOT_FOUND, path);
+				return null;
+				
+			}
 		
 		} else if (path.search(jsonSuffix) != -1) {
 		
@@ -327,9 +358,12 @@
 			
 				return path;
 				
-			else
+			else {
 
-				throw new Exception(ExceptionCode.RESOLVED_FILE_NOT_FOUND, path);
+				error.exception = new Exception(ExceptionCode.RESOLVED_FILE_NOT_FOUND, path);
+				return null;
+				
+			}
 		
 		} else if (isFile(path + ".js")) {
 		
@@ -341,7 +375,8 @@
 		
 		} else {
 		
-			throw new Exception(ExceptionCode.NO_JS_OR_JSON_FILE, path);
+			error.exception = new Exception(ExceptionCode.NO_JS_OR_JSON_FILE, path);
+			return null;
 		
 		}
 		
@@ -349,7 +384,7 @@
 		
 	// Read a JSON file at given full path.
 	
-	var loadJSON = function (fullPath) {
+	var loadJSON = function (fullPath, error) {
 	
 		var json, content;
 	
@@ -364,7 +399,8 @@
 			
 		} catch (e) {
 		
-			throw new Exception(ExceptionCode.CANNOT_READ_JSON, fullPath);
+			error.exception = new Exception(ExceptionCode.CANNOT_READ_JSON, fullPath);
+			return null;
 		
 		}
 				
@@ -374,7 +410,8 @@
 		
 		} catch (e) {
 		
-			throw new Exception(ExceptionCode.JSON_SYNTAX_ERROR, fullPath);
+			error.exception = new Exception(ExceptionCode.JSON_SYNTAX_ERROR, fullPath);
+			return null;
 		
 		}
 				
@@ -395,9 +432,9 @@
 	var isFile = function (path) {
 
 		return (new File(path)).exists;
-
+		
 	}
 	
 	return requireFunction;
 
-}).call();
+}).call();	

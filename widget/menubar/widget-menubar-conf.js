@@ -48,7 +48,7 @@ WAF.addWidget({
     },
     {
         name        : 'data-subMenuShow',
-        description : 'Show Submenus',
+        description : 'Show submenus',
         type        : 'dropdown',
         options     : [{
             key     : 'hover', 
@@ -61,7 +61,7 @@ WAF.addWidget({
     },
     {
         name        : 'data-tab-margin',
-        description : 'Items Margin',
+        description : 'Menu items margin',
         defaultValue: 0,
         typeValue   : 'integer',
         slider      : {
@@ -130,7 +130,7 @@ WAF.addWidget({
             itemsL;
 
             tag     = this.data.tag;
-            items   = tag.getItems();
+            items   = tag.getItems(undefined, true);
             itemsL  = items.length;
 
             for (i = 0; i < itemsL; i += 1) {
@@ -164,8 +164,19 @@ WAF.addWidget({
             /*
              * Add new menu item
              */
-            newItem = this.data.tag.addMenuItem(); 
-                
+            
+            /*
+             * Add a menu item to the menu bar
+             * HACK: tabview and menubar (on its own) have different default width
+             * we make sure the added item has the correct size, no matter which
+             * context is used when creating it
+             */            
+            if (this.data.tag.getParent().isTabView()) {
+                newItem = this.data.tag.getParent().addTab();
+            } else {
+                newItem = this.data.tag.addMenuItem();
+            }
+            
             data.items[0].htmlObject.bind('click', {item: newItem}, function (e) {
                 e.data.item.setCurrent();
                 D.tag.refreshPanels();
@@ -189,6 +200,15 @@ WAF.addWidget({
             menuItem = data.items[1].data.item;
             
             menuItem.remove(false);
+        },
+        canDeleteRow: function() {
+            var tag = this.getData().tag;
+            
+            if (tag && tag.getItems(undefined, true).length > 1) {
+                return true;
+            } else {
+                return false;
+            }            
         },
         afterRowSort : function(data) {
             /*
@@ -227,7 +247,12 @@ WAF.addWidget({
         name       : 'onmouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style : [
     {
         name        : 'width',
@@ -241,7 +266,7 @@ WAF.addWidget({
                 }
                 return result;
             }
-        }.call(),
+        }.call()
     },
     {
         name        : 'height',
@@ -289,6 +314,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'all menu items',
@@ -319,6 +348,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem-first'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'all menu items',
@@ -349,6 +382,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem-last'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'main menu items',
@@ -379,6 +416,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem-level-0'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'main menu items',
@@ -409,6 +450,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem-level-0.waf-menuItem-first'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'main menu items',
@@ -439,6 +484,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem-level-0.waf-menuItem-last'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'submenu items',
@@ -469,6 +518,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem .waf-menuItem'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'submenu items',
@@ -499,6 +552,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem .waf-menuItem-first'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     },{
         group       : 'submenu items',
@@ -529,6 +586,10 @@ WAF.addWidget({
                 label   : 'selected',
                 cssClass: 'waf-state-selected',
                 find    : '.waf-menuItem .waf-menuItem-last'
+        },{
+                label   : 'disabled',
+                cssClass: 'waf-state-disabled',
+                find    : '.waf-menuItem'
         }]
     }],
     menu : [{
@@ -537,8 +598,15 @@ WAF.addWidget({
         callback    : function(){
             /*
              * Add a menu item to the menu bar
+             * HACK: tabview and menubar (on its own) have different default width
+             * we make sure the added item has the correct size, no matter which
+             * context is used when creating it
              */
-            this.addMenuItem();
+            if (this.getParent().isTabView()) {
+                this.getParent().addTab();
+            } else {
+                this.addMenuItem();
+            }
             
             /*
              * Refresh property panel
@@ -604,7 +672,7 @@ WAF.addWidget({
             htmlObject,
             addToWidth;
 
-            items       = this.getItems();
+            items       = this.getItems(undefined, true);
             itemsL      = items.length;
             htmlObject  = this.getHtmlObject();
 
@@ -654,7 +722,7 @@ WAF.addWidget({
             this.setCss(cssProp, value + 'px', '> .waf-menuItem:not(.waf-menuItem-last)');
             this.setCss(iCssProp, '0px', '> .waf-menuItem');
 
-            addToWidth = this.getItems().length * value;
+            addToWidth = this.getItems(undefined, true).length * value;
 
             /*
              * Resize menu bar if necessary
@@ -731,7 +799,7 @@ WAF.addWidget({
             tmpDomElt,
             htmlObject;
 
-            item        = this.getItems()[from];
+            item        = this.getItems(undefined, true)[from];
             htmlObject  = item.getHtmlObject();
             ref         = htmlObject.parent().children('li:not(:hidden)').eq(to);
             where       = to > from ? 'after' : 'before';
@@ -798,7 +866,7 @@ WAF.addWidget({
 
             menuBar     = this;
             orientation = this.getOrientation();
-            items       = this.getItems();
+            items       = this.getItems(undefined, true);
             level       = menuBar.getLevel();
             levelClass  = 'waf-menuItem-level-' + level;
 
@@ -835,7 +903,7 @@ WAF.addWidget({
                 htmlObject.addClass(classes.join(' '));
             });
         }
-
+        
         /**
          * Get the orientation of the widget
          * @function getOrientation
@@ -862,8 +930,8 @@ WAF.addWidget({
 
             sizes   = sizes || {};
             size    = this.getSize();
-
-            Designer.beginUserAction('069');
+            
+            Designer.beginUserAction('MB_CHANGE_ORIENT');
 
             if (D.env.enableHistory) {
                 var action = new Designer.action.ChangeMenubarOrientation({
@@ -949,7 +1017,7 @@ WAF.addWidget({
             menuItem,
             itemsInfo,
             orientation;
-
+            
             borders     = this.getBorders(); 
             param       = param || {};
             orientation = this.getOrientation();
@@ -1030,11 +1098,12 @@ WAF.addWidget({
                 height      : height,
                 width       : width,
                 silentMode  : true,
-                parent      : tag
+                parent      : tag,
+                context     : D.env.tagAttributes.context["protected"] + " " +  D.env.tagAttributes.context["allowDrop"] + " " +  D.env.tagAttributes.context["allowRemove"]
             });
 
             itemsInfo   = this.itemsInfo();
-
+            
             switch (orientation) {
                 case 'horizontal':
                     this.minWidth = itemsInfo.size + borders.LR;
@@ -1061,8 +1130,8 @@ WAF.addWidget({
             }
 
             return menuItem;        
-        }
-
+        }      
+        
         /**
          * Check if the menu items are out of menubar
          * @function checkSize
@@ -1074,24 +1143,26 @@ WAF.addWidget({
             borders,
             menuBarSize,
             menuItemsSize;
-
+            
             info            = this.itemsInfo();
-            menuItemsSize   = info.size;
+            menuItemsSize   = info.outerSize;
             borders         = this.getBorders(); 
 
             switch (info.orientation) {
                 case 'horizontal':
-                    menuBarSize = this.getWidth();
-
-                    if (menuItemsSize > menuBarSize) { 
-                        this.setWidth(menuItemsSize + borders.LR);
+                    menuBarSize = this.getRealWidth();
+                        
+                    // NOTE: when inside a tabview, this can get ignored,
+                    // since the menuBar is constrainted to fit inside the tabview
+                    if (menuItemsSize > menuBarSize) {
+                        this.setWidth(menuItemsSize);
                     }  
 
-                    this.minWidth = info.size + borders.LR;
+                    this.minWidth = menuItemsSize;
                     break;
 
                 case 'vertical':
-                    menuBarSize = this.getHeight();
+                    menuBarSize = this.getRealHeight();
 
                     if (menuItemsSize > menuBarSize) { 
                         this.setHeight(menuItemsSize + borders.TB);
@@ -1126,9 +1197,9 @@ WAF.addWidget({
             menuItemsHeight;
 
             param           = param || {};
-            menuItems       = this.getItems();
+            menuItems       = this.getItems(undefined, true);
             menuItemsL      = menuItems.length;            
-
+                        
             menuItemsHeight = 0;
             menuItemsWidth  = 0;
             maxHeight       = 0;
@@ -1191,6 +1262,7 @@ WAF.addWidget({
             return {
                 length      : menuItemsL,
                 size        : size,
+                outerSize   : size + (this.getWidth() - this.getRealWidth()),
                 orientation : orientation,
                 maxHeight   : maxHeight,
                 maxWidth    : maxWidth
@@ -1200,10 +1272,11 @@ WAF.addWidget({
         /**
          * Get children menu items
          * @function getMenuItems
+         * @param {force} boolean get destroyed children as well
          * @return {object} list of menu items
          */
-        tag.getItems = function menubar_get_items(force) {
-            return this.getChildren(false)
+        tag.getItems = function menubar_get_items(force, ignoreVisibility) {
+            return this.getChildren(typeof force !== 'undefined' ? force : false, ignoreVisibility);
         }
 
         /**
@@ -1285,12 +1358,12 @@ WAF.addWidget({
                     info    = this.itemsInfo();
                     borders = this.getBorders(); 
 
-                    this.setWidth(info.size + borders.LR,false);
+                    this.setWidth(info.outerSize, false);
                 }
                 
             });
         } else {
-            jQTag.bind('onReady', {menuItem : tag}, function (e) {
+            jQTag.bind('onReady', {menuItem : tag}, function (e, data) {
                 var
                 info,
                 item,
@@ -1300,8 +1373,8 @@ WAF.addWidget({
                 htmlObject;
 
                 info        = this.itemsInfo();
-                borders     = this.getBorders(); 
-                items       = this.getItems();
+                borders     = this.getBorders();
+                items       = this.getItems(data && data.from === 'redo' ? true : false, true);
                 itemsL      = items.length;
                 htmlObject  = this.getHtmlObject();
                 levelClass  = 'waf-menuBar-level' + this.getLevel();
@@ -1353,7 +1426,7 @@ WAF.addWidget({
             newHeight,
             orientation;
 
-            items       = this.getItems();
+            items       = this.getItems(undefined, true);
             borders     = this.getBorders();
             itemsL      = items.length;
             orientation = this.getOrientation();
@@ -1380,7 +1453,7 @@ WAF.addWidget({
                          * Reset position of sub menu
                          */
                         if (subMenu) {
-                            subMenu.setXY(0, newHeight);
+                            subMenu.setXY(0, newHeight, true);
                         }
 
                         break;
@@ -1398,7 +1471,7 @@ WAF.addWidget({
                          * Reset position of sub menu
                          */
                         if (subMenu) {
-                            subMenu.setXY(newWidth, 0);
+                            subMenu.setXY(newWidth, 0, true);
                         }
                         break;
                 }

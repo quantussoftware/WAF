@@ -225,7 +225,8 @@ WAF.Widget.provide(
                 splitter.css('visibility', 'hidden');
             }
             
-            this._initTmpPosition = this._tmpPosition;            
+            this._initTmpPosition = this._tmpPosition;
+            this._lastSetSize     = null;
             
             splitted        = widget.$domNode.children('.waf-split-container');
             splittedLength  = splitted.length;
@@ -309,7 +310,8 @@ WAF.Widget.provide(
 
                         var parentContainerID = $(e.target).closest(".waf-split-container")[0].id,
                             loatContainer,
-                            orient  = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";
+                            win     = $(window);
+                            orient  = (win.width() <  win.height()) ? "profile" : "landscape";
 
                         if (parentContainerID && e.target.id != e.data.that._button.id && e.target.offsetParent.id != e.data.that._button.id && parentContainerID != that._splitted[0].id && orient == 'profile') {
 
@@ -323,13 +325,14 @@ WAF.Widget.provide(
 
                     });
                     
-                    $(window).bind('orientationchange', {widget: that}, function (e) {
+                    $(window).bind('orientationchange', {widget: that}, function (e) { 
                         var 
                         orient,
-                        widget;
+                        widget,
+                        win = $(window);
                         
                         widget  = e.data.widget;
-                        orient  = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";  
+                        orient  = (win.width() < win.height()) ? "profile" : "landscape";  
 
                         if (orient == 'profile') {
                             widget.mobileSplitView(true);
@@ -377,11 +380,11 @@ WAF.Widget.provide(
          */
         toggleSplitter : function container_toggle_splitter() {
             if (this._tmpPosition <= 2) {
-                this._tmpPosition = this._initTmpPosition;
+                this._tmpPosition = this._lastSetSize ? this._lastSetSize : this._initTmpPosition;
                 this.expandSplitter(); 
             } else {
-                if (this._splitStatus == 'collapse') {
-                   this.expandSplitter(); 
+                if (this._splitStatus == 'collapse' && this._lastSetSize != this.getSplitPosition()) {
+                    this.expandSplitter(); 
                 } else {
                     this.collapseSplitter();
                 }
@@ -394,7 +397,7 @@ WAF.Widget.provide(
          */
         collapseSplitter : function container_collapse_splitter() {
             this._splitStatus = "collapse";
-            this.setSplitPosition(0);
+            this.setSplitPosition(0,false,false);
         },
         
         /**
@@ -403,11 +406,14 @@ WAF.Widget.provide(
          */
         expandSplitter : function container_expand_splitter() {
             if (this._tmpPosition <= 2) {
-                this._tmpPosition = this._initTmpPosition;
+                this._tmpPosition = this._lastSetSize ? this._lastSetSize : this._initTmpPosition;
+            }
+            else{
+                this._tmpPosition = this._lastSetSize ? this._lastSetSize : this._initTmpPosition;
             }
             
             this._splitStatus = "expand";
-            this.setSplitPosition(this._tmpPosition);
+            this.setSplitPosition(this._tmpPosition,false,false);
         },
         
         /*
@@ -497,7 +503,7 @@ WAF.Widget.provide(
          * @method setSplitPosition
          * @param {number} value position to define
          */
-        setSplitPosition   : function container_set_split_size(value, force) { 
+        setSplitPosition   : function container_set_split_size(value, force, forgetSet) { 
             var
             widget,
             htmlObject,
@@ -582,6 +588,10 @@ WAF.Widget.provide(
                         $$(container.prop('id'))._resizeSplitters();
                     });
                     break;
+            }
+            
+            if(typeof forgetSet === 'undefined' || forgetSet !== false){
+                this._lastSetSize = value;
             }
             
             
@@ -729,16 +739,18 @@ WAF.Widget.provide(
             
             
             if (this._button) {                
-                if( !WAF.PLATFORM.isTouch ) {       
-                    var orient;
-                    orient = (window.outerWidth <  window.outerHeight) ? "profile" : "landscape";  
+                //if( !WAF.PLATFORM.isTouch ) {       
+                    var orient,
+                        win = $(window);
+                        
+                    orient = (win.width() <  win.height()) ? "profile" : "landscape";  
 
                     if (orient == 'profile') {
                         container.mobileSplitView(true);
                     } else {
                         container.mobileSplitView(false);
                     }
-                }
+                //}
             }
         },
         

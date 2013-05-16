@@ -27,11 +27,11 @@ WAF.addWidget({
     },
     {
         name       : 'data-binding',
-        description: 'Choice Source'
+        description: 'Choice source'
     },
     {
         name       : 'data-binding-out',
-        description: 'Value Source',
+        description: 'Value source',
         typeValue  : 'datasource'
     },
     {
@@ -60,14 +60,13 @@ WAF.addWidget({
     },
     {
         name        : 'data-autoDispatch',
-        description : 'Auto Dispatch',
+        description : 'Auto-dispatch',
         type        : 'checkbox',
         defaultValue: 'true'
     },
     {
         name        : 'tabindex',
-        description : 'Tabindex',
-        typeValue   : 'integer'
+        description : 'Tabindex'
     },
     {
         name        : 'data-editable',
@@ -77,7 +76,7 @@ WAF.addWidget({
     },
     {
         name        : 'data-limit',
-        description : 'Display Limit',
+        description : 'Display limit',
         type        : 'textField',
         defaultValue: '20'
     }],
@@ -126,7 +125,12 @@ WAF.addWidget({
         name       : 'onmouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [
     {
         name        : 'width',

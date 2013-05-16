@@ -577,6 +577,11 @@ WAF.core.restConnect.restRequest = function(connectionMode)
 			queryString+=(!deja$?"$removeFromSet=":"&$removeFromSet=")+this.removeAtPos;
 			deja$=true;		
 		}
+		if (this.removeReferenceOnly != null)
+		{
+			queryString+=(!deja$?"$removeRefOnly=":"&$removeRefOnly=")+this.removeReferenceOnly;
+			deja$=true;		
+		}
 		// $addToSet
 		if (this.addToSet != null)
 		{

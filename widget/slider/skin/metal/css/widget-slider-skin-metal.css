@@ -158,8 +158,8 @@
  * -----------------------------------
  */
 .metal.waf-slider.ui-slider-horizontal .ui-slider-handle {
-	top: 0;
-	bottom: 0;
+	top: -5px;
+	bottom: -5px;
 	
 	background-image: -webkit-gradient(linear, right top, left bottom, from(rgba(255, 255, 255, 0.3)), color-stop(49%, rgba(255, 255, 255, 1)), color-stop(51%, rgba(255, 255, 255, 1)), to(rgba(255, 255, 255, 0.3)));
 	background-image: -webkit-linear-gradient(top right, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 1) 51%, rgba(255, 255, 255, 0.3) 100%);
@@ -179,7 +179,7 @@
  */
 .metal.waf-slider.ui-slider-vertical .ui-slider-handle {
 	left: 0;
-	right: 0;
+	right: -8px;
 	
 	background-image: -webkit-gradient(linear, right top, left bottom, from(rgba(255, 255, 255, 0.3)), color-stop(49%, rgba(255, 255, 255, 1)), color-stop(51%, rgba(255, 255, 255, 1)), to(rgba(255, 255, 255, 0.3)));
 	background-image: -webkit-linear-gradient(top right, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 1) 51%, rgba(255, 255, 255, 0.3) 100%);

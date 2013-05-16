@@ -500,7 +500,7 @@ WAF.dom.Node.prototype.remove = function () {
     if (this.parentNode) {
         this.parentNode._json.childNodes = this.parentNode._json.childNodes.slice(0, this._position-1).concat(this.parentNode._json.childNodes.slice(this._position));
     }
-}
+};
 
 /**
  * Element
@@ -532,20 +532,74 @@ WAF.dom.Element = function (name) {
             
     // {String} tagName name of the tag
     var _tagName = '';
-    this.__defineGetter__('tagName', function () {
-        var result = '';
-        if (_tagName) {
-            result = _tagName;            
-        } else {
-            result = this._json['nodeName'];
+
+    Object.defineProperty(this, 'tagName', {
+        get: function() {
+            var result = '';
+            if (_tagName) {
+                result = _tagName;            
+            } else {
+                result = this._json['nodeName'];
+            }
+            return result;        
+        },
+        
+        set: function(value) {
+            _tagName = value;
         }
-        return result;
-    });        
-    this.__defineSetter__('tagName', function (value) {
-        _tagName = value;
     });
+//    this.__defineGetter__('tagName', function () {
+//        var result = '';
+//        if (_tagName) {
+//            result = _tagName;            
+//        } else {
+//            result = this._json['nodeName'];
+//        }
+//        return result;
+//    });        
+//    this.__defineSetter__('tagName', function (value) {
+//        _tagName = value;
+//    });
     
 
+};
+
+/**
+ * get the text inside an element
+ * @namespace WAF.dom.Element
+ * @method textContent
+ * @result {String} text inside the element
+ */
+WAF.dom.Element.prototype.textContent = function () {
+    var result = '',
+    elements = this.getChildNodes(),
+    length = elements.length,
+    i = 0,
+    element = null,
+    text = '',
+    cleanText = '';
+    
+    for (i = 0; i < length; i++) {
+        element = elements[i]
+        // case of a textNode
+        if (element && element._json.nodeType == 3) {
+            text = element._json.nodeValue;
+            
+            //clean the text   
+            cleanText = text.replace(/(\\n|\\r|\\t)/gm,'');
+            cleanText = cleanText.replace(/(\s)+/g,'');
+            
+            if (cleanText != '') {
+                result = result + text; 
+            }                                    
+        }
+        // case of br
+        if (element && element._json.nodeType == 1 && element._json.nodeName == 'br') {
+            result = result + '<br>';                                
+        }               
+    }
+    
+    return result;
 };
 
 /**

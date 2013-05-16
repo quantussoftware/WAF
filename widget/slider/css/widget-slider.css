@@ -50,6 +50,7 @@
  */
 .waf-slider .ui-slider-range {
 	z-index: auto;
+    border-radius: inherit;
 }
 
 .waf-slider.ui-slider-horizontal .ui-slider-range {
@@ -69,6 +70,9 @@
  * -------------------------------------------------------
  */
 .waf-slider .ui-slider-handle {
+	width: 19px;
+	height: 18px;
+	margin-left: -8px;
 	z-index: auto;
 }
 

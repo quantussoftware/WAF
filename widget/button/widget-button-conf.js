@@ -105,12 +105,13 @@ WAF.addWidget({
         }
     },
     {
-        name       : 'data-text',
-        description: 'Text'
+        name        : 'data-text',
+        description : 'Button title'
     },
     {
         name        : 'data-link',
-        description : 'Link',
+        description : 'URL',
+        context     : 'protected',
         onchange    : function(){
             if (!this.getValue()) {
                 $('#dropdown-data-target').parent().parent().hide();
@@ -149,8 +150,7 @@ WAF.addWidget({
     },
     {
         name        : 'tabindex',
-        description : 'Tabindex',
-        typeValue   : 'integer'
+        description : 'Tabindex'
     }],
     events: [
     {
@@ -197,7 +197,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [,
     {
         name        : 'width',
@@ -282,7 +287,6 @@ WAF.addWidget({
         url         = '';
         path        = '';
         imgHTML     = '';
-        
         if (!isResize) {
             var text = tag.getAttribute('data-text').getValue();
 

@@ -200,6 +200,8 @@ WAF.Widget.provide(
             if (this.source) {
                 queryString = "";
                 attList     = this.attList;
+				params = [];
+				curparam = 1;
 
                 for (i = 0; i < attList.length; i++) {
                     val = document.getElementById(this.id + "_" + idName(attList[i])).value;
@@ -217,12 +219,21 @@ WAF.Widget.provide(
                         }
 
                         this.otherAttInfo[i].curOper = oper;
+						
+						var att = this.atts[i];
+						if (att.type === 'date') {
+							val = $.fn.DatePickerParse(val, WAF.utils.dateInputFormat);
+						}
 
-                        queryString += this.queryData.buildQueryNode(this.atts[i].name, this.atts[i].type, oper, val);
+                        queryString += this.queryData.buildQueryNode(att.name, att.type, oper, curparam);
+						params.push(val);
+						curparam++;
                     }
                 }
                 
-                this.source.query(queryString);
+                this.source.query(queryString, {
+					params: params
+				});
 
             }
         },

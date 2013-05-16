@@ -27,7 +27,7 @@ WAF.Widget.provide(
      * @class TODO: give a name to this class (ex: WAF.widget.DataGrid)
      * @extends WAF.Widget
      */
-    'navigationView', // TODO: set the widget constructor name in CamelCase (ex: "DataGrid")
+    'NavigationView', // TODO: set the widget constructor name in CamelCase (ex: "DataGrid")
     
                 
     {
@@ -98,8 +98,8 @@ WAF.Widget.provide(
             $header = $container.find(".waf-widget-header");
 
             $view.css({
-                width: $container.width()+"px",
-                height: $container.height()+"px"
+                width: $container.width()+"px"
+                //height: $container.height()+"px"
             });
 
             if (idx != 0) {
@@ -118,11 +118,11 @@ WAF.Widget.provide(
         if (WAF.PLATFORM.isTouch) {
             $("#"+containerID+" .waf-navigationView-header-back-button").bind("touchend", function(){            
                 waf.widgets[containerID].goToPreviousView();  
-            })
+            });
         } else {
             $("#"+containerID+" .waf-navigationView-header-back-button").bind("click", function(){            
                 waf.widgets[containerID].goToPreviousView();  
-            })
+            });
         }
 
         var eventHandlerFunction = function(event)
@@ -186,6 +186,69 @@ WAF.Widget.provide(
             $$(widID).onContainerResize();
             $("#"+widID).get()[0].style.backfaceVisibility = "hidden";
         }, 0);    
+
+        var getTransformProperty = function() {
+
+            var that = this,
+                res = {};
+
+            var properties = [
+                'transform',
+                'webkitTransform',
+                'msTransform',
+                'mozTransform',
+                'oTransform'
+            ];
+
+            var cssProperties = [
+                'transform',
+                '-webkit-transform',
+                '-ms-transform',
+                '-moz-transform',
+                '-o-transform'
+            ];
+
+            var element = document.createElement("div"),
+                p,
+                cssp;
+
+            while (p = properties.shift()) {
+                cssp = cssProperties.shift();
+                if (typeof element.style[p] != 'undefined') {
+                    res.transformProperty = p;
+                    res.transformCssProperty = cssp;
+                    return res;
+                }
+            }
+
+            return false;
+        };
+
+        var getTransitionProperty = function() {
+
+            var properties = [
+                'transition',
+                'webkitTransition',
+                'msTransition',
+                'mozTransition',
+                'oTransition'
+            ];
+
+            var element = document.createElement("div"),
+                p;
+
+            while (p = properties.shift()) {
+                if (typeof element.style[p] != 'undefined') {
+                    return p;
+                }
+            }
+            return false;
+        };
+
+        var transform = getTransformProperty();
+        this.transformProperty = transform.transformProperty;
+        this.transformCssProperty = transform.transformCssProperty;
+        this.transitionProperty = getTransitionProperty();
         
     },
     
@@ -206,7 +269,6 @@ WAF.Widget.provide(
         val,
         left;
 
-        //var childs = $("#"+this.id+"_content").children();
         var childs = $("#"+this.id+" .waf-navigationView-content").children();
 
         $.each(childs, function(index, view) {
@@ -220,10 +282,11 @@ WAF.Widget.provide(
                 }
             }
             $view.css({
-           	    width: $container.width()+"px",
-           	    height: $container.height()+"px"
+           	    width: $container.width()+"px"//,
+           	    //height: $container.height()+"px"
             });
         });
+
         
     },
     slideToNextView: function slideToNextView() {
@@ -243,7 +306,7 @@ WAF.Widget.provide(
     * @/method goToView
     **/
     goToView: function goToView( viewIndex, backButtonLabel ) {
-
+       
         if (parseInt(this.visibleView) === viewIndex) {
             return false;
         }
@@ -270,12 +333,16 @@ WAF.Widget.provide(
 
         if (viewIndex) {
 
-            $elem           = this.$container.find(".waf-navigation-view"+viewIndex);//$("#"+this.id+"_view"+viewIndex);
+            $elem           = this.$container.find(".waf-navigation-view"+viewIndex);
             backButton      = $elem.find(".waf-navigationView-header-back-button");
 
-            $elem.get()[0].style.webkitTransition   = '-webkit-transform 0.5s';
-            visibleView.style.webkitTransition      = '-webkit-transform 0.5s';
+            //$elem.get()[0].style.webkitTransition   = '-webkit-transform 0.5s';
+            //visibleView.style.webkitTransition      = '-webkit-transform 0.5s';
+         
+            $elem.get()[0].style[this.transitionProperty]   = this.transformCssProperty + ' 0.5s';
+            visibleView.style[this.transitionProperty]      = this.transformCssProperty + ' 0.5s';
             
+
             if (backButtonLabel) {
                 backButton.find("span").get()[0].textContent = backButtonLabel;
             }
@@ -283,39 +350,49 @@ WAF.Widget.provide(
             backButton.show();
             this.hasBackButton = true;
 
-            transformNew = parseInt(getComputedStyle($elem.get()[0], null).webkitTransform.split(",")[4]);
+            //transformNew = parseInt(getComputedStyle($elem.get()[0], null).webkitTransform.split(",")[4]);
+            transformNew = parseInt(getComputedStyle($elem.get()[0], null)[this.transformProperty].split(",")[4]);
                         
             if (transformNew && transformNew !== 0) {
                 tp = containerWidth+(-transformNew);
                 $elem.css("left", tp+"px");
-                $elem.get()[0].style.webkitTransform = 'translateX(-'+tp+'px)';
+                //$elem.get()[0].style.webkitTransform = 'translateX(-'+tp+'px)';
+                $elem.get()[0].style[this.transformProperty] =  'translateX(-'+tp+'px)';
             } else {
                 $elem.css("left", containerWidth+"px");
-                $elem.get()[0].style.webkitTransform = 'translateX(-'+containerWidth+'px)';
+                //$elem.get()[0].style.webkitTransform = 'translateX(-'+containerWidth+'px)';
+                $elem.get()[0].style[this.transformProperty] =  'translateX(-'+containerWidth+'px)';
             }
             
-            transformVis = parseInt(getComputedStyle(visibleView, null).webkitTransform.split(",")[4]); //$("#"+this.id+"_view"+this.visibleView).get()[0]
+            //transformVis = parseInt(getComputedStyle(visibleView, null).webkitTransform.split(",")[4]); 
+            transformVis = parseInt(getComputedStyle(visibleView, null)[this.transformProperty].split(",")[4]); 
             
             if (transformVis) {
                 tp = containerWidth+(-transformVis);
-                visibleView.style.webkitTransform = 'translateX(-'+tp+'px)';
+                //visibleView.style.webkitTransform = 'translateX(-'+tp+'px)';
+                visibleView.style[this.transformProperty] = 'translateX(-'+tp+'px)';
             } else {
-                visibleView.style.webkitTransform = 'translateX(-'+containerWidth+'px)';
+                //visibleView.style.webkitTransform = 'translateX(-'+containerWidth+'px)';
+                visibleView.style[this.transformProperty] = 'translateX(-'+containerWidth+'px)';
             }
             
-            $toDisplay = this.$container.find(".waf-navigation-view"+this.visibleView);//$("#"+this.id+"_view"+this.visibleView);
+            $toDisplay = this.$container.find(".waf-navigation-view"+this.visibleView);
             toDisplay = $toDisplay.get()[0];
             elem = $elem.get()[0];
             that = this;
 
             window.setTimeout(function(){
-                
-                elem.style.webkitTransition = '-webkit-transform 0s';
-                elem.style.webkitTransform = 'none';
+
+                //elem.style.webkitTransition = '-webkit-transform 0s';
+                //elem.style.webkitTransform = 'none';
+                elem.style[that.transitionProperty] = that.transformCssProperty + ' 0s';
+                elem.style[that.transformProperty] = 'none';
                 $elem.css("left", "0px");
                 
-                toDisplay.style.webkitTransition = '-webkit-transform 0s';
-                toDisplay.style.webkitTransform = 'none';
+                /*toDisplay.style.webkitTransition = '-webkit-transform 0s';
+                toDisplay.style.webkitTransform = 'none';*/
+                toDisplay.style[that.transitionProperty] = that.transformCssProperty + ' 0s';
+                toDisplay.style[that.transformProperty] = 'none';                
                 $toDisplay.css("left", -containerWidth+"px");
 
                 $elem.find("input").prop('disabled', false);
@@ -363,24 +440,35 @@ WAF.Widget.provide(
             res = true;
 
             computedStype   = getComputedStyle(toDisplay, null);
-            transformNew    = parseInt(computedStype.webkitTransform.split(",")[4]);
+            //transformNew    = parseInt(computedStype.webkitTransform.split(",")[4]);
+            transformNew    = parseInt(computedStype[this.transformProperty].split(",")[4]);
 
-            toDisplay.style.webkitTransition = '-webkit-transform 0.5s';
+            /*toDisplay.style.webkitTransition = '-webkit-transform 0.5s';
             elem.style.webkitTransition = '-webkit-transform 0.5s';
 
             toDisplay.style.webkitTransform = 'translateX('+containerWidth+'px)';
-            elem.style.webkitTransform = 'translateX('+containerWidth+'px)';
+            elem.style.webkitTransform = 'translateX('+containerWidth+'px)';*/
+
+            toDisplay.style[this.transitionProperty] = this.transformCssProperty + ' 0.5s';
+            elem.style[this.transitionProperty] = this.transformCssProperty + ' 0.5s';
+
+            toDisplay.style[this.transformProperty] = 'translateX('+containerWidth+'px)';
+            elem.style[this.transformProperty] = 'translateX('+containerWidth+'px)';
 
             var that = this;
 
             window.setTimeout(function(){
                 
-                toDisplay.style.webkitTransition = '-webkit-transform 0s';
-                toDisplay.style.webkitTransform = 'none';
+                /*toDisplay.style.webkitTransition = '-webkit-transform 0s';
+                toDisplay.style.webkitTransform = 'none';*/
+                toDisplay.style[that.transitionProperty] = that.transformCssProperty + ' 0s';
+                toDisplay.style[that.transformProperty] = 'none';               
                 $toDisplay.css("left", "0px");
                 
-                elem.style.webkitTransition = '-webkit-transform 0s';
-                elem.style.webkitTransform = 'none';
+                /*elem.style.webkitTransition = '-webkit-transform 0s';
+                elem.style.webkitTransform = 'none';*/
+                elem.style[that.transitionProperty] = that.transformCssProperty + ' 0s';
+                elem.style[that.transformProperty] = 'none';                
                 $elem.css("left", -containerWidth+"px");
 
                 $toDisplay.find("input").prop('disabled', false);

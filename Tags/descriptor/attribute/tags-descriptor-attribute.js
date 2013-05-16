@@ -50,12 +50,14 @@ WAF.tags.descriptor.Attribute = function(config) {
     this._typeValue         = config.typeValue;
     this._domAttribute      = config.domAttribute;
     this._visibility        = config.visibility;
+    this._contextEnabled = config.contextEnabled || null;
     this._saveHistory       = typeof config.saveHistory == 'undefined' ? true : config.saveHistory;
 
     // property
     this._value             = '';
     this._oldValue          = '';
     this._descriptor        = {};
+    this._onChangeStore = [];
 };
 
 
@@ -216,6 +218,10 @@ WAF.tags.descriptor.Attribute.prototype.getOldValue = function () {
 WAF.tags.descriptor.Attribute.prototype.setValue = function (value) {        
     this._oldValue = this._value;
     this._value = value;
+    
+    if (this._value !== this._oldValue) {
+        this.fireChange();
+    }
 };
 
 /**
@@ -250,6 +256,25 @@ WAF.tags.descriptor.Attribute.prototype.setVisibility = function (value) {
 WAF.tags.descriptor.Attribute.prototype.remove = function () {    
     this.getDescriptor()._attributes.remove(this.getName());    
 };
+
+
+WAF.tags.descriptor.Attribute.prototype.fireChange = function() {
+    for(var i = 0; i < this._onChangeStore.length; i++) {
+        this._onChangeStore[i](this.getValue());
+    }
+}
+    
+WAF.tags.descriptor.Attribute.prototype.onChange = function(fn) {
+    if (this._onChangeStore.indexOf(fn) < 0) {
+        this._onChangeStore.push(fn);
+    }
+}
+    
+WAF.tags.descriptor.Attribute.prototype.removeChange = function(fn) {
+    if (this._onChangeStore.indexOf(fn) >= 0) {
+        this._onChangeStore.splice(this._onChangeStore.indexOf(fn), 1);
+    }
+}
 
 
 

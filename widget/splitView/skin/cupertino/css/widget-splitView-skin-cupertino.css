@@ -25,8 +25,6 @@
  *
  */
 
-
-
 /**
  * -------------------------------------------------------
  * @section Main
@@ -34,4 +32,75 @@
  */
 .cupertino.waf-splitView .waf-container-level-0 {
     border: none;
+}
+
+/**
+ * -------------------------------------------------------
+ * @section navigationView container
+ * -------------------------------------------------------
+ */
+.cupertino.waf-splitView .waf-navigationView {
+    border-radius: 5px;
+}
+
+/**
+ * -------------------------------------------------------
+ * @section navigationView view
+ * -------------------------------------------------------
+ */
+.cupertino.waf-splitView .waf-container.waf-navigationView-view {
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+
+    border-style: none;
+}
+
+/**
+ * -------------------------------------------------------
+ * @section navigationView header
+ * -------------------------------------------------------
+ */
+.cupertino.waf-splitView .waf-container.waf-navigationView-header {
+    border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    
+    border-top-style: none;
+    border-right-style: none;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-left-style: none;
+}
+
+/**
+ * -------------------------------------------------------
+ * @section navigationView body
+ * -------------------------------------------------------
+ */
+.cupertino.waf-splitView .waf-container.waf-navigationView-body {
+    border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    
+    border-style: none;	
+}
+
+/**
+ * -------------------------------------------------------
+ * @section navigationView footer
+ * -------------------------------------------------------
+ */
+.cupertino.waf-splitView .waf-container.waf-navigationView-footer {
+    border-top-left-radius: 0;
+	border-top-right-radius: 0;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-right-style: none;
+    border-bottom-style: none;
+    border-left-style: none;
 }

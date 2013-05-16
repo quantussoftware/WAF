@@ -31,17 +31,17 @@ WAF.addWidget({
     },
     {
         name        : 'data-errorDiv',
-        description : 'Display Error'
+        description : 'Error ID'
     },
     {
         name        : 'data-minValue',
-        description : 'Minimum Value',
+        description : 'Minimum value',
         defaultValue: '0',
         typeValue   : 'integer'
     },
     {
         name        : 'data-maxValue',
-        description : 'Maximum Value',
+        description : 'Maximum value',
         defaultValue: '100',
         typeValue   : 'integer'
     },
@@ -136,7 +136,12 @@ WAF.addWidget({
         name       : 'slidestop',
         description: 'On Stop',
         category   : 'Slider Events'
-    }
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/
     ],
     style: [
     {
@@ -202,7 +207,7 @@ WAF.addWidget({
         var slider = new WAF.widget.Slider(config);
         return slider;
     },
-    onDesign: function (config, designer, tag, catalog, isResize) {  
+    onDesign: function (config, designer, tag, catalog, isResize) {
         var slider,
             tmpValue = '',
             orientation;
@@ -241,40 +246,43 @@ WAF.addWidget({
 
             tag.tmpOrientation = orientation;
         }
-        
+
+		/**
+		 * Redraw the handle of the slider
+		 * @function _redrawHandle
+		 */
+		tag._redrawHandle = function slider_redraw_handle () {
+			var
+			width,
+			height,
+			orientation;
+
+			slider      = this.getHtmlObject();
+			orientation = this.getAttribute('data-orientation').getValue();
+			
+			if (orientation === 'horizontal') {
+				height  = slider.innerHeight() + 12;
+
+				$(slider).find('.ui-slider-handle').css({
+					height      : height + 'px',
+					lineHeight  : parseInt(this.style.height, 10) + 10 + 'px'
+				});
+			} else {
+				width  = slider.innerWidth() + 12;
+				$(slider).find('.ui-slider-handle').width(width);
+			}
+		};
+
+		$(tag).on('onResize', function() {
+			/*this._redrawHandle();*/
+		});
+		
+		/*
         if (tag._redrawHandle) {
             tag._redrawHandle();
         }
+        */
     },
     onCreate : function (tag, param) {
-        $(tag).on('onResize', function() {
-            this._redrawHandle();
-        });
-
-        /**
-         * Redraw the handle of the slider
-         * @function _redrawHandle
-         */
-        tag._redrawHandle = function slider_redraw_handle () {
-            var
-            width,
-            height,
-            orientation;
-
-            slider      = this.getHtmlObject();
-            orientation = this.getAttribute('data-orientation').getValue();
-            
-            if (orientation === 'horizontal') {
-                height  = slider.innerHeight() + 12;
-
-                $(slider).find('.ui-slider-handle').css({
-                    height      : height + 'px',
-                    lineHeight  : parseInt(this.style.height, 10) + 10 + 'px'
-                });
-            } else {
-                width  = slider.innerWidth() + 12;
-                $(slider).find('.ui-slider-handle').width(width);
-            }
-        };
     }
 });

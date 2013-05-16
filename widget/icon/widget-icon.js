@@ -285,28 +285,33 @@ WAF.Widget.provide(
         setState : function icon_set_state (state) {
             var
             label,
-            htmlObject;
+            htmlObject,
+            toEnable = (state == 'enabled'); // if we're enabling a disabled widget, this method is called before its status is set to enable
+                                             // so we check its disable state using the state param as well instead of this._disabled only
             
             label = this.getLabel();
             
             /*
              * Equivalences
              */
-            if (state == 'default') {
+            if (state == 'default' || state == 'enable') {
                 state = 'state1';
             }
+            
             if (state == 'hover') {
                 state = 'state2';
                 this.addClass('waf-state-hover');
             }
+            
             if (state == 'active') {
                 state = 'state3';
             }
+            
             if (state == 'disabled') {
                 state = 'state4';
             }
             
-            if (!this._disabled) {
+            if (!this._disabled || toEnable) {
                 htmlObject = this.$domNode;
 
                 htmlObject.addClass('waf-state-' + state);
@@ -345,8 +350,18 @@ WAF.Widget.provide(
             
             switch (this._type){
                 case 'images' :
-                    this.$domNode.find('img.waf-icon-' + state).show();
-                    this.$domNode.find('img').not('.waf-icon-' + state).hide();
+                    var iconState = this.$domNode.find('img.waf-icon-' + state),
+                        iconOtherStates = this.$domNode.find('img').not('.waf-icon-' + state),
+                        iconDefaultState = this.$domNode.find('img.waf-icon-state1')
+                    ;
+                    if(iconState.length == 0){
+                        // there is no icon corresponding to the current state, fallback to default
+                        iconOtherStates.hide();
+                        iconDefaultState.show();
+                        return;
+                    }
+                    iconState.show();
+                    iconOtherStates.hide();
                     
                     break;
                     
@@ -376,7 +391,7 @@ WAF.Widget.provide(
          * Custom disable function (enable sub widgets)
          * @method enable
          */
-        disable : function icon_disable() {   
+        disable : function icon_disable() {
             this.setState('disabled');     
 
             /*
@@ -390,7 +405,7 @@ WAF.Widget.provide(
          * @method enable
          */
         enable : function icon_enable() {  
-            this.setState('default');          
+            this.setState('enabled');
             
             /*
              * Call super class enable function

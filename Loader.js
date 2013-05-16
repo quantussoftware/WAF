@@ -25,7 +25,7 @@
  */
 if (typeof(WAF) === 'undefined') {
     WAF = {
-
+        
         /**
          * The version of the framework
          *
@@ -88,6 +88,20 @@ if (typeof(WAF) === 'undefined') {
          * @type Object
          **/
         modulesInfo  : {
+        	'dataprovider' : {
+        		css : [],
+        		require : [
+                 '+/Core/Native/Rest.js',
+                // '+/Core/Utils/Timers.js',
+                '+/Core/Utils/DebugTools.js',
+                '+/Core/Utils/Environment.js',
+                '+/Core/Utils/Strings.js',
+                '+/Core/Utils/Dates.js',
+                '+/DataProvider/Data-Provider.js',
+                '+/DataSource/Selection.js',
+       			
+        		]
+        	},
             'allmodules' : {
                 css : [
                 /* WAF */
@@ -132,12 +146,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/autoForm/skin/metal/css/widget-autoForm-skin-metal.css',
                 '+/widget/autoForm/skin/light/css/widget-autoForm-skin-light.css',
                 '+/widget/autoForm/skin/roundy/css/widget-autoForm-skin-roundy.css',
-                /* WAF QUERYFORM */
-                /*
-                '+/widget/queryForm/css/widget-queryForm.css',
-                '+/widget/queryForm/skin/metal/css/widget-queryForm-skin-metal.css',
-                '+/widget/queryForm/skin/roundy/css/widget-queryForm-skin-roundy.css',
-                */
                 /* WAF CONTAINER */
                 '+/widget/container/css/widget-container.css',
                 '+/widget/container/skin/default/css/widget-container-skin-default.css',
@@ -259,7 +267,7 @@ if (typeof(WAF) === 'undefined') {
                 /* WAF beautytips */
                 '+/lib/beautytips/beautytips.css'
                 
-                /* PUT LINKS TO CSS FOR YOUR CUSTOM WIDGETS HERE */
+                /* ADD LINKS TO THE CSS FILES FOR YOUR CUSTOM WIDGETS HERE */
                
                 ],
                 require: [
@@ -284,7 +292,7 @@ if (typeof(WAF) === 'undefined') {
                 /* jQuery svg*/
                 '+/lib/jquery.svg/jquery.svg.min.js',
                 
-                /* External Librairy */
+                /* External Library */
                 '+/lib/raphael/raphael-min.js',
                 '+/lib/graphael/g.raphael-min.js',
                 '+/lib/graphael/g.line-min.js',
@@ -294,21 +302,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/lib/jquery-ui/jquery-ui-i18n.js',
                 '+/lib/selectbox/jquery-selectbox.js',
                 '+/lib/combobox/jquery-combobox.js',
-                '+/lib/beautytips/beautytips.js',
-                
-                /* Tag Library Descritors */
-                '+/Tags/list/tags-list.js',
-                '+/Tags/list/descriptor/tags-list-descriptor.js',
-                '+/Tags/list/propertydescriptor/tags-list-propertydescriptor.js',
-                '+/Tags/list/column/tags-list-column.js',
-                '+/Tags/descriptor/tags-descriptor.js',
-                '+/Tags/descriptor/attribute/tags-descriptor-attribute.js',
-                '+/Tags/descriptor/event/tags-descriptor-event.js',
-                '+/Tags/descriptor/structure/tags-descriptor-structure.js',
-                '+/Tags/descriptor/style/tags-descriptor-style.js',
-                '+/Tags/descriptor/property/tags-descriptor-property-style.js',
-                '+/Tags/descriptor/column/tags-descriptor-column.js',
-                '+/Tags/descriptor/column/attribute/tags-descriptor-attributecolumn.js',
+                '+/lib/beautytips/beautytips.js',                
 
                 /* Notify */
                 '+/lib/notify/jquery.notify.js',
@@ -347,9 +341,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/textField/widget-textField.js',
                 '+/widget/textField/widget-textField-conf.js',				
                 '+/widget/googleMap/widget-googleMap.js',
-                '+/widget/googleMap/widget-googleMap-conf.js',                
-                '+/widget/googleChart/widget-googleChart.js',
-                '+/widget/googleChart/widget-googleChart-conf.js',								
+                '+/widget/googleMap/widget-googleMap-conf.js',                								
                 '+/widget/yahooWeather/widget-yahooWeather.js',
                 '+/widget/yahooWeather/widget-yahooWeather-conf.js',				
                 '+/widget/progressBar/widget-progressBar.js',
@@ -394,6 +386,8 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/accordion/widget-accordion.js',
                 '+/widget/accordion/widget-accordion-conf.js',
                 '+/widget/calendar/js/datepicker.js'
+                
+                /* ADD LINKS TO THE JS FILES FOR YOUR CUSTOM WIDGETS HERE */
 
                 ]
             },
@@ -414,12 +408,19 @@ if (typeof(WAF) === 'undefined') {
                 '+/lib/jquery-ui/themes/base/jquery.ui.progressbar.css',
                 '+/lib/jquery-ui/themes/base/jquery.ui.theme.css',				   
                 '+/lib/selectbox/jquery-selectbox.css',
+                
                 /* WAF WIDGET */
                 '+/widget/css/widget-mobile.css',
                 '+/widget/skin/default/css/widget-skin-default.css',
                 '+/widget/skin/metal/css/widget-skin-metal.css',
                 '+/widget/skin/light/css/widget-skin-light.css',
                 '+/widget/skin/cupertino/css/widget-skin-cupertino.css',
+                /* WAF list */
+                '+/widget/list/css/widget-list.css',
+                '+/widget/list/skin/cupertino/css/widget-list-skin-cupertino.css',
+                /* WAF popover */
+                '+/widget/popover/css/widget-popover.css',
+                '+/widget/popover/skin/cupertino/css/widget-popover-skin-cupertino.css',
                 /* WAF accordion */
                 '+/widget/accordion/css/widget-accordion.css',
                 '+/widget/accordion/skin/default/css/widget-accordion-skin-default.css',
@@ -446,13 +447,6 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/autoForm/skin/metal/css/widget-autoForm-skin-metal.css',
                 '+/widget/autoForm/skin/light/css/widget-autoForm-skin-light.css',
                 '+/widget/autoForm/skin/roundy/css/widget-autoForm-skin-roundy.css',
-                /* WAF QUERYFORM */
-                /*
-                '+/widget/queryForm/css/widget-queryForm.css',
-                '+/widget/queryForm/skin/metal/css/widget-queryForm-skin-metal.css',
-                '+/widget/queryForm/skin/light/css/widget-queryForm-skin-light.css',
-                '+/widget/queryForm/skin/roundy/css/widget-queryForm-skin-roundy.css',
-                */
                 /* WAF CONTAINER */
                 '+/widget/container/css/widget-container.css',
                 '+/widget/container/skin/default/css/widget-container-skin-default.css',
@@ -504,6 +498,9 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/combobox/skin/default/css/widget-combobox-skin-default.css',
                 '+/widget/combobox/skin/metal/css/widget-combobox-skin-metal.css',
                 '+/widget/combobox/skin/light/css/widget-combobox-skin-light.css',
+                /* WAF section  */
+                '+/widget/section/css/widget-section.css',
+                '+/widget/section/skin/cupertino/css/widget-section-skin-cupertino.css',
                 /* WAF select */
                 '+/widget/select/css/widget-select.css',
                 '+/widget/select/skin/default/css/widget-select-skin-default.css',
@@ -587,7 +584,11 @@ if (typeof(WAF) === 'undefined') {
                 /* WAF beautytips */
                 '+/lib/beautytips/beautytips.css',
                 /* WAF mobiscroll */
-                '+/lib/mobile/mobiscroll/css/mobiscroll-1.5.3.min.css'                   
+                '+/lib/mobile/mobiscroll/css/mobiscroll-1.5.3.min.css',
+                
+                /* ADD LINKS TO THE CSS FILES FOR YOUR CUSTOM WIDGETS HERE */
+                '+/themes/cupertinoIpad.css'
+                
                 ],
                 require: [
                 /* WAF */
@@ -621,25 +622,15 @@ if (typeof(WAF) === 'undefined') {
                 '+/lib/combobox/jquery-combobox.js',
                 '+/lib/beautytips/beautytips.js',
                 
-                /* Tag Library Descritors */
-                '+/Tags/list/tags-list.js',
-                '+/Tags/list/descriptor/tags-list-descriptor.js',
-                '+/Tags/list/propertydescriptor/tags-list-propertydescriptor.js',
-                '+/Tags/list/column/tags-list-column.js',
-                '+/Tags/descriptor/tags-descriptor.js',
-                '+/Tags/descriptor/attribute/tags-descriptor-attribute.js',
-                '+/Tags/descriptor/event/tags-descriptor-event.js',
-                '+/Tags/descriptor/structure/tags-descriptor-structure.js',
-                '+/Tags/descriptor/style/tags-descriptor-style.js',
-                '+/Tags/descriptor/property/tags-descriptor-property-style.js',
-                '+/Tags/descriptor/column/tags-descriptor-column.js',
-                '+/Tags/descriptor/column/attribute/tags-descriptor-attributecolumn.js',
-                
                 /* jQuery svg*/
                 '+/lib/jquery.svg/jquery.svg.min.js',
                 
                 /* widgets */
                 '+/widget/widget.js',
+                '+/widget/list/widget-list.js',
+                '+/widget/list/widget-list-conf.js',
+                '+/widget/popover/widget-popover.js',
+                '+/widget/popover/widget-popover-conf.js',
                 '+/widget/icon/widget-icon.js',
                 '+/widget/icon/widget-icon-conf.js',
                 '+/widget/button/widget-button.js',
@@ -671,9 +662,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/textField/widget-textField.js',
                 '+/widget/textField/widget-textField-conf.js',				
                 '+/widget/googleMap/widget-googleMap.js',
-                '+/widget/googleMap/widget-googleMap-conf.js',                
-                '+/widget/googleChart/widget-googleChart.js',
-                '+/widget/googleChart/widget-googleChart-conf.js',								
+                '+/widget/googleMap/widget-googleMap-conf.js',                								
                 '+/widget/yahooWeather/widget-yahooWeather.js',
                 '+/widget/yahooWeather/widget-yahooWeather-conf.js',				
                 '+/widget/progressBar/widget-progressBar.js',
@@ -722,11 +711,16 @@ if (typeof(WAF) === 'undefined') {
                 '+/widget/googleMaps/widget-googleMaps-conf.js',
                 '+/widget/accordion/widget-accordion.js',
                 '+/widget/accordion/widget-accordion-conf.js',
-                
+                '+/widget/section/widget-section-conf.js',
+                '+/widget/section/widget-section.js',
+                '+/widget/sectionNavigation/widget-sectionNavigation-conf.js',
+                '+/widget/sectionNavigation/widget-sectionNavigation.js',
                 /* mobile */ 
                 '+/lib/mobile/iscroll/iscroll-lite.js',
                 '+/lib/mobile/jquery.ui.ipad.altfix.js',
                 '+/lib/mobile/mobiscroll/js/mobiscroll-1.5.3.min.js'
+                
+                /* ADD LINKS TO THE JS FILES FOR YOUR CUSTOM WIDGETS HERE */
                 
                 ]
             },          
@@ -788,21 +782,7 @@ if (typeof(WAF) === 'undefined') {
                 '+/lib/jquery-ui/jquery-ui-i18n.js',
                 '+/lib/selectbox/jquery-selectbox.js',
                 '+/lib/combobox/jquery-combobox.js',
-                '+/lib/beautytips/beautytips.js',
-                
-                /* Tag Library Descritors */
-                '+/Tags/list/tags-list.js',
-                '+/Tags/list/descriptor/tags-list-descriptor.js',
-                '+/Tags/list/propertydescriptor/tags-list-propertydescriptor.js',
-                '+/Tags/list/column/tags-list-column.js',
-                '+/Tags/descriptor/tags-descriptor.js',
-                '+/Tags/descriptor/attribute/tags-descriptor-attribute.js',
-                '+/Tags/descriptor/event/tags-descriptor-event.js',
-                '+/Tags/descriptor/structure/tags-descriptor-structure.js',
-                '+/Tags/descriptor/style/tags-descriptor-style.js',
-                '+/Tags/descriptor/property/tags-descriptor-property-style.js',
-                '+/Tags/descriptor/column/tags-descriptor-column.js',
-                '+/Tags/descriptor/column/attribute/tags-descriptor-attributecolumn.js',
+                '+/lib/beautytips/beautytips.js',                
 
                 /* Notify */
                 '+/lib/notify/jquery.notify.js',
@@ -890,7 +870,8 @@ if (typeof(WAF) === 'undefined') {
             },
             catalogLoaded : false,
             functions: {},
-            handlers: {}
+            handlers: {},
+            onInit: []
         },
 
         /**
@@ -901,6 +882,25 @@ if (typeof(WAF) === 'undefined') {
          * @type Object
          **/
         widgets: {},       
+        
+        /**
+         * custom widgets
+         *
+         * @static
+         * @property customWidgets
+         * @type Object
+         **/
+        customWidgets: {},       
+        
+        
+        /**
+         * custom widgets
+         *
+         * @static
+         * @property customWAFWidgets
+         * @type Object
+         **/
+        customWAFWidgets: {},
         
         /**
          * components definition
@@ -963,6 +963,11 @@ if (typeof(WAF) === 'undefined') {
                     key     : 'cupertino',
                     value   : 'Cupertino',
                     mobile  : "true"
+                },
+                cupertinoIpad : {
+                    key     : 'cupertinoIpad',
+                    value   : 'Cupertino iPad',
+                    mobile  : "true"
                 }
             /*,
                 roundy      : {
@@ -971,6 +976,8 @@ if (typeof(WAF) === 'undefined') {
                 }*/
             }
         },
+        
+        customWidget: {},
 
         /**
          * forms
@@ -1036,7 +1043,23 @@ if (typeof(WAF) === 'undefined') {
      * @static
      * @event onAfterInit
      */
-    WAF.onAfterInit = function () {};
+    Object.defineProperty(
+        WAF, 
+        'onAfterInit', 
+        {
+            get : function (){
+                return function onAfterInit () {
+                    var length = WAF._private.onInit.length,
+                    i = 0;
+                    for (i = 0; i < length; i++) {
+                        WAF._private.onInit[i]();
+                    }
+                }
+            },
+            set : function (value){
+                WAF._private.onInit.push(value);
+            }
+        });
     
     /**
      * on ready   
@@ -1044,8 +1067,12 @@ if (typeof(WAF) === 'undefined') {
      * @method onReady
      */  
     WAF.onReady = function () {
+        var eventReady, i;
         WAF.utils.init();
         //console.log("WAF.onReady");
+        
+        WAF.applyTheme();
+        
         if (true)
         {
             // compatibility
@@ -1068,7 +1095,233 @@ if (typeof(WAF) === 'undefined') {
                 }
             }
         }
+        
+    //dispatch "onReady" Event on all widget
+    /*eventReady = document.createEvent("Event");
+        eventReady.initEvent('onReady', true, true);
+        
+        for (i in WAF.widgets) {
+            if (WAF.widgets[i].domNode && WAF.widgets[i].domNode.dispatchEvent) {
+                WAF.widgets[i].domNode.dispatchEvent(eventReady);
+            }
+        }*/
+        
+        
     };
+
+    WAF.applyTheme = function(name) {
+
+        var body = $("body"),
+            theme = body.attr("data-theme");
+        
+        if (theme) {
+            body.addClass(theme);        
+        }
+    }
+    
+    WAF.getCustomWidget = function(name) {
+        return WAF.getWidget(name, true);
+    }
+    
+    WAF.getWAFWidget = function(name) {
+        return WAF.getWidget(name, false);
+    }
+    
+    
+    WAF.getWidget = function(name, custom) {
+        var namespace;
+        if (!name || name == '') {
+            return null;
+        }
+        
+        if (typeof custom == 'undefined') {
+            custom = true;
+        }
+        
+        if (custom) {
+            namespace = WAF.customWidgets;
+        } else {
+            namespace = WAF.customWAFWidgets;
+        }
+		
+		
+        
+        if (!(name in namespace)) {
+            namespace[name] = {
+                configuration: {},
+                constructor : function() {},
+                shared : {},
+                proto : {},
+                custom : custom
+            }
+            
+            Object.defineProperty(
+            namespace[name], 
+            'config', 
+            {
+                set : function (value){
+                    var type = value.type || null;
+                    if (type) {
+                        if (!('onInit' in value) && !('onInit' in this.configuration)) {
+                            value.onInit = function (config) {
+                                var ref, widget;
+                                if (custom) {
+                                    ref = WAF.customWidget;
+                                } else {
+                                    ref = WAF.widget;
+                                }
+                                ref = WAF.customWidget;
+                                widget = new ref[name](config);
+                                return widget;
+                            }
+                        } else if ('onInit' in this.configuration) {
+                            value.onInit = this.configuration.onInit;
+                        }
+
+                        if (!('onDesign' in value) && !('onDesign' in this.configuration)) {
+                            value.onDesign = function (config) {
+                                var ref, widget;
+                                if (custom) {
+                                    ref = WAF.customWidget;
+                                } else {
+                                    ref = WAF.widget;
+                                }
+                                ref = WAF.customWidget;
+                                widget = new ref[name](config);
+                                return widget;
+                            }
+                        } else if ('onDesign' in this.configuration) {
+                            value.onDesign = this.configuration.onDesign;
+                        }
+                        
+                        if ('onCreate' in this.configuration) {
+                            value.onCreate = this.configuration.onCreate;
+                        }
+                        
+                        if (!('lib' in value)) {
+                            value.lib = 'WAF';
+                        }
+                        
+                        if (!('attributes' in value) && !('attributes' in this.configuration)) {
+                            value.attributes = [];
+                        } else if (('attributes' in this.configuration) && (this.configuration.attributes.length > 0)) {
+                            value.attributes = this.configuration.attributes;
+                        }
+                        
+                        if (!('style' in value) && !('style' in this.configuration)) {
+                            value.style = [];
+                        } else if (('style' in this.configuration) && (this.configuration.style.length > 0)) {
+                            value.style = this.configuration.style;
+                        }
+                        
+                        if (!('events' in value) && !('events' in this.configuration)) {
+                            value.events = [];
+                        } else if (('events' in this.configuration) && (this.configuration.events.length > 0)) {
+                            value.events = this.configuration.events;
+                        }
+                        
+                        if (!('properties' in value)  && !('properties' in this.configuration)) {
+                            value.properties = {};
+                        } else if (('properties' in this.configuration) && Object.keys(this.configuration.properties).length > 0) {
+                            value.properties = this.configuration.properties;
+                        }
+                        
+                    } else {
+                        console.warn('type is not defined');
+                    }
+                    this.configuration = value;
+                    
+                },
+                
+                get : function() {
+                    return this.configuration;
+                }
+            });
+            
+            Object.defineProperty(
+            namespace[name], 
+            'onDesign', 
+            {
+                set : function(value) {
+                    this.configuration.onDesign = value
+                },
+                
+                get : function(value) {
+                    return this.configuration.onDesign;
+                }
+            });
+            
+            Object.defineProperty(
+            namespace[name], 
+            'onCreate', 
+            {
+                set : function(value) {
+                    this.configuration.onCreate = value
+                },
+                
+                get : function(value) {
+                    return this.configuration.onCreate;
+                }
+            });
+            
+            Object.defineProperty(
+            namespace[name], 
+            'onInit', 
+            {
+                set : function(value) {
+                    this.configuration.onInit = value
+                },
+                
+                get : function(value) {
+                    return this.configuration.onInit;
+                }
+            });
+            
+        }
+        return namespace[name];
+    }
+    
+    WAF.loadWidgets = function() {
+        var p;
+        var widgetTmp, name, config, shared, constructor, proto;
+        
+        for (p in WAF.customWAFWidgets) {
+            if (WAF.customWAFWidgets[p].loaded) {
+                continue;
+            }
+            
+            widgetTmp = WAF.customWAFWidgets[p];
+            name = p;
+            config = widgetTmp.config || {};
+            shared = widgetTmp.shared || {};
+            constructor = widgetTmp.constructor || function() {};
+            proto = widgetTmp.proto || {};
+            
+            WAF.addWidget(config);
+            WAF.Widget.provide(name, shared, constructor, proto, false);
+            
+            widgetTmp.loaded = true;
+        }
+        p = null;
+        
+        for (p in WAF.customWidgets) {
+            if (WAF.customWidgets[p].loaded) {
+                continue;
+            }
+            
+            widgetTmp = WAF.customWidgets[p];
+            name = p;
+            config = widgetTmp.config || {};
+            shared = widgetTmp.shared || {};
+            constructor = widgetTmp.constructor || function() {};
+            proto = widgetTmp.proto || {};
+            
+            WAF.addWidget(config);
+            WAF.Widget.provide(name, shared, constructor, proto, true);
+            
+            widgetTmp.loaded = true;
+        }
+    }
 
     /**
      * <p>Create a namespace</p>
@@ -1146,6 +1399,9 @@ if (typeof(WAF) === 'undefined') {
             });
                 
             callback = changeScope($$(obj.id), callback);  
+            if (event == 'onReady' && obj.addListener) {
+                obj.addListener(event, callback);
+            }
         }
         
         if (event == 'onResize' || event == 'startResize' || event == 'stopResize') {
@@ -1166,10 +1422,12 @@ if (typeof(WAF) === 'undefined') {
                     if (obj.kind) { // check for dataSource
                         switch(obj.kind) {		
                             case 'slider':
-                                $("#" + obj.renderId).bind(event, {}, function(e, ui){
-                                    e.data.value    = ui.value;                                    
-                                    e.data.values   = ui.values;                             
-                                    
+                                $("#" + obj.renderId).bind(event, {}, function(e, ui) {
+                                    if (e && e.data && ui) {
+                                        e.data.value    = ui.value;                                    
+                                        e.data.values   = ui.values;                                             
+                                    }
+                     
                                     this._callbackEvent = callback;
                                     this._callbackEvent(e);
                                 });
@@ -1205,12 +1463,18 @@ if (typeof(WAF) === 'undefined') {
                                 break;  
                             case 'chart' :
                             case 'fileUpload':
-                            case 'frame':
                             case 'wysiwyg':
                             case 'calendar' :
+                                if(!/^on/i.test(event)){
+                                    obj.$domNode.bind(event , callback);
+                                }
                                 obj.events = obj.events || {};
                                 obj.events[event] = callback;
-                                break;      
+                                break;
+                                
+                            case 'frame':
+                                $(obj).bind(event , callback);
+                                break
 
                             case 'login':
                                 obj['on'+event] = callback;
@@ -1236,7 +1500,11 @@ if (typeof(WAF) === 'undefined') {
                                         break;
                                 }
                                 break;       
-
+                            case 'radioGroup' : 
+                                var radioItm = $("#" + obj.renderId).find('input[type=radio]');
+                                radioItm.live(event.replace('on',''), callback);
+                                
+                                break;
                             case 'button':
                             case 'container':
                             case 'checkbox':
@@ -1312,17 +1580,7 @@ if (typeof(WAF) === 'undefined') {
                     }
             }
         }
-    };
-    
-    /**
-     * Get the description of the library
-     * (TLD for Tag Library Descriptors)
-     * @method getTld
-     * @return {WAF.tags.list.Descriptor}
-     */  
-    WAF.getTld = function () {
-        return WAF.config.tld;
-    };  
+    };    
     
     /**
      * Open a Dialog System
@@ -1591,15 +1849,18 @@ if (typeof(WAF) === 'undefined') {
                     for (i = 0; i < nbstyles; i++) {
                         style = styles[i];
                         fullCSSList.push(style);
-                    }                    
-                    fullCSSList = fullCSSList.join(',');
-                    xhref = window.location.href.split('/').join('\\');
-                    //path = "/waf-optimize?referer='" + encodeURIComponent(xhref) + "'&files='" + fullCSSList + "'";
-                    path = "/waf-optimize?files='" + fullCSSList + "'";
-                    if (pattern != null) {
-                        path = '/' + pattern + path;
                     }
-                    WAF.loader.styleToLoad.push(path);
+                    if (fullCSSList.length > 0)  
+                    {                  
+	                    fullCSSList = fullCSSList.join(',');
+	                    xhref = window.location.href.split('/').join('\\');
+	                    //path = "/waf-optimize?referer='" + encodeURIComponent(xhref) + "'&files='" + fullCSSList + "'";
+	                    path = "/waf-optimize?files='" + fullCSSList + "'";
+	                    if (pattern != null) {
+	                        path = '/' + pattern + path;
+	                    }
+	                    WAF.loader.styleToLoad.push(path);
+	                }
                     WAF.loader.simplePath[path] = true;
 					
                     fullJSList = WAF.loader.scriptToLoad.join(',');
@@ -1699,17 +1960,7 @@ if (typeof(WAF) === 'undefined') {
                                 }
 								
                                 ds = WAF.ds; // ds is a global variable and an alias to the dataStore                            
-							
-                                // get the description of tags
-                                if (WAF.config.widget) {
-                                    WAF.config.tld = new WAF.tags.list.Descriptor();
-                                    length = WAF.config.taglib.length;
-                                    for (i = 0; i < length; i++) {
-                                        desc = WAF.config.taglib[i];
-                                        WAF.config.tld.add(new WAF.tags.Descriptor(desc));
-                                    }
-                                }
-							
+														
                                 if (typeof(WAF.tags) !== 'undefined') {
 	                                
                                     // check if components need to be loaded
@@ -1730,7 +1981,7 @@ if (typeof(WAF) === 'undefined') {
                                             }
                                         }                                                                      
                                     }                                                                
-	                                
+	                            WAF.loadWidgets();
                                     WAF.tags.createView();
 	                                
                                     // show body
@@ -1739,20 +1990,30 @@ if (typeof(WAF) === 'undefined') {
                                 }
 	                            
                                 WAF._private.catalogLoaded = true;
+                                
+                                /*
+                                * Trigger on ready event on WAF : usefull for widgets events
+                                */
+                                if (WAF.tags != null && typeof $ !== 'undefined') {
+                                    $(WAF).trigger('onWAFReady');
+                                }
+                                
                                 if (!compManager.hasComponent() && !rpcFileManager.hasRpcFile()) {             
                                     WAF.onReady();	
                                 }       
 
-                                /*
-                                     * Trigger on ready event on WAF : usefull for widgets events
-                                     */
-                                $(WAF).trigger('onWAFReady');
+
                             }
 						
                             if (WAF.DataStore != null) {
+                            	var catalog = null; // all by default
+                            	if (WAF.config.catalog != null)
+                            		catalog = WAF.config.catalog;
+                            	
                                 WAF.ds = new WAF.DataStore({
                                     onSuccess: onCatalogLoad,
-                                    onError  : onCatalogLoad
+                                    onError  : onCatalogLoad,
+                                    catalog  : catalog
                                 })
                             }															
                         }
@@ -2045,25 +2306,34 @@ if (typeof(WAF) === 'undefined') {
             }
             
             if (platform.OS === "iOs") {
-                if ((/OS 5/i).test(appVersion)) {
-                    platform.OSVersion = "5";
-                } else if ((/OS 4/i).test(appVersion)) {
-                    platform.OSVersion = "4";
-                } else if ((/OS 3/i).test(appVersion)) {
-                    platform.OSVersion = "3";
-                } else {
-                    platform.OSVersion = "unknown";    
+
+                var res = navigator.userAgent.match(/; CPU.*OS (\d_\d)/);
+                
+                if(res) {
+                    var strVer = res[res.length-1];
+                    strVer = strVer.replace("_", ".");
+                    platform.OSVersion = strVer * 1;
                 }
+
             } else {
+                
                 platform.OSVersion = "unknown"; 
-            }
             
+            }
+
+            //has webkit 3d transform
+            if ('WebKitCSSMatrix' in window && 'm11' in new WebKitCSSMatrix()) {
+                platform.webkit3dTransform = true;
+            } else {
+                platform.webkit3dTransform = false;
+            }
+
             //look for touch capabilities
             platform.isTouch = this.isTouchDevice();
             //html5 features supported
             platform.html5Support = this.detectHtml5Features();
 
-            WAF.PLATFORM = platform;              
+            WAF.PLATFORM = platform; 
         },
         
         /**
@@ -2183,6 +2453,12 @@ if (typeof(WAF) === 'undefined') {
                 switch (metaTags[i].name) {
                     case 'WAF.config':
                         break;
+                    case 'WAF.catalog':
+                    	var cat = metaTags[i].content;
+                    	if (cat != null && cat != '') {
+                    		WAF.config.catalog = cat;
+                    	}
+                    	break;
                     case 'WAF.config.modules':
                         modulesString = (metaTags[i].content === '') ? 'allmodules' : metaTags[i].content;                        
                         if ( modulesString === 'tablet' || modulesString === 'smartphone' ) {
@@ -2250,16 +2526,16 @@ if (typeof(WAF) === 'undefined') {
             }            
             
             // get the pattern            
-            req = new XMLHttpRequest();
+            /*req = new XMLHttpRequest();
             req.open('GET', document.location, false);
             req.send(null);
             pattern = req.getResponseHeader('X-WA-Pattern');
             if (pattern == null || pattern == "") {
                 pattern = null;
-            }
+            }*/
             
             
-            WAF.config.pattern = pattern;
+            WAF.config.pattern = null;
 
             // Load the modules
             modules = modulesString.split(',');
@@ -2278,11 +2554,18 @@ if (typeof(WAF) === 'undefined') {
 }
 
 /**
- * Get a reference to a WAF widget
+ * Get a reference to a WAF widget or Designer Tag (GUIDesigner)
  *
- * @param {String} id id of the widget
- * @return {WAF.Widget} a widget
+ * @param {String} id id of the widget/tag
+ * @return {WAF.Widget} a widget/tag or undefined if could not be found
  */
 function $$(id) {
-    return WAF.widgets[id];
+    var element = null;    
+    if (typeof Designer === 'undefined') {
+        element = WAF.widgets[id];        
+    } else {
+        element = D.tag.getTagById(id);
+    }
+    return element;
 }
+

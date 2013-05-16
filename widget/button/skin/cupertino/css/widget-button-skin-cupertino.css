@@ -31,26 +31,29 @@
  * -------------------------------------------------------
  */
 .cupertino.waf-button  {
-   
-	font-weight: bold;
+    border-style: solid;
+    
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
 
-    border-style: solid;    
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, rgba(255, 255, 255, 0.4)), color-stop(50%, rgba(255, 255, 255, 0.2)), color-stop(50%, rgba(255, 255, 255, 0.1)), color-stop(100%, rgba(255, 255, 255, 0)));
+	background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+    background:    -moz-linear-gradient(top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+    background:     -ms-linear-gradient(top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+    background:      -o-linear-gradient(top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+    background:         linear-gradient(top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
 
-    background: -webkit-gradient( 
-        linear, left top, left bottom, 
-        from(rgba(255, 255, 255, 0.4 )),
-        to(rgba(255, 255, 255, 0)), 
-        color-stop(0.5, rgba(255, 255, 255, 0.2)), 
-        color-stop(0.5, rgba(255, 255, 255, 0.1)) ); /*rgba(170, 0.1)*/
+    -webkit-background-clip: border-box;
+            background-clip: border-box;
 
+    -webkit-background-origin: padding-box;
+            background-origin: padding-box;
 
     margin: 0 0 3px 0;
-    -webkit-background-origin: padding-box;
-    -webkit-background-clip: border-box;
-    -webkit-border-radius: 5px;
      
-     font-weight: bold !important;
-     font-size: 12px;
+    font-weight: bold !important;
+    font-size: 12px;
 }
 
 /**

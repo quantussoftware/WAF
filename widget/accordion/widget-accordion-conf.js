@@ -28,22 +28,10 @@ WAF.addWidget({
         icon        : '/walib/WAF/widget/accordion/icons/round_plus.png',
         title       : 'Add new section',
         callback    : function(){
-            this.add();
-            /*
-             * Refresh property panel
-             */
-            Designer.tag.refreshPanels();
+            this.addSection(true);
         }
     }],
-    
 
-    // {Array} attributes of the widget. By default, we have 3 attributes: 'data-type', 'data-lib', and 'id', so it is unnecessary to add them
-    // 
-    // @property {String} name, name of the attribute (mandatory)     
-    // @property {String} description, description of the attribute (optional)
-    // @property {String} defaultValue, default value of the attribute (optional)
-    // @property {'string'|'radio'|'checkbox'|'textarea'|'dropdown'|'integer'} type, type of the field to show in the GUI Designer (optional)
-    // @property {Array} options, list of values to choose for the field shown in the GUI Designer (optional)
     attributes  : [                                                       
     {
         name        : 'class',                                                 
@@ -53,30 +41,48 @@ WAF.addWidget({
         options     : []                                                  
     },
     {
-        name        : 'data-several-opened',                                                 
-        description : 'Several opened',                                                 
-        defaultValue: false,                                                 
+        name        : 'data-expand-several',                                                 
+        description : 'One section always expanded',                                                 
+        defaultValue: 'true',
         type        : 'checkbox',
         onclick : function () {
-            this.data.tag.collapseAll();
+            if(this.data.tag.getChildren().length >0 ){
+                if( !this.getValue() ){
+                    this.data.tag.collapseAll();
+                    this.data.tag.activate(0); 
+                }
+            }
         }
-        
     },
     {
         name        : 'data-duration',                                                 
-        description : 'duration',                                                 
-        defaultValue: 300
+        description : 'Duration',                                                 
+        defaultValue: '400'
+    },
+    {
+        name        : 'data-expanded-icon',                                                 
+        description : 'Expanded icon',  
+        type        : 'image',
+        defaultValue: '/walib/WAF/widget/accordion/icons/widget-accordion-expanded-icon.png',
+        visibility  : 'hidden'
+    },
+    {
+        name        : 'data-collapsed-icon',                                                 
+        description : 'Collapsed icon',  
+        type        : 'image',
+        defaultValue: '/walib/WAF/widget/accordion/icons/widget-accordion-collapsed-icon.png',
+        visibility  : 'hidden'
     },
     {
         name        : 'data-header-height',                                                 
         description : 'Header height',                                                 
-        defaultValue: 40,
+        defaultValue: '40',
         visibility  : 'hidden'
     },
     {
         name        : 'data-content-height',                                                 
         description : 'Content height',                                                 
-        defaultValue: 250,
+        defaultValue: '250',
         visibility  : 'hidden'        
     },
     {
@@ -85,9 +91,15 @@ WAF.addWidget({
         type        : 'grid',
         domAttribute: false,
         columns     : [],
-        onRowClick  : function( item ) {      
+        onRowClick  : function( item ) {
+            var
+            tag;
+            
+            tag = this.getData().tag;
+            tag.activate(item.getIndex());
             
         },
+        
         afterRowAdd : function(data) {
             var
             tag,
@@ -96,64 +108,95 @@ WAF.addWidget({
             
             tag = this.getData().tag;
             
-            newSection = tag.add();
+            newSection = tag.addSection(true);
             label  = data.items[0];
             label.data = {
                 section : newSection
             };            
 
-            label.setValue(newSection.getChildren()[0].getChildren()[0].getAttribute('data-text').getValue());
+            label.setValue(tag.getHeader(newSection).getChildren()[0].getAttribute('data-text').getValue());
+            data.items[0]._html = data.items[0]._value;
+            
+            var action = new Designer.action.addAccordionSection({
+                val         : tag.sections.length,
+                oldVal      : tag.sections.length-1,
+                tagId       : tag.id                
+            });
+            Designer.getHistory().add(action);
         },
+        
         afterRowDelete : function(data) {
-            var
+            var 
+            i,
+            tmp,
             tag;
             
-            tag = this.getData().tag;
-            data.items[0].data.section.remove();
-        //tag.removeSection(data.items[0].data.section);
-            
+            tag = this.getData().tag;            
+            tmp = tag.sections[data.index]
+            for( i=data.index ; i <tag.sections.length-1 ; i++){
+                tag.sections[i] = tag.sections[i+1];
+            }
+            tag.sections.length = tag.sections.length-1;
+            tmp.remove();
+            tag.resize();
         },
+        
         afterRowSort : function(data) {
-            var
+            var 
             i,
-            tag,
-            length,
-            sections;
-            
-            tag         = this.getData().tag;
-            sections    = tag.getLinks();
-            length      = sections.length;
-            
-            //for( i=0; i<length; i++ ){
-            //console.log('item ' + data.moved[0].data.section.getId() + ' moved from ' + data.movedIndex + ' to ' + data.index );
-        //}
-            
+            top,
+            tmp,
+            tag;
+            tag = this.getData().tag;
+            tmp = tag.sections[data.movedIndex];
+            top = tag.sections[data.index].getY();
+            if( data.movedIndex < data.index){
+                for( i=data.movedIndex ; i<data.index ; i++ ){
+                    tag.sections[i+1].setY(tag.sections[i].getY(),true);
+                    tag.sections[i] = tag.sections[i+1];
+                }
+                tmp.setY(top,true);
+                tag.sections[data.index] = tmp;
+            } else {
+                for( i=data.movedIndex ; i>data.index ; i-- ){
+                    tag.sections[i-1].setY(tag.sections[i].getY(),true);                    
+                    tag.sections[i] = tag.sections[i-1];
+                }
+                tmp.setY(top,true);
+                tag.sections[data.index] = tmp;
+            }
+            tag.resize();
+            tag.onDesign(true);
         },
+        
         ready       : function() {
             var
             i,
             tag,
-            section,
-            sections,
-            sectionsL;
+            length;
             
             this.getHtmlObject().addClass('waf-form-tab-grid');
             
             tag       = this.getData().tag;
-            sections  = tag.getLinks();
-            sectionsL = sections.length;
+            length  = tag.sections.length;
             
-            for (i = 0; i < sectionsL; i += 1) {
-                section = sections[i];
-                
-                this.addRow([{
-                    type        : 'label',
-                    html        : tag.getHeader(section).getChildren()[0].getAttribute('data-text').getValue(),
-                    data        : {
-                        section : section,
-                        index   : i
-                    }
-                }], false, true, false);
+            
+            for (i = 0; i < length; i += 1) {
+                if(tag.getHeader(tag.sections[i])){
+                    this.addRow([{
+                        type        : 'textField',
+                        value        : tag.getHeader(tag.sections[i]).getChildren()[0].getAttribute('data-text').getValue(),
+                        data        : {
+                            section : tag.sections[i],
+                            index   : i,
+                            headerTitle : tag.getHeader(tag.sections[i]).getChildren()[0].getAttribute('data-text')
+                        },
+                        onchange    : function () {
+                            this.data.headerTitle.setValue(this.getValue());
+                            this.data.headerTitle.getDescriptor().refresh();
+                        }
+                    }], false, true, false);  
+                }
             }
         }
     }
@@ -220,25 +263,14 @@ WAF.addWidget({
             theme       : true,                //themes to hide ('default', 'inherited', roundy, metal, light)
         
             fClass      : true,                 // true to display the "Class" option in the "Theme & Class" section
-            text        : true,                 // true to display the "Text" section
+            text        : false,                 // true to display the "Text" section
             background  : true,                 // true to display widget "Background" section
             border      : true,                 // true to display widget "Border" section
             sizePosition: true,                 // true to display widget "Size and Position" section
             label       : true,                 // true to display widget "Label Text" and "Label Size and Position" sections
             // For these two sections, you must also define the "data-label" in the Attributes array
             disabled     : ['border-radius']     // list of styles settings to disable for this widget
-        },
-        state : [{
-            label   : 'expanded',
-            cssClass: 'waf-state-active',
-            find    : '',
-            mobile  : true
-        },{
-            label   : 'collapsed',
-            cssClass: 'waf-state-active',
-            find    : '',
-            mobile  : true
-        }]
+        }
     },
 
     // (optional area)
@@ -248,365 +280,302 @@ WAF.addWidget({
     // @property {String} label of the sub element
     // @property {String} css selector of the sub element
     structure: [{
-        description : 'Description',
-        selector    : '.subElement',
-        style: {
-            background  : true, //define which elements in the Styles tab you want to display
-            gradient    : true,
-            border      : true
+            description : 'icon',
+            selector    : '.waf-accordion-icon',
+            style: {
+                fClass      : true, 
+                background  : true,
+                sizePosition: true
+            },
+            state : [{
+                    label   : 'expanded',
+                    cssClass: 'waf-state-expanded',
+                    find    : '.waf-accordion-icon',
+                    mobile  : true
+                },{
+                    label   : 'collapsed',
+                    cssClass: 'waf-state-collapsed',
+                    find    : '.waf-accordion-icon',
+                    mobile  : true
+                }]
+        },
+        {
+            description : 'title',
+            selector    : '.waf-accordion-title',
+            style: {
+                theme       : true,                //themes to hide ('default', 'inherited', roundy, metal, light)
+        
+                fClass      : true,                 // true to display the "Class" option in the "Theme & Class" section
+                text        : true,                 // true to display the "Text" section
+                sizePosition: true
+            },
+            state : [{
+                    label   : 'expanded',
+                    cssClass: 'waf-state-expanded',
+                    find    : '.waf-state-expanded .waf-accordion-title',
+                    mobile  : true
+                },{
+                    label   : 'collapsed',
+                    cssClass: 'waf-state-collapsed',
+                    find    : '.waf-state-collapsed .waf-accordion-title',
+                    mobile  : true
+                }]
+        },
+        {
+            description : 'header',
+            selector    : '.waf-accordion-header',
+            style: {
+                theme       : true,                //themes to hide ('default', 'inherited', roundy, metal, light)
+        
+                fClass      : true,                 // true to display the "Class" option in the "Theme & Class" section
+//                text        : true,                 // true to display the "Text" section
+                background  : true,                 // true to display widget "Background" section
+                border      : true,                 // true to display widget "Border" section
+//                sizePosition: true,                 // true to display widget "Size and Position" section
+                label       : true
+            },
+            state : [{
+                    label   : 'expanded',
+                    cssClass: 'waf-state-expanded',
+                    find    : '.waf-state-expanded .waf-accordion-header',
+                    mobile  : true
+                },{
+                    label   : 'collapsed',
+                    cssClass: 'waf-state-collapsed',
+                    find    : '.waf-state-collapsed .waf-accordion-header',
+                    mobile  : true
+                }]
+        },
+        {
+            description : 'content',
+            selector    : '.waf-accordion-content',
+            style: {
+                theme       : true,                //themes to hide ('default', 'inherited', roundy, metal, light)
+        
+                fClass      : true,                 // true to display the "Class" option in the "Theme & Class" section
+                text        : true,                 // true to display the "Text" section
+                background  : true,                 // true to display widget "Background" section
+                border      : true,                 // true to display widget "Border" section
+//                sizePosition: true,                 // true to display widget "Size and Position" section
+                label       : true
+            },
+            state : [{
+                    label   : 'expanded',
+                    cssClass: 'waf-state-expanded',
+                    find    : '.waf-state-expanded .waf-accordion-content',
+                    mobile  : true
+                },{
+                    label   : 'collapsed',
+                    cssClass: 'waf-state-collapsed',
+                    find    : '.waf-state-collapsed .waf-accordion-content',
+                    mobile  : true
+                }]
         }
-    }],
+    ],
 
-    /* METHODS */
-
-    /*
-     * function to call when the widget is loaded by WAF during runtime
-     * 
-     * @param {Object} config contains all the attributes of the widget  
-     * @result {WAF.widget.Template} the widget
-     */
-    onInit: function (config) {                                
+    onInit: function (config) {   
         var widget = new WAF.widget.Accordion(config);       
         return widget;
     },
 
-    /**
-     * function to call when the widget is displayed in the GUI Designer
-     * 
-     * @param {Object} config contains all the attributes for the widget
-     * @param {Designer.api} set of functions used to be managed by the GUI Designer
-     * @param {Designer.tag.Tag} container of the widget in the GUI Designer
-     * @param {Object} catalog of dataClasses defined for the widget
-     * @param {Boolean} isResize is a resize call for the widget (not currently available for custom widgets)
-     */
     onDesign: function (config, designer, tag, catalog, isResize) {
+        var
+        i,
+        length,
+        content,
+        openedSections;
         
-        
-        tag.accordionOptions = {
-            duration		: tag.getAttribute('data-duration').getValue(),
-            collapsible		: tag.getAttribute('data-several-opened').getValue(),
-            headerHeight	: 40,
-            contentHeight	: 250,
-            sectionMargin	: 2,
-            expandedSectionIcon	: '/walib/WAF/widget/accordion/icons/widget-accordion-expanded-icon.png',
-            collapsedSectionIcon: '/walib/WAF/widget/accordion/icons/widget-accordion-collapsed-icon.png'           
-        };
-        
+        if(isResize){
+            if(D.getCurrent() === tag ){
+                length          = tag.sections.length;
+                openedSections  = 0;
+                for( i=0 ; i<length ; i++ ){
+                    content         = tag.getContent(tag.sections[i]);
+                    if(content.getHeight() != 0  ) {
+                        openedSections++;
+                    }
+                }
+                if(openedSections && openedSections != 0) {
+                    var headerHeight  = parseInt(tag.getAttribute('data-header-height').getValue(),10);
+                    var contentAttr = tag.getAttribute('data-content-height');
+                    contentAttr.setValue(""+Math.floor((tag.getHeight()-(headerHeight*length))/openedSections));  
+                    tag.resize();
+                }
+            }
+        } 
     }, 
     
     onCreate: function (tag, param) {
-        var
+        
+        var 
         group;
         
+        tag.sections = [];
         
-        /**
-         * set all headers to the same Height
-         */
-        tag.onHeaderResize = function(resizedHeader) {
-            var
+        tag.resize = function () {
+            var 
             i,
-            attr,
+            height,
             length,
             header,
             content,
-            sections,
+            headerHeight,
+            contentHeight;
+            
+            height = 0;
+            length = tag.sections.length;
+            headerHeight = parseInt(tag.getAttribute('data-header-height').getValue(),10)
+            contentHeight = parseInt(tag.getAttribute('data-content-height').getValue(),10); 
+            
+            for( i=0; i<length; i++ ) {
+                header  = tag.getHeader(tag.sections[i]);
+                content = tag.getContent(tag.sections[i]);
+                
+                header.setHeight(headerHeight,false);
+                if(content.getHeight() !=0){
+                    content.setHeight(contentHeight,false);
+                }
+                tag.sections[i].setHeight( header.getHeight() + content.getHeight(),false);
+                if( i === 0 ) {
+                    tag.sections[i].setY(0,true, false)
+                } else {
+                    tag.sections[i].setY(tag.sections[i-1].getHeight()+ tag.sections[i-1].getY() + 2,true,false)
+                }
+                header.setY(0,true,false);
+                content.setY(header.getHeight()-2,true,false);
+                height += tag.sections[i].getHeight()+2;
+            }
+            tag.setHeight(height,false);
+        };
+        
+        
+        tag.collapseAll = function(){
+            var
+            i,
+            length,
             headerHeight;
             
+            length          = tag.sections.length;
+            headerHeight    = parseInt(tag.getAttribute('data-header-height').getValue(),10);
             
-            sections        = tag.getLinks();
-            length          = sections.length;
-            headerHeight    = resizedHeader.getHeight();
-            
-            for( i=0; i<length ;i++ ){                
-                header  = tag.getHeader(sections[i]);
-                attr    = header.getAttribute('data-header-height');
+            for ( i=0 ; i<length ; i++){
+                tag.getContent(tag.sections[i]).setHeight(0,false);
+                tag.sections[i].setHeight(headerHeight,false);
+                tag.sections[i].getHtmlObject().removeClass('waf-state-expanded');
+                tag.sections[i].getHtmlObject().addClass('waf-state-collapsed');
+                tag.sections[i].getAttribute('class').setValue(tag.sections[i].getHtmlObject().attr('class'));
+                tag.sections[i].getChildren()[1].addClass('waf-state-collapsed'); //content
+                tag.sections[i].getChildren()[0].addClass('waf-state-collapsed'); // header
+                tag.sections[i].getChildren()[0].getChildren()[0].addClass('waf-state-collapsed'); // title
+                tag.sections[i].getChildren()[0].getChildren()[1].addClass('waf-state-collapsed'); // icon
+
+                tag.sections[i].getChildren()[1].removeClass('waf-state-expanded'); //content
+                tag.sections[i].getChildren()[0].removeClass('waf-state-expanded'); // header
+                tag.sections[i].getChildren()[0].getChildren()[0].removeClass('waf-state-expanded'); // title
+                tag.sections[i].getChildren()[0].getChildren()[1].removeClass('waf-state-expanded'); // icon
+
                 
-                if( headerHeight != attr.getValue() ){
-                    header.setY(0);
-                    attr.setValue( headerHeight );
-                    header.setHeight(headerHeight);
-                    
-                    content = tag.getContent(sections[i]);
-                    content.setY(headerHeight);
-                    sections[i].setHeight(content.getHeight()+ headerHeight);
-                }
+//                tag.getHeader(tag.sections[i]).getChildren()[1].removeClass('waf-state-expanded');
+//                tag.getHeader(tag.sections[i]).getChildren()[1].addClass('waf-state-collapsed');
+//                tag.getHeader(tag.sections[i]).getChildren()[1].domUpdate();
             }
-            tag.arrange();
+            tag.getHtmlObject().trigger('changeEnd'); 
+            
+        };
+        
+        tag.expand = function (section) {
+            
+            var headerHeight    = parseInt(tag.getAttribute('data-header-height').getValue(),10);
+            var contentHeight   = parseInt(tag.getAttribute('data-content-height').getValue(),10);
+            
+//            tag.getHeader(section).getChildren()[1].addClass('waf-state-expanded');
+//            tag.getHeader(section).getChildren()[1].removeClass('waf-state-collapsed');
+//            tag.getHeader(section).getChildren()[1].domUpdate();
+
+
+            section.getChildren()[1].addClass('waf-state-expanded'); //content
+            section.getChildren()[0].addClass('waf-state-expanded'); // header
+            section.getChildren()[0].getChildren()[0].addClass('waf-state-expanded'); // title
+            section.getChildren()[0].getChildren()[1].addClass('waf-state-expanded'); // icon
+            
+            section.getChildren()[1].removeClass('waf-state-collapsed'); //content
+            section.getChildren()[0].removeClass('waf-state-collapsed'); // header
+            section.getChildren()[0].getChildren()[0].removeClass('waf-state-collapsed'); // title
+            section.getChildren()[0].getChildren()[1].removeClass('waf-state-collapsed'); // icon
+            
+            
+            
+            tag.getContent(section).setHeight(contentHeight,false);
+            section.setHeight(headerHeight+contentHeight,false);
+            section.getHtmlObject().addClass('waf-state-expanded');
+            section.getHtmlObject().removeClass('waf-state-collapsed');
+            section.getAttribute('class').setValue(section.getHtmlObject().attr('class'));
+            section.domUpdate();
+            tag.getHtmlObject().trigger('changeEnd');  
         };
         
         
-        /**
-         * modify widget height to contain all sections,
-         * modify top position to avoid section overlaping
-         */
-        tag.arrange = function () {
-            
-            var
-            i,
-            margin,
-            height,
-            length,
-            sections;
-
-            sections    = tag.getLinks();
-            length      = sections.length;
-            margin      = tag.getAccordionInfoBeta(sections[0]).margin;
-            height      = (length-1)*margin;
-            
-            for( i=0; i<length ;i++ ){
-                if(i>0){
-                    sections[i].setY(sections[i-1].getY() + sections[i-1].getHeight() + 2);
-                }
-                height += sections[i].getHeight();
-            }
-            tag.setHeight(height);
-        };
-        
-        
-        /**
-         * resize sections and fix their positions
-         * content height is stored in dom
-         */
-        tag.onContentResize = function () {
-            var
-            i,
-            attr,
-            length,
-            content,
-            sections,
-            newContentHeight,
-            newSectionHeight;
-            
-            sections            = tag.getLinks();
-            length              = sections.length;
-            content             = tag.getContent(sections[0]);
-            attr                = content.getAttribute('data-content-height');
-            newContentHeight    = content.getHeight();     
-            
-            
-            // saving the height of content in dom if we are not collapsing the section 
-            if(newContentHeight != 0) {
-                attr.setValue( newContentHeight ); 
-            }
-            
-            // adjusting section height so it can containes header and content containers
-            newSectionHeight = tag.getHeader(sections[0]).getHeight() + newContentHeight;
-            sections[0].setHeight(newSectionHeight);
-            
-            // re-arrange section position to avoid section overlapping. 
-            for( i=1; i<length; i++ ) {
-                content             = tag.getContent(sections[i]);
-                attr                = content.getAttribute('data-content-height');
-                newContentHeight    = content.getHeight();  
-                
-                if( newContentHeight != 0) {
-                    attr.setValue( newContentHeight );
-                }
-                
-                newSectionHeight = tag.getHeader(sections[0]).getHeight() + newContentHeight;
-                sections[i].setHeight(newSectionHeight);
-                
-                // adjusting section height so it can containes header and content containers
-                sections[i].setY(sections[i-1].getHeight()+sections[i-1].getY()+2);
-            }
-
-            tag.arrange();
-        }
-        
-        /**
-         *
-         */
         tag.collapse = function (section) {
-            //@TODO: fix Icons
-            var
-            accordionInfo;
             
-            accordionInfo   = tag.getAccordionInfoBeta(section);
-            tag.getHeader(section).getChildren()[1].getAttribute('data-src').setValue(tag.accordionOptions.collapsedSectionIcon);
-            if(section.getHeight() !== accordionInfo.headerHeight){
-                section.setHeight(accordionInfo.headerHeight);
-                tag.getContent(section).setHeight(0);
-                
-                section.getHtmlObject().removeClass('accordion-expanded');
-                section.getAttribute('class').setValue(section.getHtmlObject().attr('class'));
-                section.domUpdate();
-            }
-        };
-        
-        
-        /**
-         *
-         */
-        tag.expand  = function (section) {
-            //@TODO: fix Icons
-            var
-            accordionInfo;
+            var headerHeight = parseInt(tag.getAttribute('data-header-height').getValue(),10);            
             
-            accordionInfo   = tag.getAccordionInfoBeta(section);
-
-            tag.getHeader(section).getChildren()[1].getAttribute('data-src').setValue(tag.accordionOptions.expandedSectionIcon);
-            if(section.getHeight() === accordionInfo.headerHeight){
-                section.setHeight(accordionInfo.sectionHeight);
-                tag.getContent(section).setHeight(accordionInfo.contentHeight);
-                section.getAttribute('class').setValue(section.getAttribute('class').getValue() + ' accordion-expanded');
-                section.domUpdate();
-            }
-        };
-        
-        
-        /**
-         */
-        tag.toggle = function (section) {
-            var
-            accordionInfo;
-            
-            accordionInfo   = tag.getAccordionInfoBeta(section);
-            
-            if(section.getHeight() === accordionInfo.headerHeight ) {
-                tag.expand(section);
-            } else {
-                tag.collapse(section);
-            }
-        };
-        
-        
-        /**
-         */
-        tag.collapseAll = function () {
-            var
-            i,
-            accordionInfo;
-            
-            accordionInfo   = tag.getAccordionInfo();
-            
-            for(i=0; i<accordionInfo.nbOfSections; i++){
-                tag.collapse(accordionInfo.sections[i]);
-            }
-        };
-        
-        
-        /**
-         *
-         */
-        tag.getAccordionInfo = function () {
-            //@TODO: find another way to calculate section, content and header height
-            var
-            i,
-            height,
-            length,
-            margin,
-            sections;
-            
-            sections    = tag.getLinks();
-            length      = sections.length ? sections.length : 0;
-            margin      = 2;
-            height      = (length-1)*margin;
-            
-            
-            for( i=0; i<length; i++) {
-                height += sections[i].getHeight();
-            }
-            
-            return {
-                sections        : sections,
-                nbOfSections    : length,
-                headerHeight    : 40,
-                contentHeight   : 250,
-                sectionHeight   : 290,
-                margin         : margin,
-                height          : height
-            };
-        };
-        
-        
-        /**
-         *
-         */
-        tag.getAccordionInfoBeta = function (section) {
-            var
-            i,
-            res,
-            margin,
-            length,
-            height,
-            header,
-            content,
-            sections;
-            
-            
-            sections    = tag.getLinks();
-            length      = sections.length ? sections.length : 0;
-            margin      = 2;
-            header      = tag.getHeader(section);
-            content     = tag.getContent(section);
-            height      = (length-1)*margin;
-            
-            
-            for( i=0; i<length; i++) {
-                height += sections[i].getHeight();
-            }
-            
-            res = {
-                margin          : margin,
-                height          : height,
-                sections        : sections,
-                nbOfSections    : length,
-                headerHeight    : parseInt(header.getAttribute('data-header-height').getValue(),10),
-                contentHeight   : parseInt(content.getAttribute('data-content-height').getValue(),10)
-            };
-            res.sectionHeight  = res.headerHeight + res.contentHeight;
-            return res;
-        };
-        
-        
-        /**
-         * Whether all the sections can be closed or opended at once. 
-         * Allows collapsing the active section by the triggering event (click is the default).
-         */
-        tag.collapsible = function() {
-            return tag.getAttribute('data-several-opened').getValue();
-        };
+            tag.getContent(section).setHeight(0);
+//            tag.getHeader(section).getChildren()[1].removeClass('waf-state-expanded');
+//            tag.getHeader(section).getChildren()[1].addClass('waf-state-collapsed');
+//            tag.getHeader(section).getChildren()[1].domUpdate();
 
 
-        tag.add = function () {
+            section.getChildren()[1].addClass('waf-state-collapsed'); //content
+            section.getChildren()[0].addClass('waf-state-collapsed'); // header
+            section.getChildren()[0].getChildren()[0].addClass('waf-state-collapsed'); // title
+            section.getChildren()[0].getChildren()[1].addClass('waf-state-collapsed'); // icon
+            
+            section.getChildren()[1].removeClass('waf-state-expanded'); //content
+            section.getChildren()[0].removeClass('waf-state-expanded'); // header
+            section.getChildren()[0].getChildren()[0].removeClass('waf-state-expanded'); // title
+            section.getChildren()[0].getChildren()[1].removeClass('waf-state-expanded'); // icon
+            
+            
+            
+            section.setHeight(headerHeight,false);
+            section.getHtmlObject().removeClass('waf-state-expanded');
+            section.getHtmlObject().addClass('waf-state-collapsed');
+            section.getAttribute('class').setValue(section.getHtmlObject().attr('class'));
+            section.domUpdate();
+            tag.getHtmlObject().trigger('changeEnd');   
+        };
+        
+        
+        tag.addSection = function (addToHistory) {
+            if(addToHistory){
+                Designer.beginUserAction("048");
+            }
             var
+            top,
             icon,
-            attr,
-            attrs,
             title,
-            group,
             header,
-            groupId,
             content,
             section,
-            accordionInfo;
+            headerHeight;
             
-            var headerHeight = tag.getAttribute('data-header-height').getValue();
-            var contentHeight = tag.getAttribute('data-content-height').getValue();
-            
-            // collapse all opened section before adding new section 
-            if(!tag.collapsible()){
-                tag.collapseAll();
-            }
-            
-            accordionInfo = tag.getAccordionInfo();
-             
+            top             = tag.sections.length ===0 ? 0 : tag.getHeight();
+            headerHeight    = parseInt(tag.getAttribute('data-header-height').getValue(),10);
             
             section = Designer.createTag({
                 type        : 'container',
                 fit         : ['left', 'top' , 'right'],
-                top         : accordionInfo.height + accordionInfo.margin, 
+                top         : top, 
                 left        : 0,
-                height      : headerHeight + contentHeight,
+                height      : headerHeight,
                 silentMode  : true,
-                parent      : tag
+                parent      : tag           
             });
-            
             tag.link(section);
             section.savePosition('right', 0, false, false);
-            section.getAttribute('class').setValue(section.getAttribute('class').getValue() + ' accordion-section accordion-expanded');
+            section.getAttribute('class').setValue(section.getAttribute('class').getValue() + ' accordion-section');
+            section.addClass('waf-state-collapsed');
 
-            
             header = Designer.createTag({
                 type        : 'container',
                 fit         : ['left', 'right'],
@@ -618,42 +587,28 @@ WAF.addWidget({
             });
             header.savePosition('right', -1, false, false);
             header.getAttribute('class').setValue(header.getAttribute('class').getValue() + ' accordion-header');
-            
-            attr    = new WAF.tags.descriptor.Attribute({
-                name : 'data-header-height'
+            header.getHtmlObject().bind('click', {
+                tag: tag,
+                container: header
+            }, function (e, type) {
+                e.data.tag.activate(e.data.container.getParent()); 
             });
-            attrs   = header.getAttributes();
-            
-            attr._descriptor = header;
-            attr.setValue(headerHeight + '');
-            attrs.add(attr);
-            header.domUpdate();
-            
+            header.addClass('waf-accordion-header waf-state-collapsed')
             
             content = Designer.createTag({
                 type        : 'container',
                 fit         : ['left', 'right', 'bottom'],
                 top         : headerHeight -2, // because we shifted ip the header by -1px
                 left        : -1, // put left border on top of  section left border
-                bottom      : 0,
-                //height      : tag.accordionOptions.contentHeight,
+                bottom      : -1,
                 silentMode  : true,
                 parent      : section
             });
             content.savePosition('right', -1, false, false);
             content.savePosition('bottom', -1, false, false);
             content.getAttribute('class').setValue(content.getAttribute('class').getValue() + ' accordion-content');
-
-
-            attr    = new WAF.tags.descriptor.Attribute({
-                name : 'data-content-height'
-            });
-            attrs   = content.getAttributes();
-            
-            attr._descriptor = content;
-            attr.setValue(contentHeight + '');
-            attrs.add(attr);
-            content.domUpdate();
+            content.setHeight(0);
+            content.addClass('waf-accordion-content waf-state-collapsed');
             
             
             title = Designer.createTag({
@@ -666,7 +621,8 @@ WAF.addWidget({
                 silentMode  : true,
                 parent      : header
             });
-            title.getAttribute('data-text').setValue('[ Header '+accordionInfo.nbOfSections+' ]');
+            title.getAttribute('data-text').setValue('[Header '+(tag.sections.length+1)+']');
+            title.addClass('waf-accordion-title waf-state-collapsed');
             
             
             icon = Designer.createTag({
@@ -679,72 +635,85 @@ WAF.addWidget({
                 silentMode  : true,
                 parent      : header
             });
-            icon.getAttribute('data-src').setValue(tag.accordionOptions.expandedSectionIcon);
+            icon.addClass('waf-accordion-icon waf-state-collapsed');
             
-            title.updateZindex(4);
             icon.updateZindex(4);
+            title.updateZindex(4);
             header.updateZindex(3);
             content.updateZindex(3);
             section.updateZindex(2);
             
-            groupId     = tag.getGroupId();
-            group       = Designer.getGroup(groupId);
-            
-            group.add(title);
             group.add(icon);
+            group.add(title);
             group.add(header);
             group.add(content);
             group.add(section); 
-            
-            tag.arrange();
-            //Events
+                        
             $(header).bind({
-                onResize: function (e) {   
-                    tag.setWidth(this.getWidth());
-                    if(this.getPosition().left != 0){
-                        tag.setX(tag.getPosition().x + this.getPosition().left);
-                        this.setX(0);
+                onResize: function (e) { 
+                    if (this.getWidth() != 0) {
+                        var attr            = tag.getAttribute('data-header-height');
+                        var headerHeight    = parseInt(attr.getValue(),10); 
+                        tag.setWidth(this.getWidth());
+                        if(this.getPosition().left != -1){
+                            tag.setX(tag.getPosition().x + this.getPosition().left);
+                            this.setX(-1);
+                        }
+                        if(this.getHeight() != headerHeight ){
+                            attr.setValue(""+this.getHeight());
+                            tag.resize();
+                        }
                     }
-                    tag.onHeaderResize(header);
                 },
                 onWidgetDestroy : function(){
-                    this.getParent().remove();
+                    tag.removeSection(this.getParent());
                 }
             });
-                
+            
             $(content).bind({
                 onResize: function (e) {
-                    tag.setWidth(this.getWidth());
-                    if(this.getPosition().left != 0){
-                        tag.setX(tag.getPosition().x + this.getPosition().left);
-                        this.setX(0);
+                    if (this.getWidth() != 0) {
+                        var attr            = tag.getAttribute('data-content-height');
+                        var contentHeight    = parseInt(attr.getValue(),10);
+
+                        tag.setWidth(this.getWidth());
+                        if(this.getPosition().left != -1){
+                            tag.setX(tag.getPosition().x + this.getPosition().left-1);
+                            this.setX(-1);
+                        }
+                        if(this.getHeight() != contentHeight && this.getHeight() !=0 ){
+
+                            attr.setValue(""+this.getHeight());
+                            tag.resize();
+                        }
                     }
-                    tag.onContentResize();
+                    
                 },
                 onWidgetDestroy : function(){
-                    this.getParent().remove();
+                    tag.removeSection(this.getParent());
                 }
             });
             
             
             $(section).bind({
+                
                 onResize: function (e) {   
-                    tag.setWidth(this.getWidth());
-                    if(this.getPosition().left != 0){
-                        tag.setX(tag.getPosition().x + this.getPosition().left);
-                        this.setX(0);
+                    
+                    if (this.getWidth() != 0) {
+                        tag.setWidth(this.getWidth());
+                        if(this.getPosition().left != 0){
+                            tag.setX(tag.getPosition().x + this.getPosition().left);
+                            this.setX(0);
+                        }
                     }
-                    tag.arrange();
+                    
                 },
                 onWidgetDestroy : function(){
                     tag.removeSection(this);
+                    tag.setCurrent();
                 }
             });
             
-            
-            icon.getHtmlObject().bind('click',{
-                tag: tag
-            }, tag.onAltSelect);
             
             title.getHtmlObject().bind('click',{
                 tag: tag
@@ -763,64 +732,91 @@ WAF.addWidget({
                 tag: tag
             }, tag.onAltSelect);
             
-            header.getHtmlObject().bind('click', {
-                tag: tag,
-                container: header
-            }, function (e, type) {
-                e.data.tag.onSelect(e.data.container.getParent()); 
-            });
-                
+       
+            tag.sections.push(section);
+            tag.getHtmlObject().trigger('afterSectionAdd'); 
             return section;
         };
         
         
-        /**
-         */
-        tag.removeSection  = function (container) {
-            if(container){
-                container.remove();
-                
-                var
-                i,
-                dy,
-                accordionInfo,
-                sectionsToShift;
+        tag.removeSection = function (section) {
+            var
+            i,
+            length;
             
-                accordionInfo   = tag.getAccordionInfo();
-                sectionsToShift = [];
-            
-                for(i=0; i<accordionInfo.nbOfSections; i++){
-                    if( accordionInfo.sections[i].getY() > container.getY() ){
-                        sectionsToShift.push(accordionInfo.sections[i]);
-                    }
+            length = tag.sections.length;
+            for( i=0 ; i<length; i++) {
+                if(tag.sections[i] === section) {
+                    break;
                 }
-                tag.arrange();
             }
+            
+            if( i != length ) {
+                for( ; i<length-1; i++) {
+                    tag.sections[i] = tag.sections[i+1];
+                }
+                tag.sections.length = tag.sections.length - 1;
+                section.remove();
+                tag.getHtmlObject().trigger('afterSectionRemove');
+            }
+            tag.getHtmlObject().trigger('afterSectionRemove');
         };
         
         
-
         
-        tag.onSelect = function(section){
-            var 
-            options;
+        tag.getHtmlObject().bind({
+            activate        : function () {},
             
-            options = tag.getAccordionInfoBeta(section);
-            if(tag.collapsible() == "true"){
-                tag.toggle(section);
-            } else {
-                if (section.getHeight() == options.headerHeight) {
+            afterSectionAdd : function () {
+                tag.resize();
+                Designer.tag.refreshPanels(tag);
+            },
+            
+            afterSectionRemove : function () {
+                tag.resize();
+                Designer.tag.refreshPanels();
+                tag.setCurrent();
+            },
+            
+            changeEnd   : function(){
+                tag.resize();
+            }
+        });
+        
+        tag.activate = function (container) {
+            
+            var
+            section;
+            
+            section = typeof(container) === "number" ? tag.sections[container] : container;
+            
+            var headerHeight = parseInt(tag.getAttribute('data-header-height').getValue(),10);
+            
+            if( tag.getAttribute('data-expand-several').getValue() === 'true'){
+                if(section.getHeight() == headerHeight){
                     tag.collapseAll();
-                    tag.expand(section); 
+                    tag.expand(section);
+                }
+                
+            } else {
+                if ( section.getHeight() == headerHeight ){
+                    tag.expand(section);
+                } else {
+                    tag.collapse(section);
                 }
             }
-        };    
+        };
         
+        tag.onAltSelect		= function (e) {            
+            if (e.altKey) {  
+                e.data.tag.setCurrent();
+                D.tag.refreshPanels();
+                return false;
+            }
+            return true;
+        };
         
-        /**
-         * add event listenner for changing widget theme
-         */
-        tag.onChangeTheme = function(theme) {
+        tag.onChangeTheme = function (theme) {
             var
             group;
             
@@ -832,144 +828,170 @@ WAF.addWidget({
         };
         
         
-        tag.onAltSelect = function (e) {            
-            if (e.altKey) {  
-                e.data.tag.setCurrent();
-                D.tag.refreshPanels();
-                return false;
-            }
-            return true;
-        };
-        
-        
         tag.getHeader = function (section) {
+            
             var
+            className,
+            container;
+            
             container = section.getChildren()[0];
-            if(container.getAttribute('data-header-height')){
-                return container;
-            } else {
-                return section.getChildren()[1];
+            if(container){
+                className = container.getAttribute('class').getValue();
+
+                if(className.indexOf('accordion-header') !== -1){
+                    return container;
+                } else {
+                    return section.getChildren()[1];
+                }    
             }
+            
         };
         
         
         tag.getContent = function (section) {
             var
-            container = section.getChildren()[0] ;
-            if(container.getAttribute('data-content-height')){
+            className,
+            container;
+            
+            container = section.getChildren()[0];
+            className = container.getAttribute('class').getValue();
+            
+            if(className.indexOf('accordion-content') !== -1){
                 return container;
             } else {
                 return section.getChildren()[1];
             }
         };
         
-        
-        $(tag).bind('onReady' , function(){
-            if (!param._isLoaded) {
+        tag.getSortedSections = function(){
             
-                group = new Designer.ui.group.Group();
-                group.add(tag);
-                tag.getAttribute('class').setValue(tag.getAttribute('class').getValue() + 'waf-accordion');
+            var
+            i,
+            links,
+            length;
             
+            links           = tag.getLinks();
+            length          = links.length;
+            tag.sections    = [];
             
-                //Initiate widget with 3 section;
-                tag.add(); 
-                tag.add(); 
-                tag.add(); 
+            for( i=0; i<length ; i++){
+                tag.sections.push(links[i]);
+            }
             
-                Designer.ui.group.save();
-                tag.isLoaded = true;
-        
-            } else {
+            tag.sections.sort(function(a,b){
+                return (a.getY() - b.getY());
+            })
+            
+        }
+
+        $(tag).bind({
+            'onHeaderChange' : function(){
+                console.log('Header changed');
+            },
+            'onReady' : function(){
+                if (!param._isLoaded) {
+                    tag.getAttribute('class').setValue(tag.getAttribute('class').getValue() + 'waf-accordion');
+                    group = new Designer.ui.group.Group();
+                    group.add(tag);
+                    tag.addSection();
+                    tag.addSection();
+                    tag.addSection();
+                    tag.activate(0);
+                    Designer.ui.group.save();
+                } else {
                 
-                var
-                k,
-                header,
-                content,
-                section,
-                linkedTags;
-                linkedTags = tag.getLinks();
-                for( k = 0 ; section = linkedTags[k] ; k++){
+                    var
+                    k,
+                    title,
+                    length,
+                    header,
+                    section,
+                    content,
+                    sections;
+                
+                    tag.getSortedSections();
+                    sections = tag.sections;
+                    length = sections.length;
+                
+                
+                    for(k=0; k<length ; k++){
+                        section = sections[k];
+                        header = tag.getHeader(section);
+                        content = tag.getContent(section);
+                        title = header.getChildren()[0];
                     
-                    header = section.getChildren()[0];
-                    content = section.getChildren()[1];
-                
                     
-                    $(header).bind({
-                        onResize: function (e) {   
-                            tag.setWidth(this.getWidth());
-                            if(this.getPosition().left != 0){
-                                tag.setX(tag.getPosition().x + this.getPosition().left);
-                                this.setX(0);
-                            }
-                            tag.onHeaderResize(header);
-                        },
-                        onWidgetDestroy : function(){
-                            tag.getParent().remove();
-                        }
-                    });
-                
-                    $(content).bind({
-                        onResize: function (e) {   
-                            tag.setWidth(this.getWidth());
-                            if(this.getPosition().left != 0){
-                                tag.setX(tag.getPosition().x + this.getPosition().left);
-                                this.setX(0);
-                            }
-                            tag.onContentResize(content);
-                        },
-                        onWidgetDestroy : function(){
-                            tag.getParent().remove();
-                        }
-                    });
-                
-                
-                    $(section).bind({
-                        onResize: function (e) {   
-                            tag.setWidth(this.getWidth());
-                            if(this.getPosition().left != 0){
-                                tag.setX(tag.getPosition().x + this.getPosition().left);
-                                this.setX(0);
-                            }
-                            tag.arrange();
-                        },
-                        onWidgetDestroy : function(){
-                            tag.removeSection(this);
-                        }
-                    });
-                
-                    header.getChildren()[1].getHtmlObject().bind('click',{
-                        tag: tag
-                    }, tag.onAltSelect);
+                        header.getHtmlObject().bind('click', {
+                            tag: tag,
+                            container: header
+                        }, function (e, type) {
+                            e.data.tag.activate(e.data.container.getParent()); 
+                        });
             
-                    header.getChildren()[0].getHtmlObject().bind('click',{
-                        tag: tag
-                    }, tag.onAltSelect);
+                        title.getHtmlObject().bind('click',{
+                            tag: tag
+                        }, tag.onAltSelect);
             
+                        content.getHtmlObject().bind('click',{
+                            tag: tag
+                        }, tag.onAltSelect);
+            
+                        section.getHtmlObject().bind('click',{
+                            tag: tag
+                        }, tag.onAltSelect);
                 
-                    content.getHtmlObject().bind('click',{
-                        tag: tag
-                    }, tag.onAltSelect);
-            
-                    section.getHtmlObject().bind('click',{
-                        tag: tag
-                    }, tag.onAltSelect);
-                
-                    header.getHtmlObject().bind('click',{
-                        tag: tag
-                    }, tag.onAltSelect);
-            
-                    header.getHtmlObject().bind('click', {
-                        tag: tag,
-                        container: header
-                    }, function (e, type) {
-                        e.data.tag.onSelect(e.data.container.getParent()); 
-                    });
+                        header.getHtmlObject().bind('click',{
+                            tag: tag
+                        }, tag.onAltSelect);
                     
+                        $(header).bind({
+                            onResize: function (e) {  
+                                if (this.getWidth() != 0) {
+                                    tag.setWidth(this.getWidth());
+                                    if(this.getPosition().left != -1){
+                                        tag.setX(tag.getPosition().x + this.getPosition().left);
+                                        this.setX(-1);
+                                    }
+                                }
+                            },
+                            onWidgetDestroy : function(){
+                                tag.removeSection(this.getParent());
+                            }
+                        });
+            
+                        $(content).bind({
+                            onResize: function (e) {
+                                if (this.getWidth() != 0) {
+                                tag.setWidth(this.getWidth());
+                                    if(this.getPosition().left != -1){
+                                        tag.setX(tag.getPosition().x + this.getPosition().left-1);
+                                        this.setX(-1);
+                                    }
+                                }
+                            },
+                            onWidgetDestroy : function(){
+                                tag.removeSection(this.getParent());
+                            }
+                        });
+            
+            
+                        $(section).bind({
+                            onResize: function (e) {   
+                                if (this.getWidth() != 0) {
+                                    tag.setWidth(this.getWidth());
+                                    if(this.getPosition().left != 0){
+                                        tag.setX(tag.getPosition().x + this.getPosition().left);
+                                        this.setX(0);
+                                    }
+                                }
+                            },
+                            onWidgetDestroy : function(){
+                                tag.removeSection(this);
+                            }
+                        });
+                    }
                 }
             }
-        })
-        
-        
+        });
     }
 });                                                                                                                                  

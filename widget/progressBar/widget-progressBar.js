@@ -57,43 +57,76 @@ WAF.Widget.provide(
         this.parent           = htmlObject.parent();
         this.top              = htmlObject.css('top');
 
-        clone                   = htmlObject.clone();
-        cloneMsg                = $('[data-linked=' + this.id + ']').clone();
-
-        /*
-         * Remove original progressBar
-         */
-        htmlObject.hide();
-        $('[for=' + this.id + ']').hide();
-
-        this.clone = {
-            progress : clone,
-            msg : cloneMsg
-        }
-
-        if (ss != null) {
-            if (typeof(ss) == 'string') {
-                dontdisplayempty = ss.toLowerCase() == 'true';
-            } else {
-                dontdisplayempty = ss;
-            }
-        }
-
-        this.atLeastOne = !dontdisplayempty;
-
-        this.timerStarted = false;
-
-        if (this.atLeastOne) {
-            this.updateWithInfo({
-                SessionInfo: [{
-                    fMessage    : "",
-                    fValue      : 0,
-                    fMax        : 100
-                }]
-            })
-        }
+		var inDesign = (typeof Designer !== 'undefined');
+		if (!inDesign)
+		{
+	        clone                   = htmlObject.clone();
+	        cloneMsg                = $('[for=' + this.id + ']').clone();
+	    
+	        /*
+	         * Remove original progressBar
+	         */
+	        htmlObject.hide();
+	        $('[for=' + this.id + ']').hide();
+	
+	        this.clone = {
+	            progress : clone,
+	            msg : cloneMsg
+	        }
+	
+	        if (ss != null) {
+	            if (typeof(ss) == 'string') {
+	                dontdisplayempty = ss.toLowerCase() == 'true';
+	            } else {
+	                dontdisplayempty = ss;
+	            }
+	        }
+	
+	        this.atLeastOne = !dontdisplayempty;
+	
+	        this.timerStarted = false;
+	
+	        if (this.atLeastOne) {
+	            this.updateWithInfo({
+	                SessionInfo: [{
+	                    fMessage    : "",
+	                    fValue      : 0,
+	                    fMax        : 100
+	                }]
+	            })
+	        }
+	    }
 
     },{
+	 	progress : function(value, max, message) {
+	 		value = value || 0;
+	 		if (max == null)
+	 		{
+	 			max = this.topMax || 100;
+	 		}
+	 		if (message == null)
+	 		{
+	 			if (this.topMessage == null)
+	 				this.topMessage = this.clone.msg.html();
+		 		message = this.topMessage || ""; 			
+	 		}
+	 		this.topValue = value;
+	 		this.topMax = max;
+	 		this.topMessage = message;
+    		var config = { SessionInfo:[{fValue: value, fMax: max, fMessage: message}]};
+    		this.updateWithInfo(config);
+    	},
+    	stopProgress: function() {
+    		var config = { SessionInfo:[{fValue: 0, fMax: 100, fMessage: "", stop:true}]};
+    		this.updateWithInfo(config);
+    	},
+    	setValue : function(value, max, message) {
+    		this.progress(value, max, message)
+    	},
+    	getValue : function()
+        {
+        	return this.topValue || 0;
+        },
         updateWithInfo  : function (config) {
             var
             i,
@@ -120,77 +153,82 @@ WAF.Widget.provide(
 
             widget.nbsessions   = 0;
             widget.nbsessions   = nblevel;   
-
-            for (i = 0; i < nblevel; i++) {
-                session = sessions[i];
-                message = session.fMessage;
-                reg     = new RegExp("({curValue})", "g");
-
-                percent	= Math.round((session.fValue/session.fMax)*100) + '%';
-
-                if ($('.' + widget.id + '-progress-' + i).length === 0) {
-                    newProgress = widget.clone.progress.clone();
-                    newMsg = widget.clone.msg.clone();
-
-                    newProgress.addClass(widget.id + '-progress-' + i);
-                    newMsg.addClass(widget.id + '-msg-' + i);
-
-                    widget.parent.append(newProgress);
-                    widget.parent.append(newMsg);
-                } else {
-                    newProgress = $('.' + widget.id + '-progress-' + i);
-                    newMsg = $('.' + widget.id + '-msg-' + i);
-
-                    if (session.stop) {
-                        if (widget.atLeastOne && i === 0) {
-                        }
-                        else {
-                            newProgress.remove();
-                            newMsg.remove();
-                            return false;
-                        }
-                    }
-                }
-        
-                newProgress.css('top', widget.top + 'px');
-
-                if (newMsg.offset()) {
-                    newMsg.css('top', widget.top + top + 'px');
-                }
-
-                range = newProgress.children('.waf-progressBar-range');
-
-                widget.stillWaiting = false;
-
-                message = message.replace(reg, '<b>'+WAF.utils.formatNumber(session.fValue, {
-                    format:"###,###,###,###,###"
-                })+'</b>');
-
-                reg = new RegExp("({maxValue})", "g");
-                message = message.replace(reg, WAF.utils.formatNumber(session.fMax, {
-                    format:"###,###,###,###,###"
-                }));
-
-                // get linked label and change the description
-                newMsg.html(message);
-
-                if (range.length === 0) {
-                    // add range div
-                    var height	= newProgress.height();
-                    range = $('<div class="waf-progressBar-range" style="line-height: ' + height + 'px;-webkit-background-size: ' + height + 'px ' + height + 'px;-moz-background-size: ' + height + 'px ' + height + 'px; -webkit-animation: waf-progressBar-animation 10s linear infinite;"><span>' + percent + '</span></div>')
-                    .appendTo(newProgress);
-                }
-
-
-                range.css({
-                    'width' : percent
-                })
-                .children('span').html(percent);
-
-
-                top += widget.toph;
-                top += widget.barh+widget.spaceh;
-            }
+			
+			if (typeof Designer === 'undefined') {
+	            for (i = 0; i < nblevel; i++) {
+	                session = sessions[i];
+	                message = session.fMessage;
+	                reg     = new RegExp("({curValue})", "g");
+	
+	                percent	= Math.round((session.fValue/session.fMax)*100) + '%';
+	
+	                if ($('.' + widget.id + '-progress-' + i).length === 0) {
+	                    newProgress = widget.clone.progress.clone();
+	                    newMsg = widget.clone.msg.clone();
+	
+	                    newProgress.addClass(widget.id + '-progress-' + i);
+	                    newMsg.addClass(widget.id + '-msg-' + i);
+	
+	                    widget.parent.append(newProgress);
+	                    widget.parent.append(newMsg);
+	                } else {
+	                    newProgress = $('.' + widget.id + '-progress-' + i);
+	                    newMsg = $('.' + widget.id + '-msg-' + i);
+	
+	                    if (session.stop) {
+	                        if (widget.atLeastOne && i === 0) {
+	                        }
+	                        else {
+	                            newProgress.remove();
+	                            newMsg.remove();
+	                            return false;
+	                        }
+	                    }
+	                }
+	        
+	                newProgress.css('top', widget.top + 'px');
+	
+	                if (newMsg.offset()) {
+	                    newMsg.css('top', widget.top + top + 'px');
+	                }
+	
+	                range = newProgress.children('.waf-progressBar-range');
+	
+	                widget.stillWaiting = false;
+	
+					if (message == "" || message == null)
+						message = newMsg.html();
+						
+	                message = message.replace(reg, '<b>'+WAF.utils.formatNumber(session.fValue, {
+	                    format:"###,###,###,###,###"
+	                })+'</b>');
+	
+	                reg = new RegExp("({maxValue})", "g");
+	                message = message.replace(reg, WAF.utils.formatNumber(session.fMax, {
+	                    format:"###,###,###,###,###"
+	                }));
+	
+	                // get linked label and change the description
+	                newMsg.html(message);
+	
+	                if (range.length === 0) {
+	                    // add range div
+	                    var height	= newProgress.height();
+	                    range = $('<div class="waf-progressBar-range" style="line-height: ' + height + 'px;-webkit-background-size: ' + height + 'px ' + height + 'px;-moz-background-size: ' + height + 'px ' + height + 'px; -webkit-animation: waf-progressBar-animation 10s linear infinite;"><span>' + percent + '</span></div>')
+	                    .appendTo(newProgress);
+	                }
+	
+	
+	                range.css({
+	                    'width' : percent
+	                })
+	                .children('span').html(percent);
+	
+	
+	                top += widget.toph;
+	                top += widget.barh+widget.spaceh;
+	            }
+	        }
         },
         startListening  : function (interval) {
             var 
@@ -235,11 +273,14 @@ WAF.Widget.provide(
                     };
 
                     widget.requestStarted = true;
-                    xhr.open("GET", window.location.origin+"/rest/$info/progressinfo/" + widget.progressInfo, true);
+					if (window.location.origin != null)
+						xhr.open("GET", window.location.origin+"/rest/$info/progressinfo/" + widget.progressInfo, true);
+					else
+						xhr.open("GET", "/rest/$info/progressinfo/" + widget.progressInfo, true);
                     xhr.send();
                 }
 
-            }, 1000);
+            }, interval);
 
             widget.timerStarted = true;
             

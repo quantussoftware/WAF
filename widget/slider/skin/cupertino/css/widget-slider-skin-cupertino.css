@@ -116,6 +116,7 @@
 .cupertino.waf-slider.ui-slider-horizontal .ui-slider-range {
 	
 	-webkit-border-radius: 10px;
+
 }
 
 /**
@@ -161,8 +162,10 @@
  * -----------------------------------
  */
 .cupertino.waf-slider.ui-slider-horizontal .ui-slider-handle {
+	bottom: -5px;
 	top: -5px;
 	margin-left:-10px;
+	height: auto;
 }
 
 /**
@@ -171,8 +174,10 @@
  * -----------------------------------
  */
 .cupertino.waf-slider.ui-slider-vertical .ui-slider-handle {
-	margin-left:-4px;
-	left: 0px !important;
+	left: -5px !important;
+	width: auto;
+	right: -5px;
+	margin-left: 0;
 }
 
 

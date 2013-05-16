@@ -255,27 +255,32 @@ WAF.Widget.provide(
                     var
                     htmlParent  = that.$domNode.parent(),
                     domNode     = $('#' + that.id),
-                    pos         = that.getPosition(),
                     resizeH     = domNode.attr('data-constraint-top') == 'true' && domNode.attr('data-constraint-bottom') == 'true',
                     resizeW     = domNode.attr('data-constraint-left') == 'true' && domNode.attr('data-constraint-right') == 'true';
                     
                     if(( resizeH || resizeW ) && htmlParent.prop('id') == $('body').prop('id')){
+                        var originalSize = {
+                            width: $(window).width(),
+                            height: $(window).height()
+                        }
+                        
                         $(window).resize(function(){
                             if(tinyMCEinst){
-                                var
-                                mceFirst    = $('#' + that.id + '_parent').find('.mceFirst'),
-                                mceLast     = $('#' + that.id + '_parent').find('.mceLast');
-
                                 if(resizeH && resizeW){
-                                    tinyMCEinst.theme.resizeTo($(this).width() - pos.left - pos.right , $(this).height() - pos.top - pos.bottom - mceFirst.height() - mceLast.height());
+                                    tinyMCEinst.theme.resizeBy($(this).width() - originalSize.width , $(this).height() - originalSize.height);
                                 }
 
                                 else if(resizeH){
-                                    tinyMCEinst.theme.resizeTo($(this).width() , $(this).height() - pos.top - pos.bottom - mceFirst.height() - mceLast.height());
+                                    tinyMCEinst.theme.resizeBy(0 , $(this).height() - originalSize.height);
                                 }
 
                                 else if(resizeW){
-                                    tinyMCEinst.theme.resizeTo($(this).width() - pos.left - pos.right , $(this).height() - mceFirst.height() - mceLast.height());
+                                    tinyMCEinst.theme.resizeBy( $(this).width() - originalSize.width , 0 );
+                                }
+                                
+                                originalSize = {
+                                    width: $(this).width(),
+                                    height: $(this).height()
                                 }
                             }
                         });
@@ -308,10 +313,35 @@ WAF.Widget.provide(
                 wysiwygConf.theme_advanced_resizing = true;
             }
             
-            tinyMCE.init(wysiwygConf);
-
+            if(typeof tinyMCE != 'undefined'){
+                tinyMCE.init(wysiwygConf);
+            }
+            else{
+                $.getScript('/waLib/WAF/lib/tiny_mce/tiny_mce.js').done(function(){
+                    tinyMCE.init(wysiwygConf);
+                })
+            }
+            
+            this._tinyMCEConfig = wysiwygConf;
         },
         getWysiwygInstance : function(){
+            if(typeof tinyMCE != 'undefined'){
+                return tinyMCE.getInstanceById(this.id);
+            }
+            
+            var res;
+            
+            $.ajax({
+                async:false,
+                type:'GET',
+                url:'/waLib/WAF/lib/tiny_mce/tiny_mce.js',
+                data:null,
+                success:function(){
+                    
+                },
+                dataType:'script'
+            });  
+            
             return tinyMCE.getInstanceById(this.id);
         },
         getControlManager : function(){

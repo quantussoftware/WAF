@@ -24,7 +24,8 @@ WAF.addWidget({
     attributes  : [
     {
         name       : 'data-binding',
-        description: 'Source'
+        description: 'Source',
+        context     : ['protected']
     },
     {
         name       : 'class',
@@ -32,11 +33,12 @@ WAF.addWidget({
     },
     {
         name       : 'data-format',
-        description: 'Format'
+        description: 'Format',
+        context     : ['protected']
     },
     {
         name        : 'data-autoWidth',
-        description : 'Auto Resize',
+        description : 'Auto resize',
         type        : 'checkbox',
         defaultValue: 'true'
     },
@@ -68,7 +70,16 @@ WAF.addWidget({
     {
         name        : 'data-text',
         description : 'Text',
-        type        : 'textarea'
+        type        : 'textarea',
+        context     : ['protected']
+    },
+    {
+        name        : 'data-inline',
+        visibility  : 'hidden'
+    },
+    {
+        name        : 'data-labelFor',
+        visibility  : 'hidden'
     },
     {
         name        : 'data-label-position',
@@ -77,7 +88,8 @@ WAF.addWidget({
     },
     {
         name        : 'data-link',
-        description : 'Link',
+        description : 'URL',
+        context     : ['protected'],
         onchange    : function(){
             if (!this.getValue()) {
                 $('#dropdown-data-target').parent().parent().hide();
@@ -92,6 +104,7 @@ WAF.addWidget({
         type        : 'dropdown',
         options     : ['_blank', '_self'],
         defaultValue: '_blank',
+        context     : ['protected'],
         ready     : function(){            
             var
             i,
@@ -123,9 +136,10 @@ WAF.addWidget({
     },
     {
         name        : 'data-plainText',
-        description : 'Plain Text',
+        description : 'Plain text',
         type        : 'checkbox',
-        defaultValue: 'true'
+        defaultValue: 'true',
+        context     : ['protected']
     }],
     style: [
     {
@@ -186,7 +200,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties: {
         style: {
             theme       : false,
@@ -215,6 +234,7 @@ WAF.addWidget({
         tagHeight,
         split,
         attrText,
+        plainText,
         tmpHtmlObject;
         
         htmlObject      = tag.getHtmlObject();
@@ -223,7 +243,8 @@ WAF.addWidget({
         tagHeight       = tag.getHeight();    
 
         attrText = tag.getAttribute('data-text').getValue();
-        
+        plainText = tag.getAttribute('data-plainText').getValue() == 'true';
+                
         /*
          * Get the source as text value
          */
@@ -231,13 +252,6 @@ WAF.addWidget({
             text    = '[' + tag.getSource() + ']';      
             if (attrText) {
                 text = attrText;
-            }
-            
-            /*
-             * if a text exist set the old text as the label
-             */
-            if (tag._oldTextValue) {     
-                tag.getAttribute('data-label').setValue(tag._oldTextValue);
             }
             
             tag._oldTextValue = null;
@@ -248,10 +262,9 @@ WAF.addWidget({
         } else {          
             
             /*
-             * if a label exist set the old label as the text then remove label
+             * if a label exist, clear it
              */
             if (tag._oldLabelValue) {
-                tag.getAttribute('data-text').setValue(tag._oldLabelValue);
                 tag.getAttribute('data-label').setValue('');
             }
             
@@ -261,6 +274,12 @@ WAF.addWidget({
             }
             
             text    = tag.getAttribute('data-text').getValue();  
+            
+            if (tag.getAttribute('data-inline') && tag.getAttribute('data-inline').getValue() == 'true') {
+                text = text.replace(/\n/g, ' ');
+                tag.setAttribute('data-text', text);
+                tag.domUpdate();
+            }
             
             tag._oldLabelValue = null;
                 
@@ -274,10 +293,10 @@ WAF.addWidget({
         }
         
         text = text.replace(/\n/g, '<br />');
-        
+
         /*
          * get/create the temporary html object
-         */ 
+         */
         tag._getTmpHtmlObject = function tag_createTmpHtmlObject(text) {
             var 
             tmpHtmlObject;
@@ -285,7 +304,7 @@ WAF.addWidget({
             if ($('#waf-tmp-div').length > 0) {
                 tmpHtmlObject = $('#waf-tmp-div');
             } else {
-                tmpHtmlObject   = $('<div id="waf-tmp-div">'); 
+                tmpHtmlObject   = $('<div id="waf-tmp-div">');
             }
 
             /*
@@ -320,11 +339,14 @@ WAF.addWidget({
         
         tmpWidth        = tmpHtmlObject.width();
         tmpHeight       = tmpHtmlObject.height();        
-        
         /*
          * Add text to html object
-         */        
-        htmlObject.html(text);
+         */
+        if (plainText) {
+            htmlObject.text(text);
+        } else {
+            htmlObject.html(text);
+        }
         
         /*
          * If autocomplete, resize the htmlobject depending on temporary html object
@@ -334,7 +356,7 @@ WAF.addWidget({
                 tag.setWidth(tmpWidth);
             } 
             
-            if (tmpHeight > 0 && tmpHeight != tagHeight) {
+            if (tmpHeight > 0 && tmpHeight != tagHeight && !tag.isFitToBottom()) {
                 tag.setHeight(tmpHeight);
             }             
         }
@@ -381,12 +403,13 @@ WAF.addWidget({
             /*
              * Create edit box with the same css as the tag
              */
-            if (tag.getParent().getType() == 'menuItem') {
+            if (tag.getParent().getType() == 'menuItem' || tag.getAttribute('data-inline').getValue() == 'true') {
                 editBox = $('<input>')      
-                    .attr('value', text);
+                .attr('value', text);
+                    
             } else {
                 editBox = $('<textarea>')     
-                    .html(text);            
+                .html(text);            
             }
                    
             editBox.css({
@@ -427,7 +450,15 @@ WAF.addWidget({
                 value += e.shiftKey && e.keyCode == 13 ? '<br />' : String.fromCharCode(e.keyCode);
                 
                 this.refresh = function () {
-                    tmpHtmlObject.html(value.replace(/\n/g, '<br />') + '-');
+                    
+                    if (tag.getAttribute('data-inline') && tag.getAttribute('data-inline').getValue() == 'true') {
+                        tmpHtmlObject.html(value.replace(/\n/g, ' ') + '-');
+                        
+                        
+                    } else {
+                        tmpHtmlObject.html(value.replace(/\n/g, '<br />') + '-');
+                    }
+                    
                     
                     /*
                      * Change widget size only if auto width
@@ -439,8 +470,8 @@ WAF.addWidget({
                         if (tmpWidth > 0) {
                             tag.setWidth(tmpWidth, false);
                         }
-
-                        if (tmpHeight > 0) {
+                        
+                        if (tmpHeight > 0 && !tag.isFitToBottom()) {
                             tag.setHeight(tmpHeight, false);
                         }
                     }
@@ -452,6 +483,12 @@ WAF.addWidget({
                      * Save on enter key down (except holding shift)
                      */  
                     case 13:
+                        if (tag.getAttribute('data-inline').getValue() == 'true') {
+                            e.preventDefault();
+                            this.blur();
+                            break;
+                        }
+                        
                         if (!e.shiftKey) {
                             this.blur();
                         } else {
@@ -464,7 +501,7 @@ WAF.addWidget({
                      */  
                     default:
                         if (e.keyCode >= 37 && e.keyCode <= 40) {
-                            // DO NOTHING FOR ARROW KEYS
+                        // DO NOTHING FOR ARROW KEYS
                         } else {
                             this.refresh();
                         }
@@ -476,13 +513,19 @@ WAF.addWidget({
             /*
              * Save on blur
              */  
-            editBox.bind('blur', {tag : tag}, function(e){
+            editBox.bind('blur', {
+                tag : tag
+            }, function(e){
                 var 
                 tag,
                 newValue;
 
                 tag         = e.data.tag;
                 newValue    = $(this).val();
+                
+                if (tag.getAttribute('data-inline') && tag.getAttribute('data-inline').getValue() == 'true') {
+                    newValue = newValue.replace(/\n/g, ' ');
+                }
                 
                 tag.getAttribute('data-text').setValue(newValue);
                 
@@ -491,7 +534,8 @@ WAF.addWidget({
                 
                 D.tag.refreshPanels();
                 
-                tag.getHtmlObject().html(newValue.replace(/\n/g, '<br />'))
+
+                tag.getHtmlObject().html(newValue.replace(/\n/g, '<br />'));
                 
                 /*
                  * unlock d&d
@@ -504,7 +548,22 @@ WAF.addWidget({
             })
         }
         
-        htmlObject.bind('dblclick', { tag : tag }, tag.dblClickFn);    
+        htmlObject.bind('dblclick', {
+            tag : tag
+        }, tag.dblClickFn);    
+
+        // calls onDesign once styles are inserted so that autoResize function may work properly
+        // otherwise calculations could be wrong since CSS styles (like font-size) may not have been inserted yet
+        // this fixes #WAK0078446
+        
+        if (!tag.binded && htmlObject.get(0) && htmlObject.get(0).addEventListener) {
+            tag.binded = true;
+            htmlObject.get(0).addEventListener('onWidgetCSSLoaded', function() {
+                Designer.env.enableModificationNotification = false;
+                tag.onDesign(true);
+                Designer.env.enableModificationNotification = true;
+            }, false);
+        }
         
         /*
          * Remove temporary objects

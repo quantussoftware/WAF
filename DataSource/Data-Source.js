@@ -614,6 +614,8 @@ WAF.DataSource = function(config){
 	
 	this.serverRefresh = WAF.DataSource.serverRefresh;
 	
+	this.collectionRefresh = WAF.DataSource.collectionRefresh;
+	
 	this.addListener = WAF.DataSource.addListener;
 	
 	this.removeListener = WAF.DataSource.removeListener;
@@ -631,6 +633,10 @@ WAF.DataSource = function(config){
 	this.setDisplayLimits = WAF.DataSource.setDisplayLimits;
 	
 	this.getSelection = WAF.DataSource.getSelection;
+	
+	this.getScope = WAF.DataSource.getScope;
+	
+	this.getWebComponentID = WAF.DataSource.getWebComponentID;
 	
 	// API functions overridden in DataSource subclasses 
 
@@ -653,7 +659,9 @@ WAF.DataSource = function(config){
 	 */
 };
 
+WAF.DataSource.GLOBAL = 'global';
 
+WAF.DataSource.LOCAL = 'local';
 
 // private functions used for an instance of a DataSource
 
@@ -883,6 +891,14 @@ WAF.DataSource._validateAttribute = function(attName, curValue){
 };
 
 
+WAF.DataSource.getScope = function(){
+	return this._private.scope || WAF.DataSource.GLOBAL;
+};
+
+
+WAF.DataSource.getWebComponentID = function(){
+	return this._private.componentID || '';
+};
 
 
 // ----------------------------------------------------------------------------------------------------------------------	
@@ -957,6 +973,10 @@ WAF.DataSource.selectNext = function(options, userData){
 };
 
 
+WAF.DataSource.collectionRefresh = function(options, userData)
+{
+	// does nothing on purpose;
+}
 
 WAF.DataSource.serverRefresh = function(options, userData){
 	var resOp = WAF.tools.handleArgs(arguments, 0);
@@ -1039,6 +1059,7 @@ WAF.DataSource.dispatch = function(eventKind, options){
 	options = options || {};
 	var dispatchSubID = options.subID;
 	var dispatcherInitiator = options.dispatcherID;
+                var dispatcherTarget = options.dispatcherTargetID || null;
 	var attName = options.attributeName;
 	var checkAttName = false;
 	var match;
@@ -1049,7 +1070,8 @@ WAF.DataSource.dispatch = function(eventKind, options){
 	if (!options.stopDispatch) {
 		for (var i = 0; i < this._private.listeners.length; i++) {
 			var listener = this._private.listeners[i];
-			if (dispatcherInitiator == null || dispatcherInitiator != listener.id) {
+			//if (dispatcherInitiator == null || dispatcherInitiator != listener.id) {
+                                                if (((dispatcherInitiator == null || dispatcherInitiator != listener.id) && !dispatcherTarget) || (dispatcherTarget == listener.id)) {
 				var okDispatch = false;
 				switch (listener.eventKind) {
 					case 'all':
@@ -1298,6 +1320,8 @@ WAF.DataSourceEm = function(config){
 	
 	this.setEntityCollection = WAF.DataSourceEm.setEntityCollection;
 	
+	this.collectionRefresh = WAF.DataSourceEm.collectionRefresh;
+	
 	this.addNewElement = WAF.DataSourceEm.addNewElement;
 	
 	this.addEntity = WAF.DataSourceEm.addEntity;
@@ -1305,6 +1329,7 @@ WAF.DataSourceEm = function(config){
 	this.save = WAF.DataSourceEm.save;
 	
 	this.removeCurrent = WAF.DataSourceEm.removeCurrent;
+	this.removeCurrentReference = WAF.DataSourceEm.removeCurrentReference;
 	
 	this.distinctValues = WAF.DataSourceEm.distinctValues;
 	
@@ -1374,6 +1399,10 @@ WAF.DataSourceEm._Init = function(config){
 		if (config["data-autoLoad"] === "false" || config["data-autoLoad"] === "0" || config["data-autoLoad"] === false) {
 			this.initialQuery = false;
 		}
+	}
+	
+	if (config['data-scope']) {
+		this.scope = config['data-scope'];
 	}
 	
 	if (config["data-initialQueryString"] != null) {
@@ -1690,6 +1719,51 @@ WAF.DataSourceEm._gotEntityCollection = function(event){
 
 
 
+WAF.DataSourceEm.collectionRefresh = function(options, userData)
+{
+	var resOp = WAF.tools.handleArgs(arguments, 0);
+	userData = resOp.userData;
+	options = resOp.options;
+	var dataSource = this;
+	options = options || {};
+	options.forceCollectionRefresh = true;
+	var priv = this._private;
+	if (priv.entityCollection!= null)
+	{
+		var onSuccess = options.onSuccess;
+		var onError = options.onError;
+		var pos = this.getPosition();
+		
+		function refreshSuccess(event)
+		{
+			options.onSuccess = onSuccess;
+			options.onError = onError;
+			event.dataSource = dataSource;
+			if (pos >= 0)
+			{
+				priv.isNewElem = false;
+				priv.currentEntity = event.entity;
+				priv._updateValues();
+			}
+			dataSource.dispatch('onCollectionChange', options);
+			WAF.callHandler(false, null, event, options, userData);
+		}
+
+		function refreshError(event)
+		{
+			options.onSuccess = onSuccess;
+			options.onError = onError;
+			WAF.callHandler(true, event.error, event, options, userData);
+		}
+		
+		options.onSuccess = refreshSuccess;
+		options.onError = refreshError;
+		
+		priv.entityCollection.getEntity(pos < 0 ? 0 : pos, options, userData);
+	}
+}
+
+
 WAF.DataSourceEm._setCurrentElementByPos = function(pos, options, userData){
 	options = options || {};
 	userData = userData;
@@ -1707,7 +1781,7 @@ WAF.DataSourceEm._setCurrentElementByPos = function(pos, options, userData){
 		}
 	}
 	else {
-		ok = false;
+		var ok = false;
 		if (this.entityCollection != null) {
 			if (pos >= 0 && pos < this.entityCollection.length) {
 				ok = true;
@@ -1796,6 +1870,8 @@ WAF.DataSourceEm._mixOptions = function(inOptions, outOptions){
 	if (inOptions) {
 		if (inOptions.orderBy != null) 
 			outOptions.orderBy = inOptions.orderBy;
+		if (inOptions.removeReferenceOnly != null) 
+			outOptions.removeReferenceOnly = inOptions.removeReferenceOnly;
 		if (inOptions.queryPlan != null) 
 			outOptions.queryPlan = inOptions.queryPlan;
 		if (inOptions.queryPath != null) 
@@ -1894,7 +1970,10 @@ WAF.DataSourceEm.getAttribute = function(attName){
 			var root = this._private.dataClass;
 			for (var i = 0, nb = path.length - 1; i < nb; i++) {
 				var s = path[i];
-				var att = root.getAttributeByName(s);
+                                var att = null;
+                                if (root) {				
+                                    att = root.getAttributeByName(s); 
+                                }
 				if (att != null && att.kind == 'relatedEntity') {
 					root = WAF.ds.getDataClass(att.type);
 				}
@@ -1980,7 +2059,7 @@ WAF.DataSourceEm.addNewElement = function(options){
 		priv.currentElemPos = priv.entityCollection.length - 1;
 		priv._updateValues();
 		this.dispatch('onCollectionChange', options);
-		this.dispatch('onCurrentElementChange', options);
+		//this.dispatch('onCurrentElementChange', options);
 	}
 };
 
@@ -2053,7 +2132,7 @@ WAF.DataSourceEm.addEntity = function(entity, options){
 		this.length = priv.entityCollection.length;
 		priv.currentElemPos = priv.entityCollection.length - 1;
 		this.dispatch('onCollectionChange', options);
-		this.dispatch('onCurrentElementChange', options);
+		//this.dispatch('onCurrentElementChange', options);
 		priv._updateValues();
 	}
 };
@@ -2160,6 +2239,14 @@ WAF.DataSourceEm.removeCurrent = function(options, userData){
 	}
 };
 
+
+WAF.DataSourceEm.removeCurrentReference = function(options, userData){
+	var resOp = WAF.tools.handleArgs(arguments, 0);
+	userData = resOp.userData;
+	options = resOp.options;
+	options.removeReferenceOnly = true;
+	this.removeCurrent(options, userData);
+};
 
 
 WAF.DataSourceEm.distinctValues = function(attributeName, options, userData){
@@ -2796,7 +2883,16 @@ WAF.DataSourceEm.declareDependencies = function(dependencies, options){
 		}
 	}
 	else {
-		this._private._addAttributeDependency(dependencies, options);
+		var xoptions = null;
+		var dep = [];
+		for (var i = 0; i < arguments.length; ++i) {
+			var x = arguments[i];
+			if (typeof x === "string")
+				dep.push(x);
+			else
+				xoptions = x;
+		}
+		this.declareDependencies(dep, xoptions);
 	}
 }
 
@@ -2896,6 +2992,7 @@ WAF.DataSourceVar = function(config){
 	this.save = WAF.DataSourceVar.save;
 	
 	this.removeCurrent = WAF.DataSourceVar.removeCurrent;
+	this.removeCurrentReference = WAF.DataSourceVar.removeCurrentReference;
 	
 	this.orderBy = WAF.DataSourceVar.orderBy;
 	
@@ -2930,6 +3027,10 @@ WAF.DataSourceVar._Init = function(config){
 	this.varName = config.binding;
 	if (config.id == null || config.id == "") {
 		config.id = this.varName + "Source";
+	}
+	
+	if (config['data-scope']) {
+		this.scope = config['data-scope'];
 	}
 	
 	var sourceType = config['data-source-type'];
@@ -3017,6 +3118,7 @@ WAF.DataSourceVar._Init = function(config){
 		delete owner.select;
 		delete owner.selectPrevious;
 		delete owner.removeCurrent;
+		delete owner.removeCurrentReference;
 		delete owner.orderBy;
 	}
 	
@@ -3075,7 +3177,7 @@ WAF.DataSourceVar._setCurrentElementByPos = function(pos, options, userData){
 		}
 	}
 	else {
-		ok = false;
+		var ok = false;
 		var arr = this._getFullSet();
 		if (arr != null) {
 			if (pos >= 0 && pos < arr.length) {
@@ -3173,7 +3275,7 @@ WAF.DataSourceVar.addNewElement = function(options){
 		this._private.currentElemPos = arr.length - 1;
 		this._private._updateValues();
 		this.dispatch('onCollectionChange', options);
-		this.dispatch('onCurrentElementChange', options);
+		//this.dispatch('onCurrentElementChange', options);
 	}
 };
 
@@ -3234,18 +3336,29 @@ WAF.DataSourceVar.removeCurrent = function(options, userData){
 				};
 				
 				var stop = false;
-				if (options.onSuccess != null) 
-					stop = options.onSuccess(dsEvent);
 				if (!stop) {
 					if (pos >= arr.length) 
 						pos = arr.length - 1;
-					this.length = arr.length;
-					this.select(pos);
-				}
+	                this.length = arr.length;
+	                this.dispatch('onCollectionChange', options);
+				    this.select(pos);
+	               }
+               if (options.onSuccess != null)
+                   stop = options.onSuccess(dsEvent);
+
 			}
 		}
 	}
 };
+
+
+WAF.DataSourceVar.removeCurrentReference = function(options, userData){
+	var resOp = WAF.tools.handleArgs(arguments, 0);
+	userData = resOp.userData;
+	options = resOp.options;
+	options.removeReferenceOnly = true;
+	this.removeCurrent(options, userData);
+}
 
 
 WAF.DataSourceVar.orderBy = function(orderByString, options, userData){
@@ -3421,7 +3534,7 @@ WAF.DataSourceVar.getElement = function(pos, options, userData){
 		}
 	}
 	else {
-		ok = false;
+		var ok = false;
 		var arr = this._private._getFullSet();
 		if (arr != null) {
 			if (pos >= 0 && pos < arr.length) {
@@ -3487,6 +3600,10 @@ WAF.DataSourceVar.sync = function(options){
 	options = options;
 	
 	if (this._private.oneElementOnly) {
+		var curObj = this.getCurrentElement();
+		if (curObj != null) {
+			this.dispatch('onBeforeCurrentElementChange', options);
+		}
 		this.length = 1;
 		this._private.currentElem = window[this._private.varName];
 		this._private.currentElemPos = 0;
@@ -3512,7 +3629,7 @@ WAF.DataSourceVar.sync = function(options){
 			}
 			this._private._updateValues();
 			this.dispatch('onCollectionChange', options);
-			this.dispatch('onCurrentElementChange', options);
+			//this.dispatch('onCurrentElementChange', options);
 			
 		}
 	}

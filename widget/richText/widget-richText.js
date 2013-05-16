@@ -43,28 +43,35 @@ WAF.Widget.provide(
 
         config      = config || {};
         htmlObject  = $(this.containerNode);
-        plainText   = data.plainText == 'false' || data.plainText === false ? false : true;
-        
+        plainText   = this.plainText = data.plainText == 'false' || data.plainText === false ? false : true;
+
         /*
          * For binded richtext
          */
         if (this.sourceAtt) {
-            this.sourceAtt.addListener(function(e) {          
+            this.sourceAtt.addListener(function(e) { 
+                var widget = e.data.widget,
+                    newValue = widget.getFormattedValue(undefined, false);
+                                
                 if (data.link) {
-                    htmlObject.html('<a href="' + data.link + '" target="' + data.target + '">' + e.data.widget.getFormattedValue() + '</a>');
-                } else {         
-                    htmlObject.html(e.data.widget.getFormattedValue(undefined, plainText));
+                    htmlObject.html('<a href="' + data.link + '" target="' + data.target + '">' + newValue + '</a>');
                 }
+                
+                widget.setValue(newValue);
             }, {
                 listenerID      : config.id,
                 listenerType    : 'staticText',
                 subID           : config.subID ? config.subID : null
             }, {
-                widget:this
+                widget: this
             });
         } else {
-            text = this.getFormattedValue(htmlObject.html());   
-            htmlObject.html(text);
+            // NOTE: in case of not plainText we first need to decode the text since it automatically has been encoded by the c++ json2xhtml parser when saving the page
+			if (!this.plainText) {
+                text = htmlObject.html();
+                text = WAF.utils.string.htmlDecode(text);
+                htmlObject.html(text);
+			}
         }
         
         text = htmlObject.html().replace(/\n/g, '<br/>');
@@ -72,12 +79,14 @@ WAF.Widget.provide(
         /*
          * Add link if exists
          */
+        
+        
         if (data.link) {
             htmlObject.addClass('link');
             htmlObject.html('<a href="' + data.link + '" target="' + data.target + '">' + text + '</a>');
         } else {
             htmlObject.html(text);
-        }     
+        }
         
         switch (data.overflow) {     
             case 'Horizontal' :
@@ -119,13 +128,58 @@ WAF.Widget.provide(
             });
         }
         
-        /*
-         * Fix bug on "&" special char
-         */
-        this.setValue(this.$domNode.html().replace(/&amp;/g, '&'));
+        
+        if (data.labelFor) {
+            htmlObject.bind('click', function() {
+                var id = data.labelFor;
+                var widget = $$(id);
+                if (widget) {
+                    widget.focus(true);
+                }
+            });
+        }
+        
+        
+        if (this.plainText) {
+            this._value = WAF.utils.string.htmlDecode(htmlObject.html());
+        } else {
+            this._value = htmlObject.html(); 
+        }
     },{
+        _value: null,
+        
         setValue : function(value) {
-            this.$domNode.html(value);
+			if (this.plainText) {
+				this.$domNode.text(value);
+			} else {
+				this.$domNode.html(value);
+			}
+            this._value = value;
+        },
+        setURL : function(link, target) {
+            var htmlObject = this.$domNode,
+            text = this.$domNode.text();
+
+            if (target) {
+                this.$domNode.attr('data-target', target);
+            }
+            
+            target = this.$domNode.attr('data-target');
+            
+            this.$domNode.attr('data-link', link);
+            
+            if (link) {
+                htmlObject.addClass('link');
+                htmlObject.html('<a href="' + link + '" target="' + target + '">' + text + '</a>');
+            } else {
+                htmlObject.removeClass('link');
+                htmlObject.html(text);
+            }  
+            
+            
+        },
+        getURL : function() {
+            return this.$domNode.attr('data-link');
         }
     }
 );

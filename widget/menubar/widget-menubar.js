@@ -140,6 +140,7 @@ WAF.Widget.provide(
 
         /*
          * @DEPRECATED : Add margin (margin is now set into the css style sheet)
+         * @DEPRECATED : Add margin (margin is now set into the css style sheet)
          */
         if (tabMargin) {            
             switch (inData.display) {

@@ -69,9 +69,7 @@ WAF.Widget.provide(
                 link += "&language=" + data.language;
             }
 
-            // indicates whether this application uses a sensor (such as a GPS locator) for detecting userвЂ™s location with mobile sensors like GPS
-            // Default value : true 
-            link += "&sensor=" + data.sensor;
+            link += "&sensor=false";
 
             //we instruct the API to only execute the initit() function after the API has fully loaded by passing callback=initit to the Maps API bootstrap:
             link += "&callback=waf.__googleMaps__." + widget.id;
@@ -94,13 +92,13 @@ WAF.Widget.provide(
 
         if(this.source){
             this.source.addListener("all", function(e) {
-            if (!waf.__googleMaps__.isLoaded) {
-                widget._gmap.events.push({
-                    e: e,
-                    type: e.eventKind
-                });
-            }
-        });
+                if (!waf.__googleMaps__.isLoaded) {
+                    widget._gmap.events.push({
+                        e: e,
+                        type: e.eventKind
+                    });
+                }
+            });
         }
     }, 
     {
@@ -165,7 +163,7 @@ WAF.Widget.provide(
                     $(widget).trigger(event);
                 }
             })()
-            );
+                );
             
             google.maps.event.addListener(marker, 'dblclick', (function() {
                 return function(e) {
@@ -310,17 +308,17 @@ WAF.Widget.provide(
          * 
          */
         _initialize: function _initialize() {
-
+            var
+            widget,
+            markerNb;
+            
             if (!this.source) {
                 return;
             }
 
-            var widget,
-            markerNb;
             // How many markers we can display in the map, default value is 1
-            widget = this;
-
-            markerNb = parseInt(this.config['data-marker-number'], 10);
+            widget      = this;
+            markerNb    = parseInt(this.config['data-marker-number'], 10);
 
             this._setMap();
 
@@ -328,7 +326,8 @@ WAF.Widget.provide(
 
                 widget.lower = 0;
                 widget.upper = ((widget.lower + markerNb) < this.source.length) ? widget.lower + markerNb: this.source.length;
-
+                
+                
                 this._setOverLay(widget.lower, widget.upper, widget.source.getCurrentElement().getKey(), false);
 
                 if (widget._gmap.events && widget._gmap.events.length > 0) {
@@ -349,8 +348,8 @@ WAF.Widget.provide(
                                 if (selectedEntity != null) {
                                     widget._updateSelected(selectedEntity);
                                 }
-                             }
-                             widget._deleteOverlays();
+                            }
+                            widget._deleteOverlays();
 
                         } else if (widget._gmap.events[i].type === "onCurrentElementSaveEvents") {
                             widget._onCurrentElementSave(e, widget, markerNb);
@@ -399,16 +398,22 @@ WAF.Widget.provide(
 
         _onCurrentElementChange: function _onCurrentElementChange(e, widget, markerNb) {
 
-            var currentposition = widget.source.getPosition();
+            var
+            mFlag,
+            entityKey,
+            selectedEntity,
+            currentposition;
+            
+            currentposition = widget.source.getPosition();
 
             if (currentposition >= 0) {
                 // we show markerNb on map, if the selected element in the datasource is already displayed,
                 // then we do not refreash the map.
                 // otherwise, we alter the upper and lower limits, we set the mFlag idicator to true and 
                 // we put markers of each element betweeen lower and upper.
-                var entityKey = e.dataSource._private.currentEntity.getKey();
-                var mFlag = false;
-                var selectedEntity;
+                mFlag       = false;
+                entityKey   = e.dataSource._private.currentEntity.getKey();
+                
                 if (currentposition >= widget.upper) {
                     widget.upper = ((currentposition + markerNb) < widget.source.length) ? currentposition + markerNb: widget.source.length;
                     widget.lower = widget.upper - markerNb;
@@ -426,6 +431,7 @@ WAF.Widget.provide(
                 }
 
                 selectedEntity = widget._getOverlay(entityKey);
+                
                 if (selectedEntity != null) {
                     widget._updateSelected(selectedEntity);
                 }
@@ -433,9 +439,12 @@ WAF.Widget.provide(
         },
 
         _onCurrentElementSave: function _onCurrentElementSave(e, widget, markerNb) {
-
-            var currentposition = e.position;
-            var entityKey = e.dataSource._private.currentEntity.getKey();
+            var
+            entityKey,
+            currentposition;
+            
+            entityKey       = e.dataSource._private.currentEntity.getKey();
+            currentposition = e.position;
 
             if (currentposition >= 0) {
 
@@ -468,23 +477,23 @@ WAF.Widget.provide(
                  * left<%attribute.relatedAtt%>right
                  * right and left may contains html tags
                 */
-            var left = '',
+            var 
+            left = '',
             right = '',
-            content = '',
-            // source.attribute
-            attribute = '',
-            // attribute || attribute.relatedAtt
-            infoWindowTxt = '';
-            // infowWindowTxt = left + content + right
+            content = '', // source.attribute
+            attribute = '', // attribute || attribute.relatedAtt
+            infoWindowTxt = '', // infowWindowTxt = left + content + right
+            infoWindowRows;
 
-            var infoWindowRows = infoWindowSource.split('+,');
+            infoWindowRows = infoWindowSource.split('+,');
 
             for (var j = 0; j < infoWindowRows.length; j++) {
 
-                var cell = infoWindowRows[j].split('+:'),
-                attributeTxt = cell[0],
-                endLine = cell[1],
-                leftIndex = attributeTxt.indexOf("<%");
+                var 
+                cell            = infoWindowRows[j].split('+:'),
+                attributeTxt    = cell[0],
+                endLine         = cell[1],
+                leftIndex       = attributeTxt.indexOf("<%");
 
                 // if the source is written between <% %>
                 if (leftIndex != -1) {
@@ -571,22 +580,32 @@ WAF.Widget.provide(
                 // change icon
                 selectedEntity.marker.setIcon(selectedMarkerIcon);
                 selectedEntity.marker.setZIndex(9999);
-
             }
-            if (selectedEntity && selectedEntity.address) {
-                //Changes the center of the map to the given LatLng. If the change is less than both the width and height of the map, 
-                //the transition will be smoothly animated.
-                this._gmap.map.panTo(selectedEntity.address);
+            
+            if (selectedEntity ){
+                if (selectedEntity.marker) {
+                    // change icon
+                    selectedEntity.marker.setIcon(selectedMarkerIcon);
+                    selectedEntity.marker.setZIndex(9999);
+                }
+                if (selectedEntity.address) {
+                    //Changes the center of the map to the given LatLng. If the change is less than both the width and height of the map, 
+                    //the transition will be smoothly animated.
+                    this._gmap.map.panTo(selectedEntity.address);
 
+                }
+
+                // Open infoWindow if autodisplay is true
+                if (selectedEntity.infoWindow && this.config['data-infowindow-display'] === 'true') {
+                    selectedEntity.infoWindow.open(this._gmap.map, selectedEntity.marker);
+                }
+
+                this._gmap.selectedOverlay = selectedEntity;
+            } 
+            
+            if (!selectedEntity && parseInt(this.config['data-marker-number'], 10) == 1){
+                this._deleteOverlays();
             }
-
-            // Open infoWindow if autodisplay is true
-            if (selectedEntity.infoWindow && this.config['data-infowindow-display'] === 'true') {
-                selectedEntity.infoWindow.open(this._gmap.map, selectedEntity.marker);
-            }
-
-            this._gmap.selectedOverlay = selectedEntity;
-
         },
 
         /**
@@ -622,24 +641,36 @@ WAF.Widget.provide(
          */
         _setMap: function _setMap() {
             
-            var widget = this;
+            var
+            widget,
+            mapType,
+            panCtrl,
+            mapZoom,
+            zoomCtrl,
+            scaleCtrl,
+            myOptions,
+            streetViewCtrl;
+            
+            widget          = this;
+            mapType         = this.config["data-mapType"];
+            mapZoom         = parseInt(this.config["data-zoom"]);
+            panCtrl         = this.config["data-panControl"];
+            zoomCtrl        = this.config["data-zoomControl"];
+            scaleCtrl       = this.config["data-scaleControl"];
+            streetViewCtrl  = this.config["data-streetView"];
 
-            var mapType = this.config["data-mapType"];
-            var mapZoom = parseInt(this.config["data-zoom"]);
-            var panCtrl = this.config["data-panControl"];
-            var zoomCtrl = this.config["data-zoomControl"];
-            var scaleCtrl = this.config["data-scaleControl"];
-
-            var myOptions = {
-                mapTypeId: mapType,
-                zoom: mapZoom,
-                center: new google.maps.LatLng(0, 0),
-                panControl: ("false" === panCtrl),
-                zoomControl: ("false" === zoomCtrl),
-                scaleControl: ("false" === scaleCtrl)
+            myOptions       = {
+                mapTypeId           : mapType,
+                zoom                : mapZoom,
+                center              : new google.maps.LatLng(0, 0),
+                panControl          : ("true" === panCtrl),
+                zoomControl         : ("true" === zoomCtrl),
+                scaleControl        : ("true" === scaleCtrl),
+                streetViewControl   : ("true" === streetViewCtrl)
             };
 
-            this._gmap.map = new google.maps.Map(document.getElementById(this.id), myOptions);
+            this._gmap.map  = new google.maps.Map(document.getElementById(this.id), myOptions);
+            
             google.maps.event.addListener(this._gmap.map, 'click', function(e) {
                 var event = $.Event('click', {
                     e: e,
@@ -672,22 +703,32 @@ WAF.Widget.provide(
          */
         _setMarker: function _setMarker(e, langlat) {
 
-            var widget = this;
-            var tooltipSource = this.config['data-binding-marker'];
-            var markerIcon = this.config['data-marker-icon'];
+            var
+            marker,
+            widget,
+            markerIcon,
+            tooltipSource;
+            
+            widget          = this;
+            markerIcon      = this.config['data-marker-icon'] || '';
+            tooltipSource   = this.config['data-binding-tooltip'] || '';
+            
+            marker          = new google.maps.Marker({
+                map: widget._gmap.map  // initiate the marker with our map
+            });
+            
+            if(tooltipSource.indexOf('.') != -1) {
+                tooltipSource = tooltipSource.substr(tooltipSource.indexOf('.') +1);
+            }
 
             if (!markerIcon) {
                 markerIcon = '/walib/WAF/widget/googleMaps/icons/red-dot.png';
             }
-
-            // initiate the marker with our map
-            var marker = new google.maps.Marker({
-                map: widget._gmap.map
-            });
-
+            
             // set marker postion to the returned result
             marker.setPosition(langlat);
             marker.setIcon(markerIcon);
+            
             if (tooltipSource) {
                 var tooltip = e.element[tooltipSource];
                 if (tooltip && tooltip.length > 0) {
@@ -743,13 +784,25 @@ WAF.Widget.provide(
          */
         _setOverLay: function _setOverLay(lower, upper, entityKey, clearOverLayFlag) {
 
-            var widget,
+            var 
+            widget,
             geocoder,
+            errorDiv,
             addressSource;
 
-            widget = this;
-            geocoder = new google.maps.Geocoder();
-            addressSource = this.config['data-address'];
+            
+            widget          = this;
+            geocoder        = new google.maps.Geocoder();
+            addressSource   = this.config['data-address'];
+            
+            if(addressSource.indexOf('.') != -1) {
+                addressSource = addressSource.substr(addressSource.indexOf('.') +1);
+            }
+            
+            errorDiv = this.getErrorDiv();
+            if (errorDiv) {
+                errorDiv.hide();
+            }
 
             for (var i = lower; i < upper; i++) {
 
@@ -799,23 +852,26 @@ WAF.Widget.provide(
                                 geocoder.geocode({
                                     'address': address
                                 }, function(results, status) {
+                                    var 
+                                    marker,
+                                    infoWindow,
+                                    selectedEntity;
+                                    
                                     if (status == google.maps.GeocoderStatus.OK) {
 
                                         if (clearOverLayFlag) {
                                             widget._deleteOverlays();
                                             clearOverLayFlag = false;
                                         }
-                                        var marker,
-                                        infoWindow;
+                                        
+                                        marker      = widget._setMarker(e, results[0].geometry.location);
+                                        infoWindow  = widget._setInfoWindow(e, marker);
 
-                                        marker = widget._setMarker(e, results[0].geometry.location);
-                                        infoWindow = widget._setInfoWindow(e, marker);
-
-                                        var selectedEntity = {
-                                            marker: marker,
-                                            infoWindow: infoWindow,
-                                            address: results[0].geometry.location,
-                                            entityKey: e.element._private.currentEntity.getKey()
+                                        selectedEntity = {
+                                            marker      : marker,
+                                            address     : results[0].geometry.location,
+                                            entityKey   : e.element._private.currentEntity.getKey(),
+                                            infoWindow  : infoWindow
                                         };
 
                                         widget._gmap.overlay.push(selectedEntity);
@@ -825,8 +881,18 @@ WAF.Widget.provide(
                                         }
 
                                     } else {
-                                        // geocode faild to return coordinates (i.e. invalide address)
-                                        console.log("Geocode was not successful for the following reason: " + status);
+                                        var 
+                                        errorDiv = widget.getErrorDiv();
+                                        if(errorDiv) {
+                                            // geocode faild to return coordinates (i.e. invalide address)
+                                            widget.setErrorMessage({
+                                                message: address+" is an invalid address"
+                                            }); 
+                                            widget.getErrorDiv().show(); 
+                                        }
+                                        
+                                        // rest icon and infoWindow of the old selected marker
+                                        widget._updateSelected(null);
                                     }
                                 });
                             }

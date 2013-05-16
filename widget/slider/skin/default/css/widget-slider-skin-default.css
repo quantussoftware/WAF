@@ -183,7 +183,8 @@
 	/*top: 0;
 	bottom: 0;*/
 	top: -7px;
-
+	bottom: -7px;
+	height: auto;
 	/*
 	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, hsla(0, 0%, 100%, 0)), color-stop(0.47, hsla(0, 0%, 100%, 0)), color-stop(0.51, hsla(0, 0%, 100%, 1)), color-stop(1, hsla(0, 0%, 100%, 1)));
 	background-image: -webkit-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 1) 51%, hsla(0, 0%, 100%, 1) 100%);
@@ -205,11 +206,11 @@
  * @subsection ui-slider-handle vertical
  * -----------------------------------
  */
-/*.default.waf-slider.ui-slider-vertical .ui-slider-handle {
+.default.waf-slider.ui-slider-vertical .ui-slider-handle {
 	left: 0;
-	right: 0;
-
-	
+	right: -8px;
+	width: auto;
+/*	
 	background-image: -webkit-gradient(linear, right top, left top, color-stop(0, hsla(0, 0%, 100%, 0)), color-stop(0.47, hsla(0, 0%, 100%, 0)), color-stop(0.51, hsla(0, 0%, 100%, 1)), color-stop(1, hsla(0, 0%, 100%, 1)));
 	background-image: -webkit-linear-gradient(right, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 1) 51%, hsla(0, 0%, 100%, 1) 100%);
 	background-image:    -moz-linear-gradient(right, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0) 47%, hsla(0, 0%, 100%, 1) 51%, hsla(0, 0%, 100%, 1) 100%);
@@ -223,7 +224,8 @@
 	background-image:     -ms-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0.5) 100%);
 	background-image:      -o-linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0.5) 100%);
 	background-image:         linear-gradient(bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0.5) 100%);
-}*/
+*/
+}
 
 
 

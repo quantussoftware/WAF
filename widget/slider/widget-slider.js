@@ -58,7 +58,7 @@ WAF.Widget.provide(
         /*
          * If widget is binded
          */
-        if (this.sourceAtt) { 
+        if (this.sourceAtt) {
             var
             sliderConfig;
 
@@ -123,7 +123,8 @@ WAF.Widget.provide(
 
                      widget._initValue = widget.getValue(); 
                 }
-
+				
+				/*
                 if (widget._sliderConfig.orientation === 'horizontal') {
                     htmlObject.find('.ui-slider-handle').css({
                         height      : htmlObject.height() + 14 + 'px',
@@ -132,6 +133,7 @@ WAF.Widget.provide(
                 } else {
                     htmlObject.find('.ui-slider-handle').width(htmlObject.width() + 14);
                 }
+                */
 
 
             },{
@@ -155,7 +157,16 @@ WAF.Widget.provide(
                 htmlObject.slider(that._sliderConfig);
             }
 
-            if (data.orientation === 'horizontal') {
+            this._initValue = this.getValue();
+
+			//this._redrawHandle(data.orientation);
+        }
+    },{
+		_redrawHandle: function(orientation) {
+			var htmlObject = this.$domNode;
+		
+			/*
+			if (orientation === 'horizontal') {
                 htmlObject.find('.ui-slider-handle').css({
                     height      : htmlObject.height() + 14 + 'px',
                     lineHeight  : htmlObject.height() + 10 + 'px'
@@ -163,10 +174,8 @@ WAF.Widget.provide(
             } else {
                 htmlObject.find('.ui-slider-handle').width(htmlObject.width() + 14);
             }
-
-            this._initValue = this.getValue();
-        }
-    },{
+            */
+		},
         ready : function slider_ready () {
         },
 
@@ -218,6 +227,8 @@ WAF.Widget.provide(
                 this._sliderConfig.values   = [handle1, handle2];
                 this._sliderConfig.value    = null;
             }
+
+			this._sliderConfig.orientation = this.getOrientation();
 
             this.$domNode.slider('destroy');
             
@@ -364,7 +375,8 @@ WAF.Widget.provide(
         setOrientation: function slider_set_orientation(value) {
             var
             width,
-            height;
+            height,
+            pos = false;
             
             value = value.toLowerCase();
             
@@ -381,28 +393,19 @@ WAF.Widget.provide(
                         left : '0%',
                         top: ''
                     });
-                    this.$domNode.children('.ui-slider-handle').css({
-                        width : '100%',
-                        left : '0%',
-                        height: '',
-                        top: ''
-                    });
+                    pos = {'left' : ''};
                 } else {
                     this.$domNode.children('.ui-slider-range').css({
                         height : '100%',
                         top : '0%',
                         left: ''
                     });
-                    this.$domNode.children('.ui-slider-handle').css({
-                        height : '100%',
-                        top : '0%',
-                        width: '',
-                        left: ''
-                    });
+                    pos = {'bottom' : ''};
                 }
+				//this._redrawHandle(value);
             }
-            
             this.$domNode.slider( "option", "orientation", value );  
+            if(pos) $('.ui-slider-handle', this.$domNode).css(pos);
         },
         
         /**

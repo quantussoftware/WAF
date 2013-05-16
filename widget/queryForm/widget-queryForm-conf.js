@@ -32,7 +32,7 @@ WAF.addWidget({
     },
     {
         name	    : 'data-withoper',
-        description : 'Show Operators',
+        description : 'Show operators',
         type        : 'checkbox'
     },
     {
@@ -195,7 +195,12 @@ WAF.addWidget({
         description : 'On Stop Resize',
         category    : 'Resize'
         
-    }
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/
     ],
     properties: {
         style: {
@@ -380,11 +385,12 @@ WAF.addWidget({
             return result;
         },
 
-        buildQueryNode              : function (attName, attType, oper, value) {
+        buildQueryNode              : function (attName, attType, oper, paramnum) {
             var
             a,
             result,
-            opertext;
+            opertext,
+			value = ':'+paramnum;
 
             result = "";
 

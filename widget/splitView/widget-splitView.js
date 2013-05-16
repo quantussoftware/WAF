@@ -27,7 +27,7 @@ WAF.Widget.provide(
      * @class TODO: give a name to this class (ex: WAF.widget.DataGrid)
      * @extends WAF.Widget
      */
-    'splitView', // TODO: set the widget constructor name in CamelCase (ex: "DataGrid")
+    'SplitView', // TODO: set the widget constructor name in CamelCase (ex: "DataGrid")
     
                 
     {
@@ -93,7 +93,7 @@ WAF.Widget.provide(
     ready : function splitView_ready(){
        
         /*
-        * put all waf-navigationView-view to 100% to solve resize issue, to double check
+        * put all waf-navigationView-view to 100% to solve resize issue
         */
 
         var widID           = this.id,

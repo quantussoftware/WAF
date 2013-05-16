@@ -79,7 +79,12 @@ WAF.addWidget({
         name       : 'logout',
         description: 'On Logout',
         category   : 'Login Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [
     {
         name        : 'width',

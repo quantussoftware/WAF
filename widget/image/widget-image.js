@@ -217,6 +217,37 @@ WAF.Widget.provide(
                     });
                     break;
             }  
+        },
+        setURL : function(link, target) {
+            var txtHtml, txtHmlImg,
+            htmlObject = this.$domNode;
+            
+            if (target) {
+                this.$domNode.attr('data-target', target);
+            }
+            target = this.$domNode.attr('data-target');
+            
+            if (htmlObject.get(0).tagName.toLowerCase() !== 'img') {
+                txtHmlImg = htmlObject.find('img').first().parent().html();
+            } else {
+                txtHmlImg = htmlObject.parent().html();
+            }
+            
+            this.$domNode.attr('data-link', link);
+            
+            if (link) {
+                txtHtml = '<a href="' + link + '" target="' + target + '">' + txtHmlImg + '</a>';
+            } else {
+                txtHtml = txtHmlImg;
+            }
+            
+            htmlObject.html(txtHtml);
+            
+        },
+        
+        getURL : function() {
+            return this.$domNode.attr('data-link');
         }
+        
     }
 );

@@ -28,7 +28,8 @@ WAF.addWidget({
     },
     {
         name       : 'data-binding',
-        description: 'Source'
+        description: 'Source',
+        context : ['allowBind']
     },
     {
         name       : 'class',
@@ -36,7 +37,7 @@ WAF.addWidget({
     },
     {
         name       : 'data-errorDiv',
-        description: 'Display Error'
+        description: 'Error ID'
     },
     {
         name        : 'data-checked',
@@ -44,21 +45,24 @@ WAF.addWidget({
         type        : 'checkbox',
         onclick   : function(){
             D.getCurrent().slide(this.htmlObject[0].checked);
-        }
+        },
+        context : ['protected']
     },
     {
         name        : 'data-off',
-        description : 'Off Text',
+        description : 'Off text',
         type        : 'textField',
         defaultValue: 'OFF',
-        category    : 'Texts'
+        category    : 'Texts',
+        context : ['protected']
     },
     {
         name        : 'data-on',
-        description : 'On Text',
+        description : 'On text',
         type        : 'textField',
         defaultValue: 'ON',
-        category   : 'Texts'
+        category   : 'Texts',
+        context : ['protected']
     },
     {
         name        : 'data-label',
@@ -130,7 +134,12 @@ WAF.addWidget({
         name       : 'touchcancel',
         description: 'On Touch Cancel',
         category   : 'Touch Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     properties: {
         style: {
             theme       : true,

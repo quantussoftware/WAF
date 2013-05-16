@@ -13,6 +13,7 @@
 * Consequently, no title, copyright or other proprietary rights
 * other than those specified in the applicable license is granted.
 */
+
 WAF.addWidget({
     type        : 'menuItem',
     lib         : 'WAF',
@@ -24,6 +25,7 @@ WAF.addWidget({
     attributes  : [{
         name        : 'data-text',
         description : 'Text',
+        context     : ['protected'],
         ready       : function () {
             var
             tag;
@@ -43,7 +45,8 @@ WAF.addWidget({
     },{
         name        : 'data-icon',
         type        : 'file',
-        description : 'Icon',
+        description : 'Icon URL',
+        context     : ['protected'],
         ready       : function () {
             var
             tag,
@@ -59,11 +62,25 @@ WAF.addWidget({
         },
         onchange    : function () {
             var
-            tag;
+            tag,
+            linkedTags,
+            iconTag;
 
             tag             = this.data.tag;
 
-            tag.setIcon(this.getValue());
+            if(this.getValue() == ""){
+                linkedTags = tag.getLinks();
+                for(var i = 0; i < linkedTags.length; i++){
+                    if(linkedTags[i].isIcon()){
+                        iconTag = linkedTags[i];
+                        break;
+                    }                        
+                }
+                Designer.tag.deleteWidgets(iconTag);
+            }
+            else{
+                tag.setIcon(this.getValue());
+            }
         }
     },{
         name        : 'data-items',
@@ -97,7 +114,7 @@ WAF.addWidget({
             }
 
             if (subMenu) {
-                items   = subMenu.getItems();
+                items   = subMenu.getItems(undefined, true);
                 itemsL  = items.length;
 
                 for (i = 0; i < itemsL; i += 1) {
@@ -203,7 +220,12 @@ WAF.addWidget({
         name       : 'onmouseup',
         description: 'On Mouse Up',
         category   : 'Mouse Events'
-    }],
+    }/*,
+    {
+        name       : 'onReady',
+        description: 'On Ready',
+        category   : 'UI Events'
+    }*/],
     style: [{
         name        : 'width',
         defaultValue        : function() { 
@@ -220,9 +242,14 @@ WAF.addWidget({
     },
     {
         name        : 'height',
-        defaultValue: function(config) {
-            return (config.parent.getLevel() == 0) ? '50px' : '22px';
-        }
+        name        : 'height',
+        defaultValue: function (config) {
+            var devaultValue = '22px';            
+            if (config && config.parent && config.parent.getLevel() == 0) {
+                devaultValue = '50px';
+            }
+            return devaultValue;
+        }.call()
     }],
     properties: {
         style: {
@@ -388,7 +415,7 @@ WAF.addWidget({
             result,
             menuItems;
 
-            menuItems   = menuBar.getItems(false);
+            menuItems   = menuBar.getItems(false, true);
             menuItemsL  = menuItems.length;
 
             for (i  = 0; i < menuItemsL; i += 1) {
@@ -406,7 +433,7 @@ WAF.addWidget({
          * @function _resize
          * @param {object}
          */
-        tag._resize = function menuitem_resize (params) {            
+        tag._resize = function menuitem_resize (params) {
             var
             dif,
             index,
@@ -423,6 +450,8 @@ WAF.addWidget({
             oldHeight       = params.oldHeight;
             oldWidth        = params.oldWidth;
             menuBar         = this.getParent();
+            if (!menuBar || !menuBar.getOrientation)
+                return;
             barSizes        = menuBar.getSize();
             contentWidget   = this.getContentWidget();
             orientation     = menuBar.getOrientation();
@@ -454,7 +483,7 @@ WAF.addWidget({
 
                 Designer.getHistory().add(action);
                 
-                prevItem = menuBar.getItems()[index-1];
+                prevItem = menuBar.getItems(undefined, true)[index-1];
 
                 /*
                  * Change menubar min size
@@ -586,8 +615,9 @@ WAF.addWidget({
                             label = this.getLabel();
 
                             text    = label ? label.getAttribute('data-text').getValue() : that.getDefaultText('');
-
-                            e.data.tag.setText(text);
+                            
+                            if(label && label.status != 'destroy')
+                                e.data.tag.setText(text);
                         })
                         .bind('onCreateLabel', {tag : this}, function(e, label) {
                             var
@@ -756,7 +786,7 @@ WAF.addWidget({
             labelWidget,
             contentConfig,
             contentWidget;
-
+                        
             size            = this.getSize();
             width           = size.width;
             height          = size.height;
@@ -852,7 +882,7 @@ WAF.addWidget({
             label,
             height,
             iconSize;
-
+            
             icon        = icon          || this.getContentWidget();
             orientation = orientation   || this.getParent().getOrientation();
 
@@ -916,7 +946,7 @@ WAF.addWidget({
             subConfig,
             itemSizes,
             orientation;
-
+            
             menuBar     = this.getParent();
             orientation = menuBar.getOrientation() == 'horizontal' ? 'vertical' : 'horizontal';
 
@@ -956,7 +986,6 @@ WAF.addWidget({
                 }
 
                 subMenu     = D.createTag(subConfig);
-
                 subMenu.getHtmlObject().show();
             }
 
@@ -980,7 +1009,7 @@ WAF.addWidget({
             menuBarItems;
 
             parent          = this.getParent();
-            menuBarItems    = parent.getItems();
+            menuBarItems    = parent.getItems(undefined, true);
             item            = menuBarItems[menuBarItems.length-2];
 
             if (item &&item.getText) {
@@ -1026,10 +1055,10 @@ WAF.addWidget({
             return result;
         }
 
-        if (!param._isLoaded) {   
+        if (!param._isLoaded) {
+            tag.setText( tag.getDefaultText(tag.getLastIndex()) );            
+            
             menuItemsI  = menuBar.checkSize();
-
-            tag.setText( tag.getDefaultText(tag.getLastIndex()) );
         }
 
 
@@ -1037,6 +1066,10 @@ WAF.addWidget({
          * On resize event
          */
         jQTag.bind('onResize', function (e, sizeParams){
+            // prevent call to resize event incorectly being called when menu item's parent is the document (prevents a crash on undo)
+            if (this.getParent().isDocument())
+                return;
+            
             var
             menuBar,
             subMenu;
@@ -1081,7 +1114,7 @@ WAF.addWidget({
             menuItemsL;
 
             menuBar     = e.data.menuBar;
-            menuItems   = menuBar.getItems();
+            menuItems   = menuBar.getItems(undefined, true);
             menuItemsL  = menuItems.length;
             prevItem    = menuItems[menuItemsL - 1];
 

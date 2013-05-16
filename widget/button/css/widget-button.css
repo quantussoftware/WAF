@@ -28,20 +28,20 @@
  * -------------------------------------------------------
  */
 .waf-button {
-	 display: block; 
-	
-	/*display: inline-block;*/
-	
-	overflow: hidden;
-	/*border: 1px dashed red;*/
-	border: 0 none;
-	background: transparent none;
-	
-	-webkit-user-select: none;
-	   -moz-user-select: none;
-	        user-select: none;
+    display: block;
+    overflow: hidden;
 
-	outline: 0 none;
+    background: transparent none;
+    
+    border: 0 none;
+    outline: 0 none;
+    
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+            
+	/* needed by firefox in case of left AND right absolute positions */
+	width: -moz-available;
 }
 
 button::-moz-focus-inner,
@@ -52,8 +52,6 @@ button:focus::-moz-focus-inner {
 /**|*::-moz-button-content {
 	display: block;
 }*/
-
-
 
 .waf-button > img {
 	width: 100%;
@@ -86,6 +84,9 @@ button:focus::-moz-focus-inner {
 .waf-button:disabled > .data-state-4 {
 	display: inline-block;
 }
+
+
+/* focus */
 
 
 
