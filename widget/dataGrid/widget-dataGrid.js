@@ -741,8 +741,12 @@ WAF.classes.DataGrid.gridSourceEventHandler = function(event) {
 
 		var dispatcherOptions = event.dispatcherOptions;
 
+		var that = this;
+
 		if (WAF.PLATFORM.modulesString === "mobile") {
+
 			$("#" + grid.subscriberID + "-viewportNode").trigger('touchend');
+
 		}
 
 		if (dispatcherOptions != null) {
@@ -938,6 +942,11 @@ WAF.classes.GridView = function(){
 				
 				//manage touch device 
 				if (WAF.PLATFORM.modulesString === "mobile") {
+
+					$(window).bind( 'orientationchange', function(e){
+						that.redraw();
+					});
+
 					viewportContainerNode[0].id = options.node[0].id + "-viewportContainerNode";
 					// bind touch events
 					viewportContainerNode.bind('touchmove', {
@@ -3437,12 +3446,14 @@ WAF.classes.GridView = function(){
                         } else {
 				if (col.att.type === "image") {
 					if (value != null && value.__deferred != null && value.__deferred.uri != null) {
+						content = " ";
 						var h = cell.dom.height() - 5;
 						var w = cell.dom.width();
 						if (h > w) 
 							h = w;
 						else 
 							w = h;
+
 						imgSrc = value.__deferred.uri;
 						content = '<img class="inside-img" src="' + imgSrc + '" style="max-height:' + h + 'px;max-width:' + w + 'px;" />';
 						needTip = true;
@@ -3508,8 +3519,8 @@ WAF.classes.GridView = function(){
 		cell.insideCell[0].gridCell = cell;
 		cell.col = col;
 		cell.insideCell[0].gridRow = row;
-		cell.dom.height(row.gridView._private.globals.rowHeight);
-		cell.insideCell.height(row.gridView._private.globals.rowHeight);
+		//cell.dom.height(row.gridView._private.globals.rowHeight);
+		//cell.insideCell.height(row.gridView._private.globals.rowHeight);
 		
 		if (needTip) {
 			//$('img', cell.insideCell).bt('<img src="' + imgSrc + '/>', { trigger: ['mouseover', 'click']});

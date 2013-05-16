@@ -1098,7 +1098,7 @@ if (typeof(WAF) === 'undefined') {
                                 var evt = event.replace('on', '');
                                 try {
                                     if (obj.kind === 'matrix' && event === 'onChildrenDraw') {
-                                        // Exception on children draw events
+                                    	obj.realDrawEvent = callback;
                                     } else {
                                         obj.$domNode.on(evt, callback);
                                         if (obj.isDisabled()) {

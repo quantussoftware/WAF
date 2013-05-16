@@ -44,7 +44,7 @@ WAF.Widget.provide(
             this._sections  = []; // array of accordion's section in dom order
             
             // initial
-            icon = this.$domNode.find('.waf-state-collapsed .waf-accordion-icon').css('background-image');
+            icon = this.$domNode.find('.waf-state-collapsed .waf-accordion-icon').css('background-image') || '';
             this._collapsedIcon = icon.substring(4,icon.length-1);
             this._collapsedIcon = this._collapsedIcon.replace(window.location.origin, '');
             //work around for firefox

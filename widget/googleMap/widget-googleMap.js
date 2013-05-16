@@ -31,6 +31,10 @@ WAF.Widget.provide(
      * @type Function
      **/
     function WAFWidget(config, data, shared) {
+        var
+        widget  = this,
+        $widget = this.$domNode;
+        
         config                  = config                  || {};
         config['id']            = config['id']            || {};
         config['data-mapType']  = config['data-mapType']  || '0';    
@@ -40,7 +44,8 @@ WAF.Widget.provide(
             this.source.addListener(
                 'onAttributeChange', 
                 function(event) {
-                    var widget = event.data.widget;
+                    
+                    
                     if (widget != null) {                              
                         // base url of static google map
                         var map = 'http://maps.google.com/maps/api/staticmap?sensor=false';
@@ -49,16 +54,16 @@ WAF.Widget.provide(
                         map += '&center=' + event.dataSource.getAttribute(widget.att.name).getValue();
 
                         // fix a zoom value
-                        map += '&zoom=' + $('#' + widget.divID).data('zoom');
+                        map += '&zoom=' + $widget.data('zoom');
 
                         // Map type :
-                        map += '&maptype=' + $('#' + widget.divID).data('mapType');
+                        map += '&maptype=' + $widget.data('maptype');
 
                         // fix the size of the image
-                        map += '&size=' + $('#' + widget.divID).css('width').replace('px', '') + 'x' + $('#' + widget.divID).css('height').replace('px', '');
+                        map += '&size=' + parseInt($widget.width()) + 'x' + parseInt($widget.width());
 
                         // add a marker on the map
-                        map += '&markers=color:' + $('#' + widget.divID).data('marker-color') + '|size:' + $('#' + widget.divID).data('marker-size') + '|label:' + $('#' + widget.divID).data('marker-label') + '|' + event.dataSource.getAttribute(widget.att.name).getValue();
+                        map += '&markers=color:' + $widget.data('marker-color') + '|size:' + $widget.data('marker-size') + '|label:' + $widget.data('marker-label') + '|' + event.dataSource.getAttribute(widget.att.name).getValue();
                         event.data.domNode.src = map;
                     }
                 },
@@ -79,13 +84,13 @@ WAF.Widget.provide(
             map += '&zoom=' + config['data-zoom'];
 
             // Map type :
-            map += '&maptype=' + $('#' + config.id).data('mapType');
+            map += '&maptype=' + $widget.data('maptype');
 
             // fix the size of the image
-            map += '&size=' + $('#' + config.id).css('width').replace('px','') + 'x' + $('#' + config.id).css('height').replace('px','');
+            map += '&size=' + $widget.css('width').replace('px','') + 'x' + $widget.css('height').replace('px','');
 
             // add a marker on the map
-            map += '&markers=color:' + $('#' + config.id).data('marker-color') + '|size:' + $('#' + config.id).data('marker-size') + '|label:' + $('#' + config.id).data('marker-label') + '|' + config['data-position'];
+            map += '&markers=color:' + $widget.data('marker-color') + '|size:' + $widget.data('marker-size') + '|label:' + $widget.data('marker-label') + '|' + config['data-position'];
             document.getElementById(config.id).src = map;
         }
     },{

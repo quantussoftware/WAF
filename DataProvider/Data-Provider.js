@@ -105,7 +105,8 @@ WAF.tools.optionMatchers = [
 		"createEmptyCollection",
 		"forceCollectionRefresh",
 		"refreshCollectionFrom",
-		"removeReferenceOnly"
+		"removeReferenceOnly",
+		"timeout"
 	];
 
 WAF.tools.isOptionParam = function(param)

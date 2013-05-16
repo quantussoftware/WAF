@@ -132,7 +132,7 @@ WAF.Widget.provide(
         that.tmp = 0;
         that.scrollDirection = null;
     },{
-        ready : function () {
+        ready : function () { 
             $(WAF).bind('onWAFReady', {
                 widget: this
             }, function(e) {
@@ -273,6 +273,8 @@ WAF.Widget.provide(
             that.tmpSubID   = 0;
             
             that.ChildrenEvent = function() {};
+            
+            that.realDrawEvent = function(event) {};
         
             /*
              * Get ondraw event
@@ -553,7 +555,7 @@ WAF.Widget.provide(
                                 .unbind('scrollstop');
 
 
-                                that.refreshOnScroll = function refreshOnScroll (doNotSelectSource) {  
+                                that.refreshOnScroll = function refreshOnScroll (doNotSelectSource) { 
                                     var
                                     displayedRow,
                                     i,
@@ -1457,7 +1459,8 @@ WAF.Widget.provide(
             totalRow,
             currentRow,
             childrenLength,
-            eltChildrenLength;
+            eltChildrenLength,
+            numberOfRow;
 
             that            = this;
             htmlObject      = $('#' + this.id);
@@ -1589,7 +1592,10 @@ WAF.Widget.provide(
                 });
             } else if (!e.changeDs){
                 eltHtml.hide();
-
+                numberOfRow = that.limit1 + that.moreToShow;
+                for (var i = 0; i < numberOfRow; i++) {
+                    that.rowMap[i] = $('#' + config.id + " [data-pos=" + i + "][data-type!=label]");
+                };
                 return;
             }
             
@@ -1934,11 +1940,10 @@ WAF.Widget.provide(
             $('#' + thisConfig.id).hide();
             //eltHtml.css('left', '-100000px')
 
-            var numberOfRow = that.limit1 + that.moreToShow;
+            numberOfRow = that.limit1 + that.moreToShow;
             for (var i = 0; i < numberOfRow; i++) {
                 that.rowMap[i] = $('#' + config.id + " [data-pos=" + i + "][data-type!=label]");
             };
-
 
             // Reset tmp variables
             that.tmp     = 0;
@@ -1966,7 +1971,21 @@ WAF.Widget.provide(
                 stop: true,
                 onSuccess   : function(e) {  
                     that.tmpSubID = e.data.subID; 
+                    /*
                     e.data.htmlObject.onDraw();
+                    */
+                   var ev = {
+                   	source: source,
+                   	matrix: that,
+                   	pos: pos,
+                   	htmlObject: e.data.htmlObject
+                   };
+                   // fix temporaire en attendant de revoir mieux les matrices
+                   if (ev.htmlObject.css == null)
+                   	ev.htmlObject = $(ev.htmlObject);
+                   	
+                   // fin du fix temporaire
+                   that.realDrawEvent(ev);
                 },
                 delay   : 10,
                 delayID : that.divID

@@ -44,7 +44,6 @@ WAF.Widget.provide(
         that            = this;
         htmlObject      = $(this.containerNode);    
         sliderConfig    = {};
-        
         this._sliderConfig = sliderConfig;
         
         $.extend(that._sliderConfig, {
@@ -54,7 +53,8 @@ WAF.Widget.provide(
             range       : data['range']                 || false,
             orientation : data['orientation']
         });        
-        
+
+
         /*
          * If widget is binded
          */
@@ -104,7 +104,7 @@ WAF.Widget.provide(
                 widgetID        = widget.id;
                 htmlObject      = $('#' + widgetID);
                 isParentMatrix  = htmlObject.parents('.waf-matrix');
-                
+
                 /*
                  * Set value depending on datasource value
                  */                
@@ -115,8 +115,9 @@ WAF.Widget.provide(
                     /*
                      * Create jquery ui slider depending on the platform
                      */
+
                      if ( WAF.PLATFORM.modulesString === "mobile" ) {
-                         htmlObject.slider(sliderConfig).addTouch();
+                        htmlObject.slider(sliderConfig).addTouch();    
                      } else {
                          htmlObject.slider(sliderConfig);
                      }
@@ -152,7 +153,14 @@ WAF.Widget.provide(
             if ( WAF.PLATFORM.modulesString === "mobile" ) { 
                 //could look at  WAF.PLATFORM.type (tablet, phone...) to go deeper on a platform-specific code
                 //call addTouch defined in jquery.ui.ipad.altfix.js
-                htmlObject.slider(that._sliderConfig).addTouch(); 
+                window.setTimeout(function(){
+                    //temp fix
+                    if (!htmlObject) {
+                        htmlObject = $(this.containerNode);
+                    }
+                    htmlObject.slider(that._sliderConfig).addTouch();         
+                }, 100);
+                
             } else {
                 htmlObject.slider(that._sliderConfig);
             }
@@ -161,6 +169,7 @@ WAF.Widget.provide(
 
 			//this._redrawHandle(data.orientation);
         }
+
     },{
 		_redrawHandle: function(orientation) {
 			var htmlObject = this.$domNode;
