@@ -406,16 +406,12 @@ WAF.tags = {
                 // catch the error if there is a pb with the dataSource
                 try {
                     if (position >= 0) {
-                        if (source.select) {
-                            // we need this first select to "force" the select execution
-                            if (position > 0) {
-                                source.select(0);
-                                source.select(position);
-                            } else {
-                                source.select(1);
-                                source.select(position);
-                            }
-                        }
+                        //don't change element for sources which are already there
+    					//instead dispatch an event
+						//use ID attribute of options object to restrict dispatch to the components widgets
+                    	if(source.dispatch){
+                    		source.dispatch("onCurrentElementChange", {ID: id});
+                    	}
                     } else {
                         source.resolveSource();
                     }
