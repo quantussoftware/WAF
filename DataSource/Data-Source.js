@@ -1064,6 +1064,9 @@ WAF.DataSource.dispatch = function(eventKind, options){
 	var checkAttName = false;
 	var match;
 	
+	//by Patrick 2013-04-12
+	var dispatchID = options.ID || null;
+	
 	if (eventKind == "onAttributeChange") {
 		checkAttName = true;
 	}
@@ -1130,6 +1133,22 @@ WAF.DataSource.dispatch = function(eventKind, options){
 						}
 						else {
 							okDispatch = (listener.subID === dispatchSubID);
+						}
+					}
+					//by Patrick 2013-04-12
+					//handle restriction to component widgets
+					if (dispatchID != null) {
+						if (dispatchID) {
+							var regex = new RegExp("^" + dispatchID);
+							var listener_id = listener.id || ""; //listener.id is the widget id
+							match = listener_id.match(regex);
+							
+							if (match && match.length >= 1 && match[0]) {
+								okDispatch = true;
+							}
+							else {
+								okDispatch = false;
+							}
 						}
 					}
 				}
