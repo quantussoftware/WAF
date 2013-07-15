@@ -1064,6 +1064,7 @@ WAF.DataSource.dispatch = function(eventKind, options){
 	var checkAttName = false;
 	var match;
 	
+	//by Patrick 2013-04-12
 	var dispatchID = options.ID || null;
 	
 	if (eventKind == "onAttributeChange") {
